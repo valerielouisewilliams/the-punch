@@ -2,6 +2,9 @@
 const Post = require('../models/Post');
 const jwt = require('jsonwebtoken')
 
+//TODO: need to remove this when we add a FindAll() in post model file
+const { pool } = require('../config/database');
+
 // helper function to get user from token
 const getUserFromToken = req => {
     // get a token from the authorization header
@@ -20,7 +23,7 @@ const getUserFromToken = req => {
 // helper to validate emojis
 const isValidEmoji = (str) => {
     // check for emoji unicode ranges
-    const emojiRegex = /^[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]$/u;
+    const emojiRegex = /^(?:[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1F018}-\u{1F270}]|[\u{238C}-\u{2454}]|[\u{20D0}-\u{20FF}]|[\u{FE00}-\u{FE0F}]|[\u{1F200}-\u{1F2FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1FAB0}-\u{1FABF}]|[\u{1FAC0}-\u{1FAFF}]|[\u{1FAD0}-\u{1FAFF}]|[\u{1FB00}-\u{1FBFF}])+$/u;
     return emojiRegex.test(str);
 };
 
