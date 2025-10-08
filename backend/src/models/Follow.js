@@ -17,10 +17,10 @@ class Follow {
                 throw new Error('Cannot follow yourself');
             }
 
-            const [result] = await pool.execute(
-                'INSERT INTO follows (follower_id, following_id) VALUES (?, ?)',
-                [followerId, followingId]
-            );
+            query = 'INSERT INTO follows (follower_id, following_id) VALUES (?, ?)';
+
+            const [result] = await pool.execute(query, [followerId, followingId]);
+
             return this.findById(result.insertId);
         } catch (error) {
             if (error.code == 'ER_DUP_ENTRY') {
@@ -32,28 +32,28 @@ class Follow {
 
     // delete a follow
     static async deleteByUsers(followerId, followingId) {
-        const [result] = await pool.execute(
-        'DELETE FROM follows WHERE follower_id = ? AND following_id = ?',
-        [followerId, followingId]
-        );
+        query =  'DELETE FROM follows WHERE follower_id = ? AND following_id = ?';
+
+        const [result] = await pool.execute(query, [followerId, followingId]);
+
         return result.affectedRows > 0;
     }
 
     // helper: Check if following
     static async exists(followerId, followingId) {
-        const [rows] = await pool.execute(
-        'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?',
-        [followerId, followingId]
-        );
+        query =  'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?';
+
+        const [rows] = await pool.execute(query, [followerId, followingId]);
+
         return rows.length > 0;
     }
 
     // helper:  Find by ID
     static async findById(id) {
-        const [rows] = await pool.execute(
-        'SELECT * FROM follows WHERE id = ?',
-        [id]
-        );
+        query =  'SELECT * FROM follows WHERE id = ?'
+
+        const [rows] = await pool.execute(query, [id]);
+        
         return rows.length > 0 ? new Follow(rows[0]) : null;
     }
 }

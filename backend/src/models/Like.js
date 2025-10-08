@@ -15,22 +15,20 @@ class Like {
 
   // create a new like
   static async create({post_id, user_id}) {
-    // insert into database
-    const [result] = await pool.execute(
-      `INSERT INTO likes (post_id, user_id, created_at = NOW()) 
-       VALUES (?, ?)`,
-      [post_id, user_id]
-    );
+    query = `INSERT INTO likes (post_id, user_id, created_at = NOW()) 
+       VALUES (?, ?)`;
+
+    const [result] = await pool.execute(query, [post_id, user_id]);
+
     return result.affectedRows > 0;
   }
 
   // delete a like 
   static async delete({post_id}) {
-    // delete from database
-    const [result] = await pool.execute(
-      'DELETE FROM likes WHERE id = ?',
-      [id]
-    );
+    query = 'DELETE FROM likes WHERE id = ?';
+
+    const [result] = await pool.execute(query, [id]);
+
     return result.affectedRows > 0;
   }
 }

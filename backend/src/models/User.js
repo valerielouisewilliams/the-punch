@@ -19,11 +19,9 @@ class User {
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS);
     const password_hash = await bcrypt.hash(password, saltRounds);
 
-    // set up query
     query = `INSERT INTO users (username, email, password_hash, display_name) 
        VALUES (?, ?, ?, ?)`;
     
-    // insert into database
     const [result] = await pool.execute(
       query,
       [username, email, password_hash, display_name || username]
@@ -35,16 +33,13 @@ class User {
 
   // find user by ID
   static async findById(id) {
-    // set up query
     query = 'SELECT * FROM users WHERE id = ? AND is_active = true';
 
-    // execute the query
     const [rows] = await pool.execute(
       query,
       [id]
     );
     
-    // return the data
     return rows.length > 0 ? new User(rows[0]) : null;
   }
 
@@ -87,18 +82,13 @@ class User {
   }
 
   static async findByUsername(username) {
-    // create the query as a string
     const query = ' SELECT id, username, display_name, bio, created_at FROM users WHERE username = ?';
 
-    // run it against the db
     const[rows] = await pool.execute(query, [username]);
 
-    // no user found by this name
     if (rows.length == 0) return null; 
 
-    // return the found user
     return new User(rows[0]);
-
   }
 
   // get safe user data (no password)

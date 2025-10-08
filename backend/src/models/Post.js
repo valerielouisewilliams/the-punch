@@ -15,10 +15,13 @@ class Post {
 
   // create a new post
   static async create({ user_id, text, feeling_emoji }) {
-    // Insert into database
+    // set up query
+    query = `INSERT INTO posts (user_id, text, feeling_emoji) 
+       VALUES (?, ?, ?)`;
+
+    // insert into database
     const [result] = await pool.execute(
-      `INSERT INTO posts (user_id, text, feeling_emoji) 
-       VALUES (?, ?, ?)`,
+      query,
       [user_id, text, feeling_emoji]
     );
 
@@ -28,39 +31,48 @@ class Post {
 
   // find post by ID
   static async findById(id) {
-    const [rows] = await pool.execute(
-      'SELECT * FROM posts WHERE id = ?',
-      [id]
-    );
+    // set up query
+    query = 'SELECT * FROM posts WHERE id = ?';
 
+    // execute the query
+    const [rows] = await pool.execute(query, [id]);
+
+    // return the data
     return rows.length > 0 ? new Post(rows[0]) : null;
   }
 
   // fetches all posts for a user
   static async findAllByUser(userId) {
-    const [rows] = await pool.execute(
-        'SELECT * FROM posts WHERE user_id = ? and is_deleted = 0',
-        [userId]
-    );
+    // set up the query
+    query = 'SELECT * FROM posts WHERE user_id = ? and is_deleted = 0';
 
+    // execute the query
+    const [rows] = await pool.execute(query, [userId]);
+
+    // return the data
     return rows.map(row => new Post(row));
   }
 
   // update a post
   static async update(id, { text, feeling_emoji}) {
-    const [result] = await pool.execute(
-        'UPDATE posts SET text = ?, feeling_emoji = ?, updated_at = NOW() WHERE id = ?',
-        [text, feeling_emoji, id]
-    );
+    // set up the query
+    query =  'UPDATE posts SET text = ?, feeling_emoji = ?, updated_at = NOW() WHERE id = ?';
+
+    // execute the query
+    const [result] = await pool.execute(query, [text, feeling_emoji, id]);
+
+    // return the data
     return this.findById(id);
   }
 
   // delete a post by ID
   static async softDelete(id) {
-    const [result] = await pool.execute(
-        'UPDATE posts SET is_deleted = 1, updated_at = NOW() where id = ?',
-        [id]
-    );
+    // set up the query
+    query = 'UPDATE posts SET is_deleted = 1, updated_at = NOW() where id = ?';
+
+    // execute the query
+    const [result] = await pool.execute(query, [id]);
+
     // return true if a row was updated, false otherwise
     return result.affectedRows > 0;
   }
