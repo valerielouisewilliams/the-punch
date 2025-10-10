@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 // helper function to create JWT tokens
 const generateToken = (userId) => {
   return jwt.sign(
-    { id: userId },                    // data to store in token
-    process.env.JWT_SECRET,            // secret key from .env
-    { expiresIn: process.env.JWT_EXPIRE } // token expires in 7 days
+    { id: userId },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 };
 
@@ -56,6 +56,8 @@ const register = async (req, res) => {
 
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error details:', error.message);           // ADD THIS
+    console.error('Error stack:', error.stack);               // ADD THIS
     res.status(500).json({
       success: false,
       message: 'Something went wrong during registration'
@@ -116,4 +118,29 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+// get current user (from token)
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findByIdWithStats(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user.getPublicProfile()
+    });
+  } catch (error) {
+    console.error('Get current user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Could not retrieve user profile'
+    });
+  }
+};
+
+module.exports = { register, login, getCurrentUser };

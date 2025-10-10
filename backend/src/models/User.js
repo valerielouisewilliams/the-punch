@@ -16,10 +16,10 @@ class User {
   // create a new user
   static async create({ username, email, password, display_name }) {
     // hash the password for security
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS);
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
 
-    query = `INSERT INTO users (username, email, password_hash, display_name) 
+    const query = `INSERT INTO users (username, email, password_hash, display_name) 
        VALUES (?, ?, ?, ?)`;
     
     const [result] = await pool.execute(
@@ -33,24 +33,18 @@ class User {
 
   // find user by ID
   static async findById(id) {
-    query = 'SELECT * FROM users WHERE id = ? AND is_active = true';
+    const query = 'SELECT * FROM users WHERE id = ? AND is_active = true';
 
-    const [rows] = await pool.execute(
-      query,
-      [id]
-    );
+    const [rows] = await pool.execute(query, [id]);
     
     return rows.length > 0 ? new User(rows[0]) : null;
   }
 
-  // find user by email (for autb)
+  // find user by email (for auth)
   static async findByEmail(email) {
-    query = 'SELECT * FROM users WHERE email = ? AND is_active = true';
+    const query = 'SELECT * FROM users WHERE email = ? AND is_active = true';
 
-    const [rows] = await pool.execute(
-      query,
-      [email]
-    );
+    const [rows] = await pool.execute(query, [email]);
     
     return rows.length > 0 ? new User(rows[0]) : null;
   }
@@ -65,14 +59,14 @@ class User {
     const query = `
       SELECT u.*,
         (SELECT COUNT(*) FROM follows WHERE following_id = u.id) as follower_count,
-        (SELECT COUNT(*) FROM follows WHERE follower_id - u.id) as following_count
+        (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count
       FROM users u
-      WHERE u.id = ? and u.is_active = true
+      WHERE u.id = ? AND u.is_active = true
     `;
 
-    const[rows] = await pool.execute(query, [userId]);
+    const [rows] = await pool.execute(query, [userId]);
 
-    if (rows.length == 0) return null;
+    if (rows.length === 0) return null;
 
     const user = new User(rows[0]);
     user.follower_count = parseInt(rows[0].follower_count);
@@ -81,12 +75,13 @@ class User {
     return user;
   }
 
+  // find user by username
   static async findByUsername(username) {
-    const query = ' SELECT id, username, display_name, bio, created_at FROM users WHERE username = ?';
+    const query = 'SELECT id, username, display_name, bio, created_at FROM users WHERE username = ? AND is_active = true';
 
-    const[rows] = await pool.execute(query, [username]);
+    const [rows] = await pool.execute(query, [username]);
 
-    if (rows.length == 0) return null; 
+    if (rows.length === 0) return null; 
 
     return new User(rows[0]);
   }

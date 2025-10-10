@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 568265902E8C29EA0059617D /* Build configuration list for PBXProject "The Punch" */;
+			buildConfigurationList = 568265902E8C29EA0059617D /* Build configuration list for PBXProject "ThePunch" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -513,7 +513,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		568265902E8C29EA0059617D /* Build configuration list for PBXProject "The Punch" */ = {
+		568265902E8C29EA0059617D /* Build configuration list for PBXProject "ThePunch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				568265B42E8C29EB0059617D /* Debug */,

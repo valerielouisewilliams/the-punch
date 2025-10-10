@@ -16,7 +16,7 @@ class Post {
   // create a new post
   static async create({ user_id, text, feeling_emoji }) {
     // set up query
-    query = `INSERT INTO posts (user_id, text, feeling_emoji) 
+    const query = `INSERT INTO posts (user_id, text, feeling_emoji) 
        VALUES (?, ?, ?)`;
 
     // insert into database
@@ -32,7 +32,7 @@ class Post {
   // find post by ID
   static async findById(id) {
     // set up query
-    query = 'SELECT * FROM posts WHERE id = ?';
+    const query = 'SELECT * FROM posts WHERE id = ? AND is_deleted = 0';
 
     // execute the query
     const [rows] = await pool.execute(query, [id]);
@@ -44,7 +44,7 @@ class Post {
   // fetches all posts for a user
   static async findAllByUser(userId) {
     // set up the query
-    query = 'SELECT * FROM posts WHERE user_id = ? and is_deleted = 0';
+    const query = 'SELECT * FROM posts WHERE user_id = ? AND is_deleted = 0 ORDER BY created_at DESC';
 
     // execute the query
     const [rows] = await pool.execute(query, [userId]);
@@ -54,9 +54,9 @@ class Post {
   }
 
   // update a post
-  static async update(id, { text, feeling_emoji}) {
+  static async update(id, { text, feeling_emoji }) {
     // set up the query
-    query =  'UPDATE posts SET text = ?, feeling_emoji = ?, updated_at = NOW() WHERE id = ?';
+    const query = 'UPDATE posts SET text = ?, feeling_emoji = ?, updated_at = NOW() WHERE id = ?';
 
     // execute the query
     const [result] = await pool.execute(query, [text, feeling_emoji, id]);
@@ -68,13 +68,21 @@ class Post {
   // delete a post by ID
   static async softDelete(id) {
     // set up the query
-    query = 'UPDATE posts SET is_deleted = 1, updated_at = NOW() where id = ?';
+    const query = 'UPDATE posts SET is_deleted = 1, updated_at = NOW() WHERE id = ?';
 
     // execute the query
     const [result] = await pool.execute(query, [id]);
 
     // return true if a row was updated, false otherwise
     return result.affectedRows > 0;
+  }
+
+  // check if user owns this post
+  static async isOwner(postId, userId) {
+    const query = 'SELECT user_id FROM posts WHERE id = ?';
+    const [rows] = await pool.execute(query, [postId]);
+    
+    return rows.length > 0 && rows[0].user_id === userId;
   }
 }
 

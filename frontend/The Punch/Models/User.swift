@@ -7,18 +7,20 @@
 
 import Foundation
 
-/**
- User structure
- */
-struct User: Identifiable, Codable, Hashable {
-    let id: UUID
+struct User: Codable, Identifiable {
+    let id: Int
     let username: String
-    let displayName: String?
+    let email: String?
+    let displayName: String
     let bio: String?
-    let punches: Int
-    let friends: Int
-    let streak: Int
-    let feeling: String?
-    let emoji: String?
-    let isFriend: Bool
+    let createdAt: String
+    let followerCount: Int?
+    let followingCount: Int?
+}
+
+struct UserProfile: Codable, Identifiable {
+    let id: Int
+    let username: String
+    let displayName: String
+    let bio: String?
 }
