@@ -7,33 +7,35 @@
 
 import SwiftUI
 
-/**
- The view that allows users to log in to their account.
- */
 struct LoginView: View {
-    @State private var username = ""
+    // Single source of truth for auth state
+    @StateObject private var authManager = AuthManager.shared
+
+    @State private var email = ""
     @State private var password = ""
-    @State private var navigateToFeed = false  // 👈 controls navigation
+    @State private var isLoading = false
+    @State private var errorMessage = ""
+    @State private var showError = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
-                
+
                 VStack(spacing: 28) {
                     Spacer()
-                    
+
                     Image("ThePunchLogo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 180, height: 180)
-                    
+
                     Text("ThePunch")
                         .font(.system(size: 38, weight: .bold))
                         .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
-                    
+
                     VStack(spacing: 18) {
-                        TextField("Username", text: $username)
+                        TextField("Email", text: $email)
                             .padding()
                             .background(
                                 RoundedRectangle(cornerRadius: 25)
@@ -41,7 +43,8 @@ struct LoginView: View {
                             )
                             .foregroundColor(.white)
                             .autocapitalization(.none)
-                        
+                            .keyboardType(.emailAddress)
+
                         SecureField("Password", text: $password)
                             .padding()
                             .background(
@@ -51,25 +54,76 @@ struct LoginView: View {
                             .foregroundColor(.white)
                     }
                     .padding(.horizontal, 50)
-                    
-                    OrangeButton(title: "Log In") {
-                        // For testing: navigate directly to FeedView
-                        navigateToFeed = true
+
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+                    } else {
+                        OrangeButton(title: "Log In") {
+                            Task { await login() }
+                        }
+                        .padding(.horizontal, 50)
+                        .disabled(email.isEmpty || password.isEmpty)
+                        .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1.0)
                     }
-                    .padding(.horizontal, 50)
-                    
+
+                    NavigationLink("Don't have an account? Sign Up") {
+                        CreateAccountView()
+                    }
+                    .foregroundColor(.white)
+                    .font(.footnote)
+
                     Spacer()
                 }
             }
-            // Hidden navigation link that triggers programmatically
-            .background(
-                NavigationLink(destination: MainTabView(),
-                               isActive: $navigateToFeed) {
-                    EmptyView()
-                }
-                .hidden()
-            )
+            .alert("Login Failed", isPresented: $showError) {
+                Button("OK") { }
+            } message: { Text(errorMessage) }
+        }
+        .onAppear { testAPIConnection() }
+    }
+
+    // Login
+    func login() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let response = try await APIService.shared.login(email: email, password: password)
+
+            // Single source of truth: persists token to "authToken" + user; flips isAuthenticated
+            await MainActor.run {
+                AuthManager.shared.completeLogin(
+                    user: response.data.user,
+                    token: response.data.token 
+                )
+            }
+
+            #if DEBUG
+            let saved = UserDefaults.standard.string(forKey: "authToken") ?? "<nil>"
+            print("Login OK. Saved authToken prefix:", saved.prefix(12), "…")
+            #endif
+
+        } catch let apiErr as APIError {
+            errorMessage = apiErr.localizedDescription
+            showError = true
+        } catch {
+            errorMessage = "Something went wrong. Please try again."
+            showError = true
+        }
+    }
+
+    // Quick connectivity sanity check
+    func testAPIConnection() {
+        Task {
+            do {
+                print("Testing API connection…")
+                let response = try await APIService.shared.getPosts()
+                print("API Connected! Found \(response.data.count) posts")
+            } catch {
+                print("API Connection Failed:", error.localizedDescription)
+            }
         }
     }
 }
-

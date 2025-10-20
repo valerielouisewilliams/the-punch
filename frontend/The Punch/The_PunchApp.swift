@@ -9,9 +9,18 @@ import SwiftUI
 
 @main
 struct The_PunchApp: App {
+    // Watch AuthManager for changes
+    @StateObject private var authManager = AuthManager.shared
+    
     var body: some Scene {
         WindowGroup {
-            SplashScreenView() // First nav to splashscreen view, need to update this once we connect backend
+            // Switches when isAuthenticated changes
+            if authManager.isAuthenticated {
+                MainTabView()
+                    .environmentObject(authManager)
+            } else {
+                LoginView()
+            }
         }
     }
 }

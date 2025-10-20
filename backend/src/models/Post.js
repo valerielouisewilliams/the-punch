@@ -13,6 +13,31 @@ class Post {
     this.is_deleted = postData.is_deleted;
   }
 
+  static async getFeedForUser(currentUserId, { limit = 50, offset = 0 } = {}) {
+  // Include followed users + self
+    const query = `
+      SELECT 
+        p.*,
+        u.username AS author_username,
+        u.display_name AS author_display_name,
+        u.avatar_url AS author_avatar_url
+      FROM posts p
+      INNER JOIN users u ON u.id = p.user_id
+      WHERE 
+        p.is_deleted = 0
+        AND p.user_id IN (
+          SELECT following_id FROM follows WHERE follower_id = ?
+          UNION SELECT ? -- include own posts
+        )
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?;
+    `;
+
+    const [rows] = await pool.execute(query, [currentUserId, currentUserId, Number(limit), Number(offset)]);
+    return rows.map(r => new Post(r));
+  }
+
+
   // create a new post
   static async create({ user_id, text, feeling_emoji }) {
     // set up query

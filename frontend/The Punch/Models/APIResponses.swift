@@ -42,9 +42,8 @@ struct PostsResponse: Codable {
 }
 
 struct PostResponse: Codable {
-    let success: Bool
     let message: String
-    let data: Post
+    let post: Post
 }
 
 struct PostDetailResponse: Codable {

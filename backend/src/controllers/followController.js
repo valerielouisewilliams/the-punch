@@ -1,104 +1,93 @@
 const Follow = require('../models/Follow');
-const User = require('../models/User');
 
 const followController = {
-  // Follow a user
+  // POST /api/follows/user/:userId
   async followUser(req, res) {
     try {
-      const { userId } = req.params;
-      const followerId = req.user.userId;
+      const targetParam = req.params.userId;
+      const followerId = req.user?.id;
 
-      // Check if trying to follow yourself
-      if (followerId === parseInt(userId)) {
+      if (!followerId) {
+        return res.status(401).json({ error: 'Follower ID is missing - authentication issue' });
+      }
+      if (!targetParam) {
+        return res.status(400).json({ error: 'Target userId parameter is required' });
+      }
+
+      const followingId = Number.parseInt(targetParam, 10);
+      const followerIdNum = Number.parseInt(followerId, 10);
+
+      if (Number.isNaN(followingId) || Number.isNaN(followerIdNum)) {
+        return res.status(400).json({ error: 'Invalid user IDs' });
+      }
+      if (followerIdNum === followingId) {
         return res.status(400).json({ error: 'Cannot follow yourself' });
       }
 
-      // Check if user to follow exists
-      const userToFollow = await User.findById(userId);
-      if (!userToFollow) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      // Check if already following
-      const alreadyFollowing = await Follow.exists(followerId, userId);
-      if (alreadyFollowing) {
-        return res.status(400).json({ error: 'Already following this user' });
-      }
-
-      const follow = await Follow.create(followerId, userId);
-
-      res.status(201).json({
-        message: 'User followed successfully',
-        follow
-      });
+      await Follow.create(followerIdNum, followingId);
+      return res.status(201).json({ success: true, message: 'Followed successfully' });
     } catch (error) {
-      console.error('Follow user error:', error);
-
-      if (error.message === 'Cannot follow yourself' || 
-          error.message === 'Already following this user') {
+      if (error.message === 'Already following this user' || error.message === 'Cannot follow yourself') {
         return res.status(400).json({ error: error.message });
       }
-
-      res.status(500).json({ 
-        error: 'Failed to follow user',
-        details: error.message 
-      });
+      console.error('Follow user error:', error);
+      return res.status(500).json({ error: 'Failed to follow user', details: error.message });
     }
   },
 
-  // Unfollow a user
+  // DELETE /api/follows/user/:userId
   async unfollowUser(req, res) {
     try {
-      const { userId } = req.params;
-      const followerId = req.user.userId;
+      const targetParam = req.params.userId;
+      const followerId = req.user?.id;
 
-      // Check if user exists
-      const userToUnfollow = await User.findById(userId);
-      if (!userToUnfollow) {
-        return res.status(404).json({ error: 'User not found' });
+      if (!followerId) {
+        return res.status(401).json({ error: 'Follower ID is missing - authentication issue' });
+      }
+      if (!targetParam) {
+        return res.status(400).json({ error: 'Target userId parameter is required' });
       }
 
-      // Check if actually following
-      const isFollowing = await Follow.exists(followerId, userId);
-      if (!isFollowing) {
-        return res.status(400).json({ error: 'Not following this user' });
+      const followingId = Number.parseInt(targetParam, 10);
+      const followerIdNum = Number.parseInt(followerId, 10);
+
+      if (Number.isNaN(followingId) || Number.isNaN(followerIdNum)) {
+        return res.status(400).json({ error: 'Invalid user IDs' });
       }
 
-      const deleted = await Follow.deleteByUsers(followerId, userId);
-
-      if (!deleted) {
-        return res.status(500).json({ error: 'Failed to unfollow user' });
-      }
-
-      res.json({
-        message: 'User unfollowed successfully'
-      });
+      await Follow.delete(followerIdNum, followingId);
+      return res.json({ success: true, message: 'Unfollowed successfully' });
     } catch (error) {
       console.error('Unfollow user error:', error);
-      res.status(500).json({ 
-        error: 'Failed to unfollow user',
-        details: error.message 
-      });
+      return res.status(500).json({ error: 'Failed to unfollow user', details: error.message });
     }
   },
 
-  // Check if current user is following another user
+  // GET /api/follows/user/:userId/check
   async checkIfFollowing(req, res) {
     try {
-      const { userId } = req.params;
-      const followerId = req.user.userId;
+      const targetParam = req.params.userId;
+      const followerId = req.user?.id;
 
-      const isFollowing = await Follow.exists(followerId, userId);
+      if (!followerId) {
+        return res.status(401).json({ error: 'Follower ID is missing - authentication issue' });
+      }
+      if (!targetParam) {
+        return res.status(400).json({ error: 'Target userId parameter is required' });
+      }
 
-      res.json({
-        following: isFollowing
-      });
+      const followingId = Number.parseInt(targetParam, 10);
+      const followerIdNum = Number.parseInt(followerId, 10);
+
+      if (Number.isNaN(followingId) || Number.isNaN(followerIdNum)) {
+        return res.status(400).json({ error: 'Invalid user IDs' });
+      }
+
+      const isFollowing = await Follow.isFollowing(followerIdNum, followingId);
+      return res.json({ following: isFollowing });
     } catch (error) {
       console.error('Check follow error:', error);
-      res.status(500).json({ 
-        error: 'Failed to check follow status',
-        details: error.message 
-      });
+      return res.status(500).json({ error: 'Failed to check follow status', details: error.message });
     }
   }
 };

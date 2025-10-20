@@ -2,36 +2,61 @@
 //  MainTabView.swift
 //  The Punch
 //
-//  Created by Valerie Williams on 10/6/25.
+//  Created by Valerie Williams on 10/19/25.
 //
 
 import SwiftUI
 
-/**
- This is the bottom navigation bar that lets uses go to their feed, search for friends, and view their profiles.
- */
 struct MainTabView: View {
+    @State private var showComposer = false
+    @EnvironmentObject var auth: AuthManager
+
     var body: some View {
-        NavigationStack {
+        ZStack {
             TabView {
                 FeedView()
-                    .tabItem {
-                        Label("Feed", systemImage: "house.fill")
-                    }
+                    .tabItem { Label("Feed", systemImage: "house.fill") }
 
                 SearchView()
-                    .tabItem {
-                        Label("Search", systemImage: "magnifyingglass")
-                    }
+                    .tabItem { Label("Search", systemImage: "magnifyingglass") }
 
-                UserProfileView(userID: UUID(), isOwnProfile: true)
-                    .tabItem {
-                        Label("Profile", systemImage: "person.crop.circle")
-                    }
+                if let user = auth.currentUser {
+                    UserProfileView(userId: user.id)
+                        .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+                }
+                    
             }
             .tint(Color(red: 0.95, green: 0.60, blue: 0.20))
             .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar(.hidden, for: .navigationBar) // hides nav bar everywhere
+            .toolbar(.hidden, for: .navigationBar)
+
+            // Floating Create button for posts
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button {
+                        showComposer = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color(red: 0.95, green: 0.60, blue: 0.20))
+                            .clipShape(Circle())
+                            .shadow(radius: 8, y: 4)
+                    }
+                    Spacer()
+                }
+            }
+            .padding(.bottom, 60)
         }
+        .sheet(isPresented: $showComposer) {
+            CreatePunchView(onPosted: { _ in
+                //TODO: add code to refresh feed here
+            })
+        }
+        
     }
+
 }
