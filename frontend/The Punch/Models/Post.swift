@@ -30,9 +30,29 @@ struct PostDetail: Codable {
     let likeCount: Int
 }
 
-struct FeedResponse: Codable {
-    let success: Bool
-    let data: [Post]
-    let pagination: Pagination?
-    struct Pagination: Codable { let limit: Int; let offset: Int; let count: Int }
+struct FeedPost: Codable, Identifiable, Equatable {
+    let id: Int
+    let text: String
+    let feelingEmoji: String?
+    let createdAt: String
+    let updatedAt: String
+    let user: PostUser
+    let engagement: PostEngagement
+}
+
+struct PostUser: Codable, Equatable {
+    let id: Int
+    let username: String
+    let displayName: String?
+    let avatarUrl: String?
+    
+    var displayNameOrUsername: String {
+        return displayName ?? username
+    }
+}
+
+struct PostEngagement: Codable, Equatable {
+    let likeCount: Int
+    let commentCount: Int
+    let userHasLiked: Bool
 }

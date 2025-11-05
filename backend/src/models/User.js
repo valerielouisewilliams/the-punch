@@ -86,6 +86,174 @@ class User {
     return new User(rows[0]);
   }
 
+static async getUserFeed(
+  currentUserId,
+  days,          // e.g., req.query.days
+  limit,
+  offset,
+  includeOwn     // e.g., req.query.includeOwn === 'true'
+) {
+    const userId     = Number(currentUserId);
+  const pageLimit  = Number.isFinite(Number(limit))  ? Number(limit)  : 20;
+  const pageOffset = Number.isFinite(Number(offset)) ? Number(offset) : 0;
+
+  if (!Number.isFinite(userId)) throw new Error('currentUserId must be a number');
+
+  let sql = `
+    SELECT
+      p.id, p.user_id, p.text, p.feeling_emoji, p.created_at, p.updated_at,
+      u.username, u.display_name, u.avatar_url,
+      (SELECT COUNT(*) FROM likes    WHERE post_id = p.id)                              AS like_count,
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND is_deleted = 0)           AS comment_count,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = ?)                  AS user_has_liked
+    FROM posts p
+    INNER JOIN users u   ON p.user_id = u.id
+    INNER JOIN follows f ON p.user_id = f.following_id
+    WHERE
+      (f.follower_id = ? ${includeOwn === 'true' || includeOwn === true ? 'OR p.user_id = ?' : ''})
+      AND p.is_deleted = 0
+      AND u.is_active = 1
+      AND p.created_at >= (NOW() - INTERVAL 1 DAY)     -- <- only fetch posts from last 24 hours
+    ORDER BY p.created_at DESC
+    LIMIT CAST(? AS UNSIGNED) OFFSET CAST(? AS UNSIGNED)
+  `;
+
+  const params = [userId, userId];
+  if (includeOwn === 'true' || includeOwn === true) params.push(userId);
+  params.push(pageLimit, pageOffset);
+
+  // Optional one-time debug:
+  // console.log('PARAMS:', params, params.map(x => typeof x));
+
+  const [rows] = await pool.execute(sql, params);
+  return rows;
+}
+
+
+//   static async getUserFeed(userId, limit = 20, offset = 0, daysBack = 2) {
+//   try {
+//     // Query to get posts from users that the current user follows
+//     // within the specified time period (default: last 2 days)
+//     const [posts] = await pool.execute(
+//       `SELECT 
+//         p.id,
+//         p.user_id,
+//         p.text,
+//         p.feeling_emoji,
+//         p.created_at,
+//         p.updated_at,
+//         u.username,
+//         u.display_name,
+//         u.avatar_url,
+//         -- Count likes for each post
+//         (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count,
+//         -- Count comments for each post  
+//         (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND is_deleted = 0) AS comment_count,
+//         -- Check if current user liked this post
+//         EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = ?) AS user_has_liked
+//       FROM posts p
+//       INNER JOIN users u ON p.user_id = u.id
+//       INNER JOIN follows f ON p.user_id = f.following_id
+//       WHERE 
+//         f.follower_id = ?
+//         AND p.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+//         AND p.is_deleted = 0
+//         AND u.is_active = 1
+//       ORDER BY p.created_at DESC
+//       LIMIT ? OFFSET ?`,
+//       [userId, userId, daysBack, limit, offset]
+//     );
+
+//     // Format the posts to include user info and engagement metrics
+//     const formattedPosts = posts.map(post => ({
+//       id: post.id,
+//       text: post.text,
+//       feelingEmoji: post.feeling_emoji,
+//       createdAt: post.created_at,
+//       updatedAt: post.updated_at,
+//       user: {
+//         id: post.user_id,
+//         username: post.username,
+//         displayName: post.display_name,
+//         avatarUrl: post.avatar_url
+//       },
+//       engagement: {
+//         likeCount: post.like_count,
+//         commentCount: post.comment_count,
+//         userHasLiked: Boolean(post.user_has_liked)
+//       }
+//     }));
+
+//     return formattedPosts;
+//   } catch (error) {
+//     console.error('Error fetching user feed:', error);
+//     throw error;
+//   }
+// }
+
+// Alternative: Instance method version (call on a user object)
+async getFeed(limit = 20, offset = 0, daysBack = 2) {
+  return User.getUserFeed(this.id, limit, offset, daysBack);
+}
+
+// BONUS: Get feed including user's own posts
+static async getUserFeedWithOwnPosts(userId, limit = 20, offset = 0, daysBack = 2) {
+  try {
+    const [posts] = await pool.execute(
+      `SELECT 
+        p.id,
+        p.user_id,
+        p.text,
+        p.feeling_emoji,
+        p.created_at,
+        p.updated_at,
+        u.username,
+        u.display_name,
+        u.avatar_url,
+        (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS like_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND is_deleted = 0) AS comment_count,
+        EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = ?) AS user_has_liked
+      FROM posts p
+      INNER JOIN users u ON p.user_id = u.id
+      LEFT JOIN follows f ON p.user_id = f.following_id AND f.follower_id = ?
+      WHERE 
+        (f.follower_id = ? OR p.user_id = ?)
+        AND p.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+        AND p.is_deleted = 0
+        AND u.is_active = 1
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?`,
+      [userId, userId, userId, userId, daysBack, limit, offset]
+    );
+
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      text: post.text,
+      feelingEmoji: post.feeling_emoji,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
+      isOwnPost: post.user_id === userId, // Flag to identify user's own posts
+      user: {
+        id: post.user_id,
+        username: post.username,
+        displayName: post.display_name,
+        avatarUrl: post.avatar_url
+      },
+      engagement: {
+        likeCount: post.like_count,
+        commentCount: post.comment_count,
+        userHasLiked: Boolean(post.user_has_liked)
+      }
+    }));
+
+    return formattedPosts;
+  } catch (error) {
+    console.error('Error fetching user feed with own posts:', error);
+    throw error;
+  }
+}
+  
+
   // get safe user data (no password)
   getPublicProfile() {
     return {

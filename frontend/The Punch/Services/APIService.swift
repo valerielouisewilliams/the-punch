@@ -405,3 +405,134 @@ enum APIError: Error, LocalizedError {
         }
     }
 }
+
+extension APIService {
+    
+    // Get user's feed (posts from people they follow)
+    func getUserFeed(
+        limit: Int = 20,
+        offset: Int = 0,
+        days: Int = 2,
+        includeOwn: Bool = false,
+        token: String
+    ) async throws -> FeedResponse {
+        var components = URLComponents(string: "\(baseURL)/feed")!
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "offset", value: String(offset)),
+            URLQueryItem(name: "days", value: String(days)),
+            URLQueryItem(name: "includeOwn", value: String(includeOwn))
+        ]
+        
+        guard let url = components.url else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 {
+            throw APIError.httpError(500)
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorResponse = try? JSONDecoder().decode(MessageResponse.self, from: data) {
+                throw APIError.httpError(500)
+            }
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(FeedResponse.self, from: data)
+    }
+    
+    // Get posts from a specific user
+    func getUserPosts(
+        userId: Int,
+        limit: Int = 20,
+        offset: Int = 0,
+        token: String?
+    ) async throws -> FeedResponse {
+        var components = URLComponents(string: "\(baseURL)/feed/user/\(userId)")!
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "offset", value: String(offset))
+        ]
+        
+        guard let url = components.url else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Optional auth for "liked" status
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorResponse = try? JSONDecoder().decode(MessageResponse.self, from: data) {
+                throw APIError.httpError(500)
+            }
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(FeedResponse.self, from: data)
+    }
+    
+    // Get trending posts
+    func getTrendingPosts(
+        limit: Int = 20,
+        hours: Int = 24,
+        token: String?
+    ) async throws -> FeedResponse {
+        var components = URLComponents(string: "\(baseURL)/feed/trending")!
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "hours", value: String(hours))
+        ]
+        
+        guard let url = components.url else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Optional auth for "liked" status
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorResponse = try? JSONDecoder().decode(MessageResponse.self, from: data) {
+                throw APIError.httpError(500)
+            }
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(FeedResponse.self, from: data)
+    }
+}

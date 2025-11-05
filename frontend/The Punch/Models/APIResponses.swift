@@ -51,6 +51,30 @@ struct PostDetailResponse: Codable {
     let data: PostDetail
 }
 
+// Feed Responses
+struct FeedResponse: Codable {
+    let success: Bool
+    let data: FeedData?
+    let message: String?
+}
+
+struct FeedData: Codable {
+    let posts: [FeedPost]
+    let pagination: FeedPagination
+    let filters: FeedFilters?
+}
+
+struct FeedPagination: Codable {
+    let limit: Int
+    let offset: Int
+    let hasMore: Bool
+}
+
+struct FeedFilters: Codable {
+    let daysBack: Int?
+    let includesOwnPosts: Bool?
+}
+
 // Comment Responses
 
 struct CommentResponse: Codable {
