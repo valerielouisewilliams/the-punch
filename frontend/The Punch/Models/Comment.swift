@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct Comment: Codable, Identifiable {
+// Comment
+struct Comment: Codable, Identifiable, Equatable {
     let id: Int
     let postId: Int
     let userId: Int
     let text: String
     let createdAt: String
-    let username: String
-    let displayName: String?
+    let user: PostAuthor?  // Reuses PostAuthor structure
 }

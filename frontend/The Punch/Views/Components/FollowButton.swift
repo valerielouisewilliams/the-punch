@@ -20,7 +20,7 @@ struct FollowButton: View {
             Task { await toggleFollow() }
         } label: {
             Text(isFollowing ? "Following" : "Follow")
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(isFollowing ? .black : .white)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 16)

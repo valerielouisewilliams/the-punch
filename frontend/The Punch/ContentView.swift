@@ -30,7 +30,7 @@ struct WelcomeView: View {
                     Text("welcome to the punch!")
                     Text("give updates to your friends in real time!")
                 }
-                .font(.system(size: 16, weight: .medium, design: .monospaced))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)

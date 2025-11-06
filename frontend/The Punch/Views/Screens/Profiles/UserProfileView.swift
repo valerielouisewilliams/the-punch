@@ -2,26 +2,26 @@ import SwiftUI
 
 struct UserProfileView: View {
     let userId: Int
-
+    
     @ObservedObject private var authManager = AuthManager.shared
-
+    
     @State private var user: User?
     @State private var posts: [Post] = []
     @State private var isLoadingUser = true
-    @State private var isLoadingPosts = true
+    @State private var isLoadingPosts = false //testing
     @State private var errorMessage = ""
     @State private var showError = false
-
+    
     // Settings sheet
     @State private var showSettings = false
-
+    
     // Prevent overlapping loads
     @State private var isFetching = false
-
+    
     var body: some View {
         ZStack {
             Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
-
+            
             ScrollView {
                 VStack(spacing: 20) {
                     // Header
@@ -33,7 +33,7 @@ struct UserProfileView: View {
                     } else if let user {
                         ProfileHeaderView(user: user)
                             .padding(.top, 20)
-
+                        
                         // ACTION ROW under header:
                         // Show Follow if it's someone else; otherwise show Settings (i.e. we're looking at our own profile)
                         if let me = authManager.currentUser, me.id != user.id {
@@ -45,7 +45,7 @@ struct UserProfileView: View {
                                 showSettings = true
                             } label: {
                                 Text("Settings")
-                                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                                    .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.black)
                                     .padding(.vertical, 10)
                                     .padding(.horizontal, 18)
@@ -56,18 +56,18 @@ struct UserProfileView: View {
                         }
                     } else {
                         Text("User not found")
-                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.gray)
                             .padding()
                     }
-
+                    
                     // User's Posts
                     VStack(alignment: .leading, spacing: 12) {
                         Text("POSTS")
-                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
                             .padding(.horizontal)
-
+                        
                         if isLoadingPosts {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -77,7 +77,7 @@ struct UserProfileView: View {
                         } else if posts.isEmpty {
                             VStack(spacing: 8) {
                                 Text("No posts yet")
-                                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(.gray)
                                 Text("🥊").font(.system(size: 40))
                             }
@@ -86,8 +86,6 @@ struct UserProfileView: View {
                         } else {
                             ForEach(posts) { post in
                                 PostCard(post: post)
-                                    .environmentObject(authManager)
-                                    .padding(.horizontal)
                             }
                         }
                     }
@@ -96,7 +94,7 @@ struct UserProfileView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-
+        
         // PRESENT SETTINGS SHEET
         .sheet(isPresented: $showSettings) {
             SettingsView {
@@ -106,27 +104,27 @@ struct UserProfileView: View {
             }
             .environmentObject(authManager)
         }
-
+        
         // DATA LOADING
         .task(id: userId) { await loadProfile() }
         .refreshable { await loadProfile() }
-
+        
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
         } message: { Text(errorMessage) }
     }
-
+    
     // Networking
-
+    
     private func loadProfile() async {
         guard !isFetching else { return }
         isFetching = true
         defer { isFetching = false }
-
+        
         await loadUser()
         await loadPosts()
     }
-
+    
     private func loadUser() async {
         await MainActor.run { isLoadingUser = true }
         do {
@@ -145,23 +143,27 @@ struct UserProfileView: View {
             }
         }
     }
-
-    private func loadPosts() async {
-        await MainActor.run { isLoadingPosts = true }
-        do {
-            let token = authManager.getToken()
-            let response = try await APIService.shared.getUserPosts(userId: userId, token: token)
-            await MainActor.run {
-                self.posts = response.data
-                self.isLoadingPosts = false
-            }
-        } catch {
-            await MainActor.run {
-                self.posts = []
-                self.isLoadingPosts = false
-                self.errorMessage = "Failed to load posts"
-                self.showError = true
+    
+    func loadPosts() {
+            Task {
+               do {
+                    let response = try await APIService.shared.getUserPosts(
+                        userId: userId,
+                        token: authManager.token
+                    )
+                
+                    await MainActor.run {
+                        self.posts = response.data 
+                        self.isLoadingPosts = false
+                    }
+                } catch {
+                    print("Error loading posts: \(error)")
+                    await MainActor.run {
+                        self.isLoadingPosts = false
+                    }
+                }
             }
         }
-    }
+
+    
 }

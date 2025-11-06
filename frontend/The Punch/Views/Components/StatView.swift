@@ -14,11 +14,11 @@ struct StatView: View {
     var body: some View {
         VStack(spacing: 4) {
             Text("\(count)")
-                .font(.system(size: 24, weight: .bold, design: .monospaced))
+                .font(.system(size: 24, weight: .bold))
                 .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
 
             Text(label)
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundColor(.gray)
         }
     }

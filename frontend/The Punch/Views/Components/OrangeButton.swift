@@ -14,7 +14,7 @@ struct OrangeButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 20, weight: .semibold, design: .monospaced))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)

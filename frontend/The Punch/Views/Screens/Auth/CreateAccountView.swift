@@ -51,7 +51,7 @@ struct CreateAccountView: View {
                     
                     // Title
                     Text("Create Account")
-                        .font(.system(size: 24, weight: .bold, design: .monospaced))
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.top, 16)
                     
@@ -84,7 +84,7 @@ struct CreateAccountView: View {
                                 .foregroundColor(acceptedTerms ? .orange : .gray)
                         }
                         Text("I accept the terms & privacy policy")
-                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.white)
                     }
                     .padding(.top, 8)
@@ -136,7 +136,7 @@ struct CreateAccountView: View {
                     HStack(spacing: 4) {
                         Text("Already have an account?")
                             .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .font(.system(size: 14, weight: .medium))
                         
                         NavigationLink(destination: LoginView(), isActive: $navigateToLogin) {
                             EmptyView()
@@ -146,7 +146,7 @@ struct CreateAccountView: View {
                             navigateToLogin = true
                         }
                         .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .font(.system(size: 14, weight: .bold))
                     }
                     .padding(.bottom, 30)
                 }
@@ -208,7 +208,7 @@ struct CreateAccountView: View {
      Handle account registration with backend.
      */
     func register() async {
-        print("📝 Starting registration for: \(username)")
+        print("Starting registration for: \(username)")
         
         // Step 1: Show loading state
         isLoading = true

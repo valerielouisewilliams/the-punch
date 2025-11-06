@@ -7,52 +7,40 @@
 
 import Foundation
 
-struct Post: Codable, Identifiable {
-    let id: Int
-    let userId: Int
-    
-    let text: String
-    let feelingEmoji: String
-    let createdAt: String
-    let updatedAt: String
-    let isDeleted: Int
-}
-
-struct PostDetail: Codable {
-    let id: Int
-    let userId: Int
-    let text: String
-    let feelingEmoji: String
-    let createdAt: String
-    let updatedAt: String
-    let isDeleted: Int
-    let comments: [Comment]
-    let likeCount: Int
-}
-
-struct FeedPost: Codable, Identifiable, Equatable {
+// Main Post Model
+struct Post: Codable, Identifiable, Equatable {
     let id: Int
     let text: String
     let feelingEmoji: String?
+    let feelingName: String?
     let createdAt: String
     let updatedAt: String
-    let user: PostUser
-    let engagement: PostEngagement
+    
+    // Always included from backend
+    let author: PostAuthor
+    let stats: PostStats
+    
+    // Optional - only in detail views
+    let comments: [Comment]?
 }
 
-struct PostUser: Codable, Equatable {
+// Post Author
+struct PostAuthor: Codable, Equatable {
     let id: Int
     let username: String
     let displayName: String?
     let avatarUrl: String?
     
     var displayNameOrUsername: String {
-        return displayName ?? username
+        displayName ?? username
     }
 }
 
-struct PostEngagement: Codable, Equatable {
+// Post Statistics
+struct PostStats: Codable, Equatable {
     let likeCount: Int
     let commentCount: Int
     let userHasLiked: Bool
 }
+
+

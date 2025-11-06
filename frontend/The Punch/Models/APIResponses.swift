@@ -41,17 +41,11 @@ struct PostsResponse: Codable {
     let count: Int
 }
 
-struct PostResponse: Codable {
-    let message: String
-    let post: Post
-}
-
-struct PostDetailResponse: Codable {
+struct SinglePostResponse: Codable {
     let success: Bool
-    let data: PostDetail
+    let data: Post
 }
 
-// Feed Responses
 struct FeedResponse: Codable {
     let success: Bool
     let data: FeedData?
@@ -59,7 +53,7 @@ struct FeedResponse: Codable {
 }
 
 struct FeedData: Codable {
-    let posts: [FeedPost]
+    let posts: [Post]  // Same Post model!
     let pagination: FeedPagination
     let filters: FeedFilters?
 }
@@ -71,9 +65,10 @@ struct FeedPagination: Codable {
 }
 
 struct FeedFilters: Codable {
-    let daysBack: Int?
+    let timeWindow: String?
     let includesOwnPosts: Bool?
 }
+
 
 // Comment Responses
 
@@ -112,6 +107,6 @@ struct FollowStatusResponse: Codable {
 // Generic Responses
 
 struct MessageResponse: Codable {
-    let success: Bool
     let message: String
+    let like: Like?
 }

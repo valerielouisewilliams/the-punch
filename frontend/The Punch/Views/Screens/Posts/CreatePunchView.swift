@@ -35,14 +35,14 @@ struct CreatePunchView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Title
                     Text("Create Punch")
-                        .font(.system(size: 24, weight: .bold, design: .monospaced))
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.top, 8)
 
                     // Content editor
                     VStack(alignment: .leading, spacing: 8) {
                         Text("What’s up?")
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
 
                         ZStack(alignment: .topLeading) {
@@ -58,7 +58,7 @@ struct CreatePunchView: View {
                                 .foregroundColor(.white)
                                 .padding(12)
                                 .frame(minHeight: 120)
-                                .font(.system(size: 15, weight: .regular, design: .monospaced))
+                                .font(.system(size: 15, weight: .regular))
                                 .onChange(of: content) { _ in
                                     if content.count > maxChars {
                                         content = String(content.prefix(maxChars))
@@ -70,14 +70,14 @@ struct CreatePunchView: View {
                             Spacer()
                             Text("\(max(0, maxChars - content.count))")
                                 .foregroundColor(.gray)
-                                .font(.caption.monospaced())
+                                .font(.caption)
                         }
                     }
 
                     // Feeling chips
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Feeling")
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
 
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -87,7 +87,7 @@ struct CreatePunchView: View {
                                         selectedFeeling = f
                                     } label: {
                                         Text(f)
-                                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                                            .font(.system(size: 13, weight: .medium))
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 12)
                                             .padding(.vertical, 8)
@@ -113,7 +113,7 @@ struct CreatePunchView: View {
                     // Emoji quick picks
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Emoji")
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
 
                         HStack(spacing: 10) {
@@ -148,7 +148,7 @@ struct CreatePunchView: View {
                     } label: {
                         ZStack {
                             Text(isPosting ? "Posting…" : "Post Punch")
-                                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                                .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
@@ -195,10 +195,10 @@ struct CreatePunchView: View {
                 emoji: emoji,
                 token: token
             )
-            let created = response.post
+            let created = response.data
             // Notify listeners (e.g., FeedView) if you want to refresh
             NotificationCenter.default.post(name: .postDidCreate, object: created)
-            onPosted?(created)
+//            onPosted?(created)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

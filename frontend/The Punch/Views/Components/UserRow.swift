@@ -18,11 +18,11 @@ struct UserRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayName)
-                    .font(.system(size: 16, weight: .bold, design: .monospaced))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
 
                 Text("@\(user.username)")
-                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundColor(.gray)
             }
 

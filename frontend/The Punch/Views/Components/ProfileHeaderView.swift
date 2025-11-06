@@ -22,25 +22,25 @@ struct ProfileHeaderView: View {
                 )
                 .overlay(
                     Text(user.username.prefix(1).uppercased())
-                        .font(.system(size: 40, weight: .bold, design: .monospaced))
+                        .font(.system(size: 40, weight: .bold))
                         .foregroundColor(.white)
                 )
 
             // Username and Display Name
             VStack(spacing: 4) {
                 Text(user.displayName)
-                    .font(.system(size: 24, weight: .bold, design: .monospaced))
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
 
                 Text("@\(user.username)")
-                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.gray)
             }
 
             // Bio
             if let bio = user.bio, !bio.isEmpty {
                 Text(bio)
-                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                    .font(.system(size: 14, weight: .regular))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)

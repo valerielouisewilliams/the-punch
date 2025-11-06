@@ -81,7 +81,6 @@ class APIService {
     }
     
 
-    
     // Authentication Endpoints
     
     /// Register a new user
@@ -151,17 +150,17 @@ class APIService {
     }
     
     /// Get a single post by ID with comments and like count
-    func getPost(id: Int, token: String? = nil) async throws -> PostDetailResponse {
+    func getPost(id: Int, token: String? = nil) async throws -> SinglePostResponse {
         return try await makeRequest(
             endpoint: "/posts/\(id)",
             method: "GET",
             token: token,
-            responseType: PostDetailResponse.self
+            responseType: SinglePostResponse.self
         )
     }
     
     /// Create a new post (requires authentication)
-    func createPost(text: String, emoji: String, token: String) async throws -> PostResponse {
+    func createPost(text: String, emoji: String, token: String) async throws -> PostsResponse {
         let body: [String: Any] = [
             "text": text,
             "feeling_emoji": emoji
@@ -172,12 +171,12 @@ class APIService {
             method: "POST",
             body: body,
             token: token,
-            responseType: PostResponse.self
+            responseType: PostsResponse.self
         )
     }
     
     /// Update an existing post (requires authentication and ownership)
-    func updatePost(id: Int, text: String, emoji: String, token: String) async throws -> PostResponse {
+    func updatePost(id: Int, text: String, emoji: String, token: String) async throws -> PostsResponse {
         let body: [String: Any] = [
             "text": text,
             "feeling_emoji": emoji
@@ -188,7 +187,7 @@ class APIService {
             method: "PUT",
             body: body,
             token: token,
-            responseType: PostResponse.self
+            responseType: PostsResponse.self
         )
     }
     
@@ -408,7 +407,6 @@ enum APIError: Error, LocalizedError {
 
 extension APIService {
     
-    // Get user's feed (posts from people they follow)
     func getUserFeed(
         limit: Int = 20,
         offset: Int = 0,
@@ -416,84 +414,73 @@ extension APIService {
         includeOwn: Bool = false,
         token: String
     ) async throws -> FeedResponse {
-        var components = URLComponents(string: "\(baseURL)/feed")!
-        components.queryItems = [
+        // If backend expects 0/1 instead of true/false, send it that way:
+        let includeOwnValue = includeOwn ? "1" : "0"  // or "\(includeOwn)" if server accepts true/false
+
+        var comps = URLComponents(string: "\(baseURL)/feed")!
+        comps.queryItems = [
             URLQueryItem(name: "limit", value: String(limit)),
             URLQueryItem(name: "offset", value: String(offset)),
             URLQueryItem(name: "days", value: String(days)),
-            URLQueryItem(name: "includeOwn", value: String(includeOwn))
+            URLQueryItem(name: "includeOwn", value: includeOwnValue)
         ]
-        
-        guard let url = components.url else {
-            throw APIError.invalidURL
+        guard let url = comps.url else { throw APIError.invalidURL }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        // If your server uses x-user-id for userHasLiked, add it:
+        if let uid = await AuthManager.shared.getToken() {
+            req.setValue(String(uid), forHTTPHeaderField: "x-user-id")
         }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-        
-        if httpResponse.statusCode == 401 {
-            throw APIError.httpError(500)
-        }
-        
-        guard httpResponse.statusCode == 200 else {
-            if let errorResponse = try? JSONDecoder().decode(MessageResponse.self, from: data) {
-                throw APIError.httpError(500)
+
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw APIError.invalidResponse }
+
+        // Loud logging helps a ton during setup
+        print("GET /feed status:", http.statusCode)
+        print("RAW /feed:", String(data: data, encoding: .utf8) ?? "<non-utf8>")
+
+        // Handle non-2xx properly and surface server message if present
+        guard (200...299).contains(http.statusCode) else {
+            if let m = try? JSONDecoder().decode(MessageResponse.self, from: data) {
+                throw NSError(domain: "API", code: http.statusCode,
+                              userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode): \(m.message)"])
             }
-            throw APIError.httpError(httpResponse.statusCode)
+            let body = String(data: data, encoding: .utf8) ?? "<empty>"
+            throw NSError(domain: "API", code: http.statusCode,
+                          userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode): \(body)"])
         }
-        
-        return try JSONDecoder().decode(FeedResponse.self, from: data)
+
+        // Decode using snake_case -> camelCase to match your Swift models
+        let dec = JSONDecoder()
+        dec.keyDecodingStrategy = .convertFromSnakeCase
+        return try dec.decode(FeedResponse.self, from: data)
     }
-    
-    // Get posts from a specific user
-    func getUserPosts(
-        userId: Int,
-        limit: Int = 20,
-        offset: Int = 0,
-        token: String?
-    ) async throws -> FeedResponse {
-        var components = URLComponents(string: "\(baseURL)/feed/user/\(userId)")!
-        components.queryItems = [
-            URLQueryItem(name: "limit", value: String(limit)),
-            URLQueryItem(name: "offset", value: String(offset))
-        ]
-        
-        guard let url = components.url else {
-            throw APIError.invalidURL
+
+
+    func getUserPosts(userId: Int, token: String) async throws -> PostsResponse {
+        var req = URLRequest(url: URL(string: "\(baseURL)/posts?userId=\(userId)")!)
+        req.httpMethod = "GET"
+        req.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.addValue(String(userId), forHTTPHeaderField: "x-user-id")
+
+        let (data, resp) = try await URLSession.shared.data(for: req)
+
+        //  Raw body before decoding
+        if let http = resp as? HTTPURLResponse {
+            print("GET /posts status:", http.statusCode)
         }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Optional auth for "liked" status
-        if let token = token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-        
-        guard httpResponse.statusCode == 200 else {
-            if let errorResponse = try? JSONDecoder().decode(MessageResponse.self, from: data) {
-                throw APIError.httpError(500)
-            }
-            throw APIError.httpError(httpResponse.statusCode)
-        }
-        
-        return try JSONDecoder().decode(FeedResponse.self, from: data)
+        print("RAW /posts JSON:\n", String(data: data, encoding: .utf8) ?? "<non-utf8>")
+
+        // Decode
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // if your timestamps aren’t ISO8601 strings you can leave dates as String in models
+        return try decoder.decode(PostsResponse.self, from: data)
     }
+
     
     // Get trending posts
     func getTrendingPosts(

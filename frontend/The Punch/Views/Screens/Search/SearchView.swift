@@ -70,18 +70,18 @@ struct SearchView: View {
                             HStack(spacing: 8) {
                                 ProgressView()
                                 Text("Searching…")
-                                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(.white.opacity(0.85))
                             }
                             .padding(.horizontal)
                         } else if results.isEmpty {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Recent" : "No results")
-                                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                                    .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                 if !query.isEmpty {
                                     Text("Usernames must match exactly.")
-                                        .font(.system(size: 12, weight: .regular, design: .monospaced))
+                                        .font(.system(size: 12, weight: .regular))
                                         .foregroundColor(.white.opacity(0.6))
                                 }
                             }
