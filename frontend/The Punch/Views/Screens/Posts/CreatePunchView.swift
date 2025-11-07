@@ -15,36 +15,36 @@ extension Notification.Name {
 struct CreatePunchView: View {
     /// Called after a successful post
     var onPosted: ((Post) -> Void)? = nil
-
+    
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var content: String = ""
     @State private var selectedFeeling: String = "Chill"
     @State private var emoji: String = "😎"
     @State private var isPosting = false
     @State private var errorMessage: String?
-
+    
     private let feelings = ["Chill", "Happy", "Catty", "Focused", "Proud", "Curious", "Tired"]
     private let maxChars = 280
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
-
+                
                 VStack(alignment: .leading, spacing: 16) {
                     // Title
                     Text("Create Punch")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.top, 8)
-
+                    
                     // Content editor
                     VStack(alignment: .leading, spacing: 8) {
                         Text("What’s up?")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
-
+                        
                         ZStack(alignment: .topLeading) {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color.white.opacity(0.08))
@@ -52,7 +52,7 @@ struct CreatePunchView: View {
                                     RoundedRectangle(cornerRadius: 16)
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                                 )
-
+                            
                             TextEditor(text: $content)
                                 .scrollContentBackground(.hidden)
                                 .foregroundColor(.white)
@@ -65,7 +65,7 @@ struct CreatePunchView: View {
                                     }
                                 }
                         }
-
+                        
                         HStack {
                             Spacer()
                             Text("\(max(0, maxChars - content.count))")
@@ -73,13 +73,13 @@ struct CreatePunchView: View {
                                 .font(.caption)
                         }
                     }
-
+                    
                     // Feeling chips
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Feeling")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
-
+                        
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(feelings, id: \.self) { f in
@@ -109,13 +109,13 @@ struct CreatePunchView: View {
                             }
                         }
                     }
-
+                    
                     // Emoji quick picks
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Emoji")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
-
+                        
                         HStack(spacing: 10) {
                             ForEach(["😎","🥰","🤓","😴","⚡️","✨","🔥","🧠","☁️"], id: \.self) { e in
                                 Button {
@@ -133,15 +133,15 @@ struct CreatePunchView: View {
                             Spacer()
                         }
                     }
-
+                    
                     if let errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.red)
                             .font(.caption)
                     }
-
+                    
                     Spacer(minLength: 12)
-
+                    
                     // Post button
                     Button {
                         Task { await submit() }
@@ -154,7 +154,7 @@ struct CreatePunchView: View {
                                 .padding(.vertical, 14)
                                 .background(Color(red: 0.95, green: 0.60, blue: 0.20))
                                 .clipShape(Capsule())
-
+                            
                             if isPosting {
                                 ProgressView()
                                     .progressViewStyle(.circular)
@@ -179,30 +179,51 @@ struct CreatePunchView: View {
             }
         }
     }
-
+    
     // Submit
     private func submit() async {
-        guard !isPosting else { return }
+        // Prevent double taps
+        if isPosting { return }
+        
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            errorMessage = "Say something before posting."
+            return
+        }
         guard let token = AuthManager.shared.getToken(), !token.isEmpty else {
             errorMessage = "You must be logged in."
             return
         }
-        isPosting = true
-        errorMessage = nil
+        
+        await MainActor.run {
+            isPosting = true
+            errorMessage = nil
+        }
+        defer {
+            Task { await MainActor.run { isPosting = false } }
+        }
+        
         do {
             let response = try await APIService.shared.createPost(
-                text: content.trimmingCharacters(in: .whitespacesAndNewlines),
-                emoji: emoji,
+                text: trimmed,
+                feelingEmoji: emoji,            // 😎 etc. -> feeling_emoji
+                feelingName: selectedFeeling,   // "Chill"  -> feeling_name
                 token: token
             )
+            
             let created = response.data
-            // Notify listeners (e.g., FeedView) if you want to refresh
-            NotificationCenter.default.post(name: .postDidCreate, object: created)
-//            onPosted?(created)
-            dismiss()
+            
+            await MainActor.run {
+                NotificationCenter.default.post(name: .postDidCreate, object: created)
+                dismiss()
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            await MainActor.run {
+                errorMessage = error.localizedDescription.isEmpty
+                ? "Failed to create post. Please try again."
+                : error.localizedDescription
+            }
         }
-        isPosting = false
     }
+    
 }

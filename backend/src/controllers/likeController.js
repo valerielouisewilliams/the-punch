@@ -5,35 +5,41 @@ const { pool } = require('../config/database');
 const likeController = {
   // Like a post
   async likePost(req, res) {
-    async function likePost(req, res) {
     const postId = Number(req.params.postId);
     const userId = req.user.id;
-
+    
     const sql = `INSERT IGNORE INTO likes (post_id, user_id, created_at)
                 VALUES (?, ?, NOW())`;
+    
     const [result] = await pool.execute(sql, [postId, userId]);
-
     const already = result.affectedRows === 0; // duplicate
+    
     return res.json({
       message: already ? "Already liked" : "Post liked successfully",
-      like: already ? null : { id: result.insertId, post_id: postId, user_id: userId, created_at: new Date().toISOString() }
-      });
-    }
+      like: already ? null : { 
+        id: result.insertId, 
+        post_id: postId, 
+        user_id: userId, 
+        created_at: new Date().toISOString() 
+      }
+    });
   },
 
-  // Unlike a post
+// Unlike a post
   async unlikePost(req, res) {
     const postId = Number(req.params.postId);
     const userId = req.user.id;
-
-    const sql = `INSERT IGNORE INTO likes (post_id, user_id, created_at)
-                VALUES (?, ?, NOW())`;
+    
+    const sql = `DELETE FROM likes 
+                WHERE post_id = ? AND user_id = ?`;
+    
     const [result] = await pool.execute(sql, [postId, userId]);
-
-    //const already = result.affectedRows === 0; // duplicate
+    
+    const wasDeleted = result.affectedRows > 0;
+    
     return res.json({
-      message: "Post unliked successfully",
-      like: { id: result.insertId, post_id: postId, user_id: userId, created_at: new Date().toISOString() }
+      message: wasDeleted ? "Post unliked successfully" : "Like not found",
+      like: null
     });
   },
 

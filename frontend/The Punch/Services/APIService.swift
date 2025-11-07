@@ -160,20 +160,20 @@ class APIService {
     }
     
     /// Create a new post (requires authentication)
-    func createPost(text: String, emoji: String, token: String) async throws -> PostsResponse {
-        let body: [String: Any] = [
-            "text": text,
-            "feeling_emoji": emoji
-        ]
-        
-        return try await makeRequest(
-            endpoint: "/posts",
-            method: "POST",
-            body: body,
-            token: token,
-            responseType: PostsResponse.self
-        )
-    }
+//    func createPost(text: String, emoji: String, token: String) async throws -> PostsResponse {
+//        let body: [String: Any] = [
+//            "text": text,
+//            "feeling_emoji": emoji
+//        ]
+//        
+//        return try await makeRequest(
+//            endpoint: "/posts",
+//            method: "POST",
+//            body: body,
+//            token: token,
+//            responseType: PostsResponse.self
+//        )
+//    }
     
     /// Update an existing post (requires authentication and ownership)
     func updatePost(id: Int, text: String, emoji: String, token: String) async throws -> PostsResponse {
@@ -523,3 +523,26 @@ extension APIService {
         return try JSONDecoder().decode(FeedResponse.self, from: data)
     }
 }
+
+extension APIService {
+    func createPost(
+        text: String,
+        feelingEmoji: String?,
+        feelingName: String?,
+        token: String
+    ) async throws -> CreatePostResponse {
+
+        var body: [String: Any] = ["text": text]
+        if let feelingEmoji { body["feeling_emoji"] = feelingEmoji }   // snake_case
+        if let feelingName  { body["feeling_name"]  = feelingName  }   // snake_case
+
+        return try await makeRequest(
+            endpoint: "/posts",
+            method: "POST",
+            body: body,
+            token: token,
+            responseType: CreatePostResponse.self
+        )
+    }
+}
+

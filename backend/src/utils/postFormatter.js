@@ -7,6 +7,14 @@ class PostFormatter {
    * This ensures EVERY post returned from ANY endpoint has the same structure
    */
   static async formatPost(post, viewerId = null) {
+    // Debug logging
+    console.log('Formatting post:', {
+        postId: post.id,
+        viewerId: viewerId,
+        raw_user_has_liked: post.user_has_liked,
+        boolean_user_has_liked: Boolean(post.user_has_liked)
+    });
+    
     // If we already have stats (from a JOIN query), use them
     if (post.like_count !== undefined) {
       return {

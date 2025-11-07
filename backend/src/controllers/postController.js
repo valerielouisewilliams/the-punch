@@ -115,7 +115,6 @@ const postController = {
   },
 
   // Get all posts (with pagination)
-  // Get all posts (with pagination)
 async getAllPosts(req, res) {
   try {
     // Extract from query FIRST

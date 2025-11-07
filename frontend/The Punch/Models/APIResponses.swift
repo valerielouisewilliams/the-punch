@@ -69,19 +69,23 @@ struct FeedFilters: Codable {
     let includesOwnPosts: Bool?
 }
 
+struct CreatePostResponse: Codable {
+    let success: Bool
+    let message: String?
+    let data: Post
+}
+
 
 // Comment Responses
 
-struct CommentResponse: Codable {
-    let success: Bool
-    let message: String
-    let comment: Comment
+struct CommentsResponse: Codable {
+    let count: Int
+    let comments: [Comment]
 }
 
-struct CommentsResponse: Codable {
-    let success: Bool
-    let count: Int
-    let data: [Comment]
+struct CommentResponse: Codable {
+    let message: String
+    let comment: Comment
 }
 
 // Like Responses

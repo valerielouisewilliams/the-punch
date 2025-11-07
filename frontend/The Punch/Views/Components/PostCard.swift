@@ -26,6 +26,7 @@ struct PostCard: View {
     init(post: Post, context: PostContext = .feed) {
         self.post = post
         self.context = context
+        print("PostCard init - post \(post.id): userHasLiked = \(post.stats.userHasLiked), likeCount = \(post.stats.likeCount)") //debug
         self._isLiked = State(initialValue: post.stats.userHasLiked)
         self._likeCount = State(initialValue: post.stats.likeCount)
     }
@@ -99,8 +100,11 @@ struct PostCard: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 
-                // Comment Button
-                Button(action: { /* Navigate to comments */ }) {
+                // Navigate to comments
+                NavigationLink(destination: PostDetailView(post: post)
+                                                .toolbar(.hidden, for: .tabBar)
+                                                .navigationBarHidden(false))
+                {
                     HStack(spacing: 4) {
                         Image(systemName: "bubble.right")
                             .foregroundColor(.gray)
