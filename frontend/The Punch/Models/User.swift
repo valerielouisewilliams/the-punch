@@ -17,6 +17,7 @@ struct User: Codable, Identifiable {
     let followerCount: Int?
     let followingCount: Int?
     let avatarUrl: String?
+    let isFollowing: Bool?
 }
 
 struct UserProfile: Codable, Identifiable {
@@ -25,3 +26,4 @@ struct UserProfile: Codable, Identifiable {
     let displayName: String
     let bio: String?
 }
+

@@ -252,9 +252,38 @@ static async getUserFeedWithOwnPosts(userId, limit = 20, offset = 0, daysBack = 
     throw error;
   }
 }
-  
 
-  // get safe user data (no password)
+static async findByIdWithStatsAndRelationship(targetId, viewerId = null) {
+    const [[row]] = await pool.query(
+      `
+      SELECT
+        u.id, u.username, u.email, u.password_hash, u.display_name, u.bio, u.created_at,
+        (SELECT COUNT(*) FROM follows WHERE following_id = u.id) AS follower_count,
+        (SELECT COUNT(*) FROM follows WHERE follower_id  = u.id) AS following_count,
+        CASE
+          WHEN ? IS NULL THEN NULL                                  -- unauthenticated viewer
+          WHEN ? = u.id THEN NULL                                   -- viewing own profile
+          ELSE EXISTS(
+            SELECT 1 FROM follows f WHERE f.follower_id = ? AND f.following_id = u.id
+          )
+        END AS is_following
+      FROM users u
+      WHERE u.id = ?
+      LIMIT 1
+      `,
+      [viewerId, viewerId, viewerId, targetId]
+    );
+
+    if (!row) return null;
+
+    const user = new User(row);
+    user.follower_count  = Number(row.follower_count || 0);
+    user.following_count = Number(row.following_count || 0);
+    // IMPORTANT: preserve tri-state — null means "not applicable"
+    user.is_following = (row.is_following === null) ? null : !!row.is_following;
+    return user;
+  }
+
   getPublicProfile() {
     return {
       id: this.id,
@@ -262,8 +291,10 @@ static async getUserFeedWithOwnPosts(userId, limit = 20, offset = 0, daysBack = 
       display_name: this.display_name,
       bio: this.bio,
       created_at: this.created_at,
-      follower_count: this.follower_count,
-      following_count: this.following_count
+      follower_count: this.follower_count ?? 0,
+      following_count: this.following_count ?? 0,
+      // include is_following (true/false) or null if not applicable
+      is_following: (this.is_following === undefined) ? null : this.is_following,
     };
   }
 }

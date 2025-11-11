@@ -27,6 +27,11 @@ struct UserResponse: Codable {
     let data: User
 }
 
+struct UserProfileResponse: Codable {
+    let success: Bool
+    let data: UserProfile
+}
+
 struct FollowersResponse: Codable {
     let success: Bool
     let count: Int

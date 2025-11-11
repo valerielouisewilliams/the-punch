@@ -25,14 +25,6 @@ struct SearchView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Top Bar + Search Field
                     HStack(spacing: 12) {
-                        Button {
-                            // optional back action if this view is pushed, otherwise no-op
-                        } label: {
-                            Image(systemName: "arrow.left")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-
                         // Inline Search Field (no external dependency)
                         HStack(spacing: 8) {
                             Image(systemName: "magnifyingglass")

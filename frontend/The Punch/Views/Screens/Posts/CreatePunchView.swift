@@ -1,31 +1,26 @@
-//
-//  CreatePunchView.swift
-//  The Punch
-//
-//  Created by Valerie Williams on 10/19/25.
-//
-
 import SwiftUI
 
-// A small notification to observe in FeedView to refresh after posting
 extension Notification.Name {
     static let postDidCreate = Notification.Name("postDidCreate")
 }
 
 struct CreatePunchView: View {
-    /// Called after a successful post
     var onPosted: ((Post) -> Void)? = nil
     
     @Environment(\.dismiss) private var dismiss
     
     @State private var content: String = ""
-    @State private var selectedFeeling: String = "Chill"
-    @State private var emoji: String = "😎"
+    @State private var feelingText: String = ""     // free-form feeling
+    @State private var emojiText: String = ""       // user-chosen emoji from keyboard
     @State private var isPosting = false
     @State private var errorMessage: String?
+    @State private var showEmojiPicker = false
     
-    private let feelings = ["Chill", "Happy", "Catty", "Focused", "Proud", "Curious", "Tired"]
+    // Keep your nice suggestions
+    private let feelingSuggestions = ["Chill", "Happy", "Catty", "Focused", "Proud", "Curious", "Tired"]
+    private let emojiSuggestions = ["😎","🥰","🤓","😴","⚡️","✨","🔥","🧠","☁️"]
     private let maxChars = 280
+    private let maxFeelingLen = 32
     
     var body: some View {
         NavigationStack {
@@ -74,17 +69,39 @@ struct CreatePunchView: View {
                         }
                     }
                     
-                    // Feeling chips
+                    // Free-form Feeling
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Feeling")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
                         
+                        HStack(spacing: 10) {
+                            TextField("Type anything (e.g., grateful, feral, inspired…)", text: $feelingText)
+                                .textInputAutocapitalization(.words)
+                                .disableAutocorrection(true)
+                                .foregroundColor(.white)
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.08))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                                .onChange(of: feelingText) { _ in
+                                    if feelingText.count > maxFeelingLen {
+                                        feelingText = String(feelingText.prefix(maxFeelingLen))
+                                    }
+                                }
+                        }
+                        
+                        // Suggestions: tap to autofill the field
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                ForEach(feelings, id: \.self) { f in
+                                ForEach(feelingSuggestions, id: \.self) { f in
                                     Button {
-                                        selectedFeeling = f
+                                        feelingText = f
                                     } label: {
                                         Text(f)
                                             .font(.system(size: 13, weight: .medium))
@@ -93,15 +110,11 @@ struct CreatePunchView: View {
                                             .padding(.vertical, 8)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 14)
-                                                    .fill(f == selectedFeeling
-                                                          ? Color(red: 0.95, green: 0.60, blue: 0.20).opacity(0.25)
-                                                          : Color.white.opacity(0.08))
+                                                    .fill(Color.white.opacity(0.08))
                                             )
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 14)
-                                                    .stroke(f == selectedFeeling
-                                                            ? Color(red: 0.95, green: 0.60, blue: 0.20)
-                                                            : .clear, lineWidth: 1)
+                                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
                                             )
                                     }
                                     .buttonStyle(.plain)
@@ -109,36 +122,53 @@ struct CreatePunchView: View {
                             }
                         }
                     }
-                    
-                    // Emoji quick picks
+
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Emoji")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.gray)
-                        
+
                         HStack(spacing: 10) {
-                            ForEach(["😎","🥰","🤓","😴","⚡️","✨","🔥","🧠","☁️"], id: \.self) { e in
-                                Button {
-                                    emoji = e
-                                } label: {
-                                    Text(e)
-                                        .font(.system(size: 24))
-                                        .padding(6)
+                            // “Pick Emoji” button (primary path)
+                            Button {
+                                showEmojiPicker = true
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Text(emojiText.isEmpty ? "😝" : emojiText)
+                                        .font(.system(size: 22, weight: .semibold))
+                                        .frame(width: 56, height: 44)
                                         .background(
-                                            Circle()
-                                                .fill(e == emoji ? Color.white.opacity(0.15) : .clear)
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.white.opacity(0.08))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                        )
+                                    
+                                    Text("Open Picker")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 14, weight: .medium))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 10)
+                                        .background(
+                                            Capsule().fill(Color.white.opacity(0.08))
+                                        )
+                                        .overlay(
+                                            Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1)
                                         )
                                 }
                             }
-                            Spacer()
+                            .buttonStyle(.plain)
+                            
                         }
                     }
-                    
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
+                    .sheet(isPresented: $showEmojiPicker) {
+                        EmojiPicker { picked in
+                            emojiText = picked
+                        }
                     }
+
                     
                     Spacer(minLength: 12)
                     
@@ -169,11 +199,8 @@ struct CreatePunchView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.white)
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark").foregroundColor(.white)
                     }
                 }
             }
@@ -182,7 +209,6 @@ struct CreatePunchView: View {
     
     // Submit
     private func submit() async {
-        // Prevent double taps
         if isPosting { return }
         
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -199,18 +225,19 @@ struct CreatePunchView: View {
             isPosting = true
             errorMessage = nil
         }
-        defer {
-            Task { await MainActor.run { isPosting = false } }
-        }
+        defer { Task { await MainActor.run { isPosting = false } } }
+        
+        // Allow either or both to be empty — backend can treat them as optional
+        let finalFeeling = feelingText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalEmoji = emojiText.trimmingCharacters(in: .whitespacesAndNewlines)
         
         do {
             let response = try await APIService.shared.createPost(
                 text: trimmed,
-                feelingEmoji: emoji,            // 😎 etc. -> feeling_emoji
-                feelingName: selectedFeeling,   // "Chill"  -> feeling_name
+                feelingEmoji: finalEmoji,          // any emoji, or ""
+                feelingName: finalFeeling,         // any text, or ""
                 token: token
             )
-            
             let created = response.data
             
             await MainActor.run {
@@ -225,5 +252,54 @@ struct CreatePunchView: View {
             }
         }
     }
-    
 }
+
+struct EmojiPicker: View {
+    @Environment(\.dismiss) private var dismiss
+    var onPick: (String) -> Void
+
+    // Curate or expand as you like
+    private let categories: [[String]] = [
+        ["😀","😄","😊","🥰","😍","🤩","😎","🥳","😴","🤓","🫶","✨","🔥","⚡️","💫","🌈"],
+        ["😡","😤","😢","😭","😮‍💨","😵‍💫","🤯","🤠","😇","🤡","👻","💀","🧠","💪","🫀","🩷"],
+        ["🍕","🍔","🍟","🍜","🍣","🍪","🍩","☕️","🥤","🍸","🍷","🍺","⚽️","🏀","🎮","🎧"],
+        ["🌞","🌙","⭐️","☁️","🌧","❄️","🌪","🌊","🔥","🪄","🧿","💎","🧸","🎁","📸","💡"]
+    ]
+
+    let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 8)
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(0..<categories.count, id: \.self) { idx in
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            ForEach(categories[idx], id: \.self) { e in
+                                Button {
+                                    onPick(e)
+                                    dismiss()
+                                } label: {
+                                    Text(e).font(.system(size: 28))
+                                        .frame(width: 40, height: 40)
+                                        .background(.ultraThinMaterial)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.top, 12)
+            }
+            .navigationTitle("Choose an Emoji")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+

@@ -122,6 +122,16 @@ class Follow {
     );
   }
 
+    static async isFollowing(followerId, followingId) {
+    const [[row]] = await pool.query(
+      `SELECT EXISTS(
+         SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?
+       ) AS ok`,
+      [followerId, followingId]
+    );
+    return !!row.ok;
+  }
+
   static async delete(followerId, followingId) {
     if (followerId == null || followingId == null) {
       throw new Error('Follower or following ID missing');

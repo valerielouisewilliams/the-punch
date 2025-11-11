@@ -10,9 +10,12 @@ import Foundation
 class APIService {
     static let shared = APIService()
     
-    // Backend URL
-    private let baseURL = "http://localhost:3000/api"
+    // Backend URL for sim testing
+    //private let baseURL = "http://localhost:3000/api"
     
+    // Bckend URL for device testing
+    private let baseURL = URL(string: "http://10.74.205.86:3000/api")!
+
     private init() {}
     
     // Helper Method for Making Requests

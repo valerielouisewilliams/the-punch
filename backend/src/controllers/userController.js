@@ -2,75 +2,65 @@ const User = require('../models/User');
 const Follow = require('../models/Follow');
 
 // get user profile by username
-const getUserByUsername = async (req, res) => {
-  try {
-    const { username } = req.params;
-
-    if (!username || username.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Username is required'
-      });
-    }
-
-    const user = await User.findByUsername(username.trim());
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Get full stats
-    const userWithStats = await User.findByIdWithStats(user.id);
-
-    res.json({
-      success: true,
-      data: userWithStats.getPublicProfile()
-    });
-  } catch (error) {
-    console.error('Get user by username error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Could not retrieve user'
-    });
-  }
-};
-
-// get user profile by ID
+// controllers/userController.js
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (isNaN(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID must be a valid number'
-      });
+      return res.status(400).json({ success: false, message: 'User ID must be a valid number' });
     }
 
-    const user = await User.findByIdWithStats(parseInt(id));
+    const viewerId = req.user?.id ? parseInt(req.user.id, 10) : null;
+
+    let user;
+    if (viewerId) {
+      // only compute relationship if we know who the viewer is
+      user = await User.findByIdWithStatsAndRelationship(parseInt(id, 10), viewerId);
+    } else {
+      // fallback that does NOT touch relationship logic
+      user = await User.findByIdWithStats(parseInt(id, 10));
+      if (user) user.is_following = false; // explicit & safe default
+    }
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.json({
-      success: true,
-      data: user.getPublicProfile()
-    });
+    return res.json({ success: true, data: user.getPublicProfile() });
   } catch (error) {
     console.error('Get user by ID error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Could not retrieve user'
-    });
+    return res.status(500).json({ success: false, message: error.message || 'Could not retrieve user' });
   }
 };
+
+const getUserByUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+    if (!username || username.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Username is required' });
+    }
+
+    const base = await User.findByUsername(username.trim());
+    if (!base) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const viewerId = req.user?.id ? parseInt(req.user.id, 10) : null;
+
+    let user;
+    if (viewerId) {
+      user = await User.findByIdWithStatsAndRelationship(base.id, viewerId);
+    } else {
+      user = await User.findByIdWithStats(base.id);
+      if (user) user.is_following = false;
+    }
+
+    return res.json({ success: true, data: user.getPublicProfile() });
+  } catch (error) {
+    console.error('Get user by username error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Could not retrieve user' });
+  }
+};
+
+
 
 // get user's followers
 const getFollowers = async (req, res) => {
