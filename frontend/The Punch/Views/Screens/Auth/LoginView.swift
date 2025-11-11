@@ -137,3 +137,17 @@ extension LoginView {
     }
 }
 #endif // DEBUG
+
+// Empty vs filled 
+#if DEBUG
+extension LoginView {
+    init(_test_email: String, _test_password: String, _test_isLoading: Bool = false, _test_showError: Bool = false, _test_errorMessage: String = "") {
+        self.init()
+        _email = State(initialValue: _test_email)
+        _password = State(initialValue: _test_password)
+        _isLoading = State(initialValue: _test_isLoading)
+        _showError = State(initialValue: _test_showError)
+        _errorMessage = State(initialValue: _test_errorMessage)
+    }
+}
+#endif // DEBUG

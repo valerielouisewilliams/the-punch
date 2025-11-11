@@ -189,3 +189,31 @@ extension FeedView {
     }
 }
 #endif // DEBUG
+
+// Loading, empty, and error
+#if DEBUG
+extension FeedView {
+
+    // Post factory just for tests
+    private static func _testPost(_ id: Int) -> Post {
+        Post(
+            id: id,
+            text: "stub \(id)",
+            feelingEmoji: "🙂",
+            feelingName: "ok",
+            createdAt: "",
+            updatedAt: "",
+            author: PostAuthor(id: 1, username: "syd", displayName: "Syd", avatarUrl: nil),
+            stats: PostStats(likeCount: 0, commentCount: 0, userHasLiked: false),
+            comments: []
+        )
+    }
+
+    init(_test_isLoading: Bool, _test_postsCount: Int, _test_errorMessage: String? = nil) {
+        self.init()
+        _isLoading     = State(initialValue: _test_isLoading)
+        _errorMessage  = State(initialValue: _test_errorMessage)
+        _posts         = State(initialValue: (0..<_test_postsCount).map(Self._testPost))
+    }
+}
+#endif // DEBUG

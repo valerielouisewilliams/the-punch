@@ -219,3 +219,15 @@ extension PostDetailView {
 }
 #endif // DEBUG
 
+// Disabled/enabled and posting state
+#if DEBUG
+extension PostDetailView {
+    init(_test_post: Post, _test_newCommentText: String, _test_isPosting: Bool) {
+        self.init(post: _test_post)
+        _newCommentText    = State(initialValue: _test_newCommentText)
+        _isPostingComment  = State(initialValue: _test_isPosting)
+        _comments          = State(initialValue: [])
+        _isLoadingComments = State(initialValue: false)
+    }
+}
+#endif // DEBUG

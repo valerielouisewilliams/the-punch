@@ -312,3 +312,20 @@ extension CreatePunchView {
 }
 #endif // DEBUG
 
+// Empty vs long content
+#if DEBUG
+extension CreatePunchView {
+    init(
+        _test_content: String,
+        _test_isPosting: Bool = false,
+        _test_feelingText: String = "",
+        _test_emojiText: String = ""
+    ) {
+        self.init()
+        _content      = State(initialValue: _test_content)
+        _isPosting    = State(initialValue: _test_isPosting)
+        _feelingText  = State(initialValue: _test_feelingText)
+        _emojiText    = State(initialValue: _test_emojiText)
+    }
+}
+#endif // DEBUG

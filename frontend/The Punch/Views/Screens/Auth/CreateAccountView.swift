@@ -301,3 +301,30 @@ extension CreateAccountView {
     }
 }
 #endif // DEBUG
+
+// Branches : loading, valid & invalid
+#if DEBUG
+extension CreateAccountView {
+    // Test-only initializer to seed @State
+    init(
+        _test_username: String,
+        _test_displayName: String = "",
+        _test_email: String,
+        _test_password: String,
+        _test_acceptedTerms: Bool,
+        _test_isLoading: Bool = false,
+        _test_showError: Bool = false,
+        _test_errorMessage: String = ""
+    ) {
+        self.init()
+        _username = State(initialValue: _test_username)
+        _displayName = State(initialValue: _test_displayName)
+        _email = State(initialValue: _test_email)
+        _password = State(initialValue: _test_password)
+        _acceptedTerms = State(initialValue: _test_acceptedTerms)
+        _isLoading = State(initialValue: _test_isLoading)
+        _showError = State(initialValue: _test_showError)
+        _errorMessage = State(initialValue: _test_errorMessage)
+    }
+}
+#endif // DEBUG
