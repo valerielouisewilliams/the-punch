@@ -5,27 +5,6 @@
 //  Created by Valerie Williams on 10/5/25.
 //
 
-// FOR TESTING:
-#if DEBUG
-extension CreateAccountView {
-    /// Pure logical validator mirroring `isFormValid`.
-    /// Lets unit tests assert the same rules
-    static func testing_isFormValid(
-        username: String,
-        email: String,
-        password: String,
-        acceptedTerms: Bool
-    ) -> Bool {
-        // Reuse your real email validator so rules stay aligned
-        let v = CreateAccountView()
-        let emailOK = v.isValidEmail(email)
-        let passOK  = password.count >= 6
-        return !username.isEmpty && emailOK && passOK && acceptedTerms
-    }
-}
-#endif // DEBUG
-
-
 import SwiftUI
 
 /**
@@ -302,3 +281,23 @@ struct CreateAccountView: View {
         isLoading = false
     }
 }
+
+// FOR TESTING:
+#if DEBUG
+extension CreateAccountView {
+    /// Pure logical validator mirroring `isFormValid`.
+    /// Lets unit tests assert the same rules
+    static func testing_isFormValid(
+        username: String,
+        email: String,
+        password: String,
+        acceptedTerms: Bool
+    ) -> Bool {
+        // Reuse your real email validator so rules stay aligned
+        let v = CreateAccountView()
+        let emailOK = v.isValidEmail(email)
+        let passOK  = password.count >= 6
+        return !username.isEmpty && emailOK && passOK && acceptedTerms
+    }
+}
+#endif // DEBUG

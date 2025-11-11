@@ -127,3 +127,13 @@ struct LoginView: View {
         }
     }
 }
+
+// FOR TESTING:
+#if DEBUG
+extension LoginView {
+    /// Mirrors the `.disabled(email.isEmpty || password.isEmpty)` rule.
+    static func testing_isLoginValid(email: String, password: String) -> Bool {
+        return !email.isEmpty && !password.isEmpty
+    }
+}
+#endif // DEBUG

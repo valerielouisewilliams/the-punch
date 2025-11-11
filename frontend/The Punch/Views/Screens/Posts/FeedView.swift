@@ -177,3 +177,15 @@ struct FeedView: View {
     }
 }
 
+// FOR TESTING
+#if DEBUG
+extension FeedView {
+    /// Encodes the high-level placeholder logic used in `body`.
+    static func testing_placeholder(isLoading: Bool, postsCount: Int, error: String?) -> String {
+        if isLoading && postsCount == 0 { return "loading" }
+        if let e = error, !e.isEmpty { return "error" }
+        if postsCount == 0 { return "empty" }
+        return "content"
+    }
+}
+#endif // DEBUG

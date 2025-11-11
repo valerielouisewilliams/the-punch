@@ -302,4 +302,13 @@ struct EmojiPicker: View {
     }
 }
 
+// FOR TESTING:
+#if DEBUG
+extension CreatePunchView {
+    static func testing_canPost(text: String, maxChars: Int = 280) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed.count <= maxChars
+    }
+}
+#endif // DEBUG
 

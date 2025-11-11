@@ -249,6 +249,62 @@ struct CreateAccountMoreValidationTests {
     }
 }
 
+@MainActor
+struct LoginViewValidationTests {
+    @Test func login_disabledWhenEitherFieldEmpty() {
+        #expect(LoginView.testing_isLoginValid(email: "", password: "pw") == false)
+        #expect(LoginView.testing_isLoginValid(email: "a@b.co", password: "") == false)
+        #expect(LoginView.testing_isLoginValid(email: "", password: "") == false)
+    }
+    @Test func login_enabledWhenBothPresent() {
+        #expect(LoginView.testing_isLoginValid(email: "a@b.co", password: "pw") == true)
+    }
+}
+
+@MainActor
+struct CreatePunchValidationTests {
+    @Test func post_disallowedWhenEmptyOrWhitespace() {
+        #expect(CreatePunchView.testing_canPost(text: "") == false)
+        #expect(CreatePunchView.testing_canPost(text: "   ") == false)
+    }
+    @Test func post_allowedAtBoundaryAndBlockedPastMax() {
+        let twoEighty = String(repeating: "a", count: 280)
+        let twoEightyOne = String(repeating: "a", count: 281)
+        #expect(CreatePunchView.testing_canPost(text: twoEighty) == true)
+        #expect(CreatePunchView.testing_canPost(text: twoEightyOne) == false)
+    }
+}
+
+@MainActor
+struct PostDetailCommentLogicTests {
+    @Test func send_disabledWhenEmptyOrPosting() {
+        #expect(PostDetailView.testing_canSendComment("", isPosting: false) == false)
+        #expect(PostDetailView.testing_canSendComment("   ", isPosting: false) == false)
+        #expect(PostDetailView.testing_canSendComment("hey", isPosting: true) == false)
+    }
+    @Test func send_enabledWhenTextAndNotPosting() {
+        #expect(PostDetailView.testing_canSendComment("hey", isPosting: false) == true)
+    }
+}
+
+@MainActor
+struct FeedViewStateLogicTests {
+    @Test func placeholder_priorityOrder() {
+        #expect(FeedView.testing_placeholder(isLoading: true, postsCount: 0, error: nil) == "loading")
+        #expect(FeedView.testing_placeholder(isLoading: false, postsCount: 0, error: "no net") == "error")
+        #expect(FeedView.testing_placeholder(isLoading: false, postsCount: 0, error: nil) == "empty")
+        #expect(FeedView.testing_placeholder(isLoading: false, postsCount: 3, error: nil) == "content")
+    }
+}
+
+@MainActor
+struct SplashScreenTests {
+    @Test func initialBranch_isLogin() {
+        #expect(SplashScreenView.testing_initialShowsLogin == true)
+    }
+}
+
+
 struct The_PunchTests {
 
     @Test func example() async throws {

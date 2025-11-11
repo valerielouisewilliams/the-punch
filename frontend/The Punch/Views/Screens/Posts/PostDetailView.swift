@@ -208,3 +208,14 @@ struct PostDetailView: View {
         comments.removeAll { $0.id == comment.id }
     }
 }
+
+// FOR TESTING
+#if DEBUG
+extension PostDetailView {
+    static func testing_canSendComment(_ text: String, isPosting: Bool) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && !isPosting
+    }
+}
+#endif // DEBUG
+

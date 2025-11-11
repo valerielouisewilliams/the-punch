@@ -50,3 +50,10 @@ struct SplashScreenView: View {
     }
 }
 
+// FOR TESTING
+#if DEBUG
+extension SplashScreenView {
+    static var testing_initialShowsLogin: Bool { true } // isActive defaults to false
+}
+#endif // DEBUG
+
