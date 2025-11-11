@@ -53,6 +53,7 @@ struct SettingsView: View {
                 .tint(Color(red: 0.95, green: 0.60, blue: 0.20))
             }
             .navigationTitle("Settings")
+            .accessibilityIdentifier("settings_root") // testing
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
