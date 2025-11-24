@@ -38,6 +38,19 @@ struct FollowersResponse: Codable {
     let data: [UserProfile]
 }
 
+struct FollowersListResponse: Codable {
+    let userId: Int
+    let count: Int
+    let followers: [UserProfile]
+}
+
+struct FollowingListResponse: Codable {
+    let userId: Int
+    let count: Int
+    let following: [UserProfile]
+}
+
+
 // Post Responses
 
 struct PostsResponse: Codable {

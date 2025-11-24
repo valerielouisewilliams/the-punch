@@ -136,9 +136,43 @@ const getFollowing = async (req, res) => {
   }
 };
 
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Authentication required' 
+      });
+    }
+
+    const { display_name, bio, avatar_url } = req.body;
+
+    const updated = await User.updateProfile(userId, {
+      display_name,
+      bio,
+      avatar_url
+    });
+
+    return res.json({
+      success: true,
+      data: updated.getPublicProfile()
+    });
+
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Could not update profile'
+    });
+  }
+};
+
 module.exports = {
   getUserByUsername,
   getUserById,
   getFollowers,
-  getFollowing
+  getFollowing,
+  updateUserProfile
 };

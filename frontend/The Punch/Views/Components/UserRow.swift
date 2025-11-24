@@ -7,8 +7,8 @@
 import SwiftUI
 
 struct UserRow: View {
-    let user: User
-
+    let user: any UserDisplayable
+    
     var body: some View {
         HStack(spacing: 12) {
             // Avatar placeholder

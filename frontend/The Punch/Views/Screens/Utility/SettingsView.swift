@@ -15,7 +15,7 @@ struct SettingsView: View {
                 List {
                     Section {
                         NavigationLink {
-                            //EditProfileView() //TODO: Create this functionality
+                            EditProfileView(user: auth.currentUser!)
                         } label: {
                             HStack {
                                 Image(systemName: "pencil")

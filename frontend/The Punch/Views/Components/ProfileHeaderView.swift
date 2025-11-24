@@ -7,11 +7,19 @@
 
 import SwiftUI
 
+enum ProfileStatType {
+    case posts
+    case followers
+    case following
+}
+
 struct ProfileHeaderView: View {
     let user: User
+    var onStatTap: ((ProfileStatType) -> Void)?
 
     var body: some View {
         VStack(spacing: 16) {
+
             // Profile Picture with Orange Border
             Circle()
                 .fill(Color.white.opacity(0.1))
@@ -26,7 +34,7 @@ struct ProfileHeaderView: View {
                         .foregroundColor(.white)
                 )
 
-            // Username and Display Name
+            // Username + Display Name
             VStack(spacing: 4) {
                 Text(user.displayName)
                     .font(.system(size: 24, weight: .bold))
@@ -46,22 +54,35 @@ struct ProfileHeaderView: View {
                     .padding(.horizontal, 20)
             }
 
-            // Stats Row (Themed)
+            // Stats Row (Themed + Tappable)
             HStack(spacing: 30) {
-                StatView(
-                    count: 0,
-                    label: "POSTS"
-                )
 
-                StatView(
-                    count: user.followerCount ?? 0,
-                    label: "FOLLOWERS"
-                )
+                Button {
+                    onStatTap?(.posts)
+                } label: {
+                    StatView(
+                        count: 0,
+                        label: "POSTS"
+                    )
+                }
 
-                StatView(
-                    count: user.followingCount ?? 0,
-                    label: "FOLLOWING"
-                )
+                Button {
+                    onStatTap?(.followers)
+                } label: {
+                    StatView(
+                        count: user.followerCount ?? 0,
+                        label: "FOLLOWERS"
+                    )
+                }
+
+                Button {
+                    onStatTap?(.following)
+                } label: {
+                    StatView(
+                        count: user.followingCount ?? 0,
+                        label: "FOLLOWING"
+                    )
+                }
             }
             .padding(.top, 8)
         }
@@ -73,3 +94,4 @@ struct ProfileHeaderView: View {
         .padding(.horizontal)
     }
 }
+

@@ -284,6 +284,24 @@ static async findByIdWithStatsAndRelationship(targetId, viewerId = null) {
     return user;
   }
 
+  static async updateProfile(id, { display_name, bio, avatar_url }) {
+  const query = `
+    UPDATE users
+    SET display_name = ?, bio = ?, avatar_url = ?
+    WHERE id = ? AND is_active = true
+  `;
+
+  await pool.execute(query, [
+    display_name,
+    bio,
+    avatar_url,
+    id
+  ]);
+
+  return this.findByIdWithStats(id);
+}
+
+
   getPublicProfile() {
     return {
       id: this.id,

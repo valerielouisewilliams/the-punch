@@ -8,19 +8,22 @@ struct UserProfileView: View {
     @State private var user: User?
     @State private var posts: [Post] = []
     @State private var isLoadingUser = true
-    @State private var isLoadingPosts = false //testing
+    @State private var isLoadingPosts = false
     @State private var errorMessage = ""
     @State private var showError = false
     
-    // Settings sheet
+    // Sheets
     @State private var showSettings = false
+    @State private var showFollowers = false
+    @State private var showFollowing = false
     
     // Prevent overlapping loads
     @State private var isFetching = false
     
     var body: some View {
         ZStack {
-            Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
+            Color(red: 0.12, green: 0.10, blue: 0.10)
+                .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 20) {
@@ -31,8 +34,21 @@ struct UserProfileView: View {
                             .scaleEffect(1.5)
                             .padding()
                     } else if let user {
-                        ProfileHeaderView(user: user)
-                            .padding(.top, 20)
+                        ProfileHeaderView(
+                            user: user,
+                            onStatTap: { stat in
+                                switch stat {
+                                case .posts:
+                                    // Posts are already shown below; you could add scroll-to-posts later using ScrollViewReader.
+                                    break
+                                case .followers:
+                                    showFollowers = true
+                                case .following:
+                                    showFollowing = true
+                                }
+                            }
+                        )
+                        .padding(.top, 20)
                         
                         // ACTION ROW under header:
                         // Show Follow if it's someone else; otherwise show Settings (i.e. we're looking at our own profile)
@@ -79,7 +95,8 @@ struct UserProfileView: View {
                                 Text("No posts yet")
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(.gray)
-                                Text("🥊").font(.system(size: 40))
+                                Text("🥊")
+                                    .font(.system(size: 40))
                             }
                             .padding()
                             .frame(maxWidth: .infinity)
@@ -95,7 +112,7 @@ struct UserProfileView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         
-        // PRESENT SETTINGS SHEET
+        // SETTINGS SHEET
         .sheet(isPresented: $showSettings) {
             SettingsView {
                 // After logout, clear local UI
@@ -105,16 +122,52 @@ struct UserProfileView: View {
             .environmentObject(authManager)
         }
         
+        // FOLLOWERS SHEET
+        .sheet(isPresented: $showFollowers) {
+            NavigationStack {
+                if let user {
+                    FollowersListView(userId: user.id)
+                        .navigationTitle("Followers")
+                        .navigationBarTitleDisplayMode(.inline)
+                } else {
+                    Text("Unable to load followers.")
+                        .foregroundColor(.white)
+                        .background(Color.black.ignoresSafeArea())
+                }
+            }
+        }
+        
+        // FOLLOWING SHEET
+        .sheet(isPresented: $showFollowing) {
+            NavigationStack {
+                if let user {
+                    FollowingListView(userId: user.id)
+                        .navigationTitle("Following")
+                        .navigationBarTitleDisplayMode(.inline)
+                } else {
+                    Text("Unable to load following.")
+                        .foregroundColor(.white)
+                        .background(Color.black.ignoresSafeArea())
+                }
+            }
+        }
+        
         // DATA LOADING
-        .task(id: userId) { await loadProfile() }
-        .refreshable { await loadProfile() }
+        .task(id: userId) {
+            await loadProfile()
+        }
+        .refreshable {
+            await loadProfile()
+        }
         
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
-        } message: { Text(errorMessage) }
+        } message: {
+            Text(errorMessage)
+        }
     }
     
-    // Networking
+    // MARK: - Networking
     
     private func loadProfile() async {
         guard !isFetching else { return }
@@ -127,9 +180,14 @@ struct UserProfileView: View {
     
     private func loadUser() async {
         await MainActor.run { isLoadingUser = true }
+        
         do {
             let token = authManager.getToken()
-            let response = try await APIService.shared.getUserProfile(userId: userId, token: token)
+            let response = try await APIService.shared.getUserProfile(
+                userId: userId,
+                token: token
+            )
+            
             await MainActor.run {
                 self.user = response.data
                 self.isLoadingUser = false
@@ -144,26 +202,27 @@ struct UserProfileView: View {
         }
     }
     
-    func loadPosts() {
-            Task {
-               do {
-                    let response = try await APIService.shared.getUserPosts(
-                        userId: userId,
-                        token: authManager.token
-                    )
-                
-                    await MainActor.run {
-                        self.posts = response.data 
-                        self.isLoadingPosts = false
-                    }
-                } catch {
-                    print("Error loading posts: \(error)")
-                    await MainActor.run {
-                        self.isLoadingPosts = false
-                    }
-                }
+    func loadPosts() async {
+        await MainActor.run {
+            isLoadingPosts = true
+        }
+        
+        do {
+            let response = try await APIService.shared.getUserPosts(
+                userId: userId,
+                token: authManager.token
+            )
+            
+            await MainActor.run {
+                self.posts = response.data
+                self.isLoadingPosts = false
+            }
+        } catch {
+            print("Error loading posts: \(error)")
+            await MainActor.run {
+                self.isLoadingPosts = false
             }
         }
-
-    
+    }
 }
+

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { updateUserProfile } = require('../controllers/userController');
+const { authenticateToken } = require('../middleware/authMiddleware');
 const {
   getUserByUsername,
   getUserById,
@@ -34,5 +36,12 @@ router.get('/:id/followers', getFollowers);
  * @access  Public
  */
 router.get('/:id/following', getFollowing);
+
+/**
+ * @route PUT /api/users/me
+ * @desc Update current user's profile
+ * @access Private
+ */
+router.put('/me', authenticateToken, updateUserProfile);
 
 module.exports = router;

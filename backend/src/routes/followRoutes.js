@@ -3,7 +3,9 @@ const router = express.Router();
 const {
   followUser,
   unfollowUser,
-  checkIfFollowing
+  checkIfFollowing,
+  getFollowers,
+  getFollowing
 } = require('../controllers/followController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -27,5 +29,19 @@ router.delete('/user/:userId', authenticateToken, unfollowUser);
  * @access  Private
  */
 router.get('/user/:userId/check', authenticateToken, checkIfFollowing);
+
+/**
+ * @route   GET /api/follows/user/:userId/followers
+ * @desc    Get list of followers for a user
+ * @access  Private (or Public, up to you)
+ */
+router.get('/user/:userId/followers', authenticateToken, getFollowers);
+
+/**
+ * @route   GET /api/follows/user/:userId/following
+ * @desc    Get list of users that a user is following
+ * @access  Private (or Public, up to you)
+ */
+router.get('/user/:userId/following', authenticateToken, getFollowing);
 
 module.exports = router;

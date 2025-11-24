@@ -11,10 +11,13 @@ class APIService {
     static let shared = APIService()
     
     // Backend URL for sim testing
-    //private let baseURL = "http://localhost:3000/api"
+    //private let baseURL = "http://localhost:3000/api" // for simulator
     
     // Bckend URL for device testing
-    private let baseURL = URL(string: "http://10.74.205.86:3000/api")!
+//    private let baseURL = URL(string: "http://10.74.201.159:3000/api")! // campus wifi
+//    private let baseURL = URL(string: "http://10.0.0.187:3000/api")! // apartment wifi
+//    private let baseURL = URL(string:"http://192.168.1.222:3000/api")! // home wifi
+    private let baseURL = URL(string:"http://10.251.58.90:3000/api")! // tatte cafe wifi
 
     private init() {}
     
@@ -347,25 +350,52 @@ class APIService {
         )
     }
     
-    /// Get a user's followers
-    func getFollowers(userId: Int, token: String? = nil) async throws -> FollowersResponse {
+    // Lets a user edit their profile
+    func updateUserProfile(
+        displayName: String,
+        bio: String?,
+        avatarUrl: String?,
+        token: String
+    ) async throws -> UserResponse {
+        
+        var body: [String: Any] = [
+            "display_name": displayName
+        ]
+        
+        if let bio = bio { body["bio"] = bio }
+        if let avatarUrl = avatarUrl { body["avatar_url"] = avatarUrl }
+        
         return try await makeRequest(
-            endpoint: "/users/\(userId)/followers",
+            endpoint: "/users/me",
+            method: "PUT",
+            body: body,
+            token: token,
+            responseType: UserResponse.self
+        )
+    }
+
+    
+    // Followers Endpoints
+
+    /// Get a user's followers (LIST VIEW)
+    func getFollowersList(userId: Int, token: String? = nil) async throws -> FollowersListResponse {
+        return try await makeRequest(
+            endpoint: "/follows/user/\(userId)/followers",
             method: "GET",
             token: token,
-            responseType: FollowersResponse.self
+            responseType: FollowersListResponse.self
         )
     }
     
-    /// Get users that a user is following
-    func getFollowing(userId: Int, token: String? = nil) async throws -> FollowersResponse {
+    func getFollowingList(userId: Int, token: String? = nil) async throws -> FollowingListResponse {
         return try await makeRequest(
-            endpoint: "/users/\(userId)/following",
+            endpoint: "/follows/user/\(userId)/following",
             method: "GET",
             token: token,
-            responseType: FollowersResponse.self
+            responseType: FollowingListResponse.self
         )
     }
+
 }
 
 // API Errors

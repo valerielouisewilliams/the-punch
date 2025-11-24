@@ -7,6 +7,14 @@
 
 import Foundation
 
+// Used by lists (followers, following, search) & by UserRow
+protocol UserDisplayable: Identifiable {
+    var id: Int { get }
+    var username: String { get }
+    var displayName: String { get }
+    var bio: String? { get }
+}
+
 struct User: Codable, Identifiable {
     let id: Int
     let username: String
@@ -26,4 +34,7 @@ struct UserProfile: Codable, Identifiable {
     let displayName: String
     let bio: String?
 }
+
+extension User: UserDisplayable {}
+extension UserProfile: UserDisplayable {}
 

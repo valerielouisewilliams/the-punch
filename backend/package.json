@@ -29,6 +29,12 @@
   "devDependencies": {
     "jst": "^0.0.13",
     "nodemon": "^3.1.10",
+    "nyc": "^17.1.0",
     "supertest": "^7.1.4"
+  },
+  "scripts": {
+  "start": "node app.js",
+  "start:cov": "nyc --reporter=html --reporter=text-summary node server.js"
   }
+
 }
