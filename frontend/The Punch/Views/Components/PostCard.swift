@@ -86,16 +86,13 @@ struct PostCard: View {
                 
                 // Options Menu (for own posts)
                 if isOwnPost && context == .profile {
-                    Menu {
-                        Button(role: .destructive) {
-                            deletePost()
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+                    Button(role: .destructive) {
+                        deletePost()
                     } label: {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
+                        Image(systemName: "trash")
+                            .font(.caption.bold())
                     }
+                    
                 }
             }
             
