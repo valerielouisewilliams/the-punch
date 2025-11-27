@@ -9,19 +9,19 @@ import Foundation
 
 // Main Post Model
 struct Post: Codable, Identifiable, Equatable {
-    let id: Int
-    let text: String
-    let feelingEmoji: String?
-    let feelingName: String?
-    let createdAt: String
-    let updatedAt: String
+    var id: Int
+    var text: String
+    var feelingEmoji: String?
+    var feelingName: String?
+    var createdAt: String
+    var updatedAt: String
     
     // Always included from backend
-    let author: PostAuthor
-    let stats: PostStats
+    var author: PostAuthor
+    var stats: PostStats
     
     // Optional - only in detail views
-    let comments: [Comment]?
+    var comments: [Comment]?
 }
 
 // Post Author
@@ -38,9 +38,9 @@ struct PostAuthor: Codable, Equatable {
 
 // Post Statistics
 struct PostStats: Codable, Equatable {
-    let likeCount: Int
-    let commentCount: Int
-    let userHasLiked: Bool
+    var likeCount: Int
+    var commentCount: Int
+    var userHasLiked: Bool
 }
 
 

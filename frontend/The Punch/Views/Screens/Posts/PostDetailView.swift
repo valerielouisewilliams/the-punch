@@ -10,7 +10,7 @@ import SwiftUI
 import Foundation
 
 struct PostDetailView: View {
-    let post: Post
+    @State var post: Post
     @State private var comments: [Comment] = []
     @State private var isLoadingComments = false
     @State private var newCommentText = ""
@@ -117,6 +117,17 @@ struct PostDetailView: View {
         }
         .navigationTitle("Comments")
         .navigationBarTitleDisplayMode(.inline)
+        .onReceive(NotificationCenter.default.publisher(for: .postDidUpdate)) { notif in
+            guard
+                let id = notif.userInfo?["id"] as? Int,
+                id == post.id,
+                let isLiked = notif.userInfo?["isLiked"] as? Bool,
+                let likeCount = notif.userInfo?["likeCount"] as? Int
+            else { return }
+
+            post.stats.userHasLiked = isLiked
+            post.stats.likeCount = likeCount
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Comments")

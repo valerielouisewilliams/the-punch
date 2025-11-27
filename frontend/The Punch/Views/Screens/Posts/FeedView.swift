@@ -83,6 +83,18 @@ struct FeedView: View {
             .onChange(of: includeOwnPosts) { _ in Task { await reloadFeed() } }
             .onChange(of: daysBack) { _ in Task { await reloadFeed() } }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .postDidUpdate)) { notif in
+            guard
+                let id = notif.userInfo?["id"] as? Int,
+                let isLiked = notif.userInfo?["isLiked"] as? Bool,
+                let likeCount = notif.userInfo?["likeCount"] as? Int
+            else { return }
+
+            if let index = posts.firstIndex(where: { $0.id == id }) {
+                posts[index].stats.userHasLiked = isLiked
+                posts[index].stats.likeCount = likeCount
+            }
+        }
         .tabItem { Label("Home", systemImage: "house.fill") }
     }
     

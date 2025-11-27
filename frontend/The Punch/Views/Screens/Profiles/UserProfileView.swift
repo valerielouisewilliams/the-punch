@@ -176,7 +176,20 @@ struct UserProfileView: View {
         } message: {
             Text(errorMessage)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .postDidUpdate)) { notif in
+            guard
+                let id = notif.userInfo?["id"] as? Int,
+                let isLiked = notif.userInfo?["isLiked"] as? Bool,
+                let likeCount = notif.userInfo?["likeCount"] as? Int
+            else { return }
+
+            if let index = posts.firstIndex(where: { $0.id == id }) {
+                posts[index].stats.userHasLiked = isLiked
+                posts[index].stats.likeCount = likeCount
+            }
+        }
     }
+    
     
     // MARK: - Networking
     

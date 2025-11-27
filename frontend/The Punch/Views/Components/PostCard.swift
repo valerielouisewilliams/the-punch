@@ -245,8 +245,16 @@ struct PostCard: View {
       // 3) Optimistic UI
       isLiked.toggle()
       likeCount = max(0, prevCount + (isLiked ? 1 : -1))
+    
+      // 4) Broadcast a notif
+      NotificationCenter.default.post(
+            name: .postDidUpdate,
+            object: nil,
+            userInfo: ["id": post.id, "isLiked": isLiked, "likeCount": likeCount]
+        )
 
-      // 4) Kick off network work
+
+      // 5) Kick off network work
       Task {
         defer {
           Task { @MainActor in
