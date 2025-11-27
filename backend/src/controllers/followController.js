@@ -132,7 +132,8 @@ const followController = {
           username: u.username,
           displayName: u.display_name,
           bio: u.bio,
-          followedAt: u.followed_at
+          followedAt: u.followed_at,
+          avatarUrl: u.avatar_url
         }))
       });
 
@@ -165,7 +166,8 @@ const followController = {
           username: u.username,
           displayName: u.display_name,
           bio: u.bio,
-          followedAt: u.followed_at
+          followedAt: u.followed_at,
+          avatarUrl: u.avatar_url
         }))
       });
 

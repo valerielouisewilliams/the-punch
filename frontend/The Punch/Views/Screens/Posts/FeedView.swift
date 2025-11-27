@@ -6,8 +6,8 @@ struct FeedView: View {
     @State private var errorMessage: String?
     @State private var hasMore = false
     @State private var currentOffset = 0
-    @State private var daysBack = 2
-    @State private var includeOwnPosts = false
+    @State private var daysBack = 3
+    @State private var includeOwnPosts = true
 
     @StateObject private var authManager = AuthManager.shared
 
@@ -65,27 +65,11 @@ struct FeedView: View {
                     }
                 }
             }
-            .navigationTitle("Home")
+            .navigationTitle("Home 🏡")
             .toolbarBackground(Color(red: 0.12, green: 0.10, blue: 0.10), for: .navigationBar)
             .toolbarColorScheme(.light)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Menu {
-                        Picker("Time window", selection: $daysBack) {
-                            Text("Last 24 hours").tag(1)
-                            Text("Last 2 days").tag(2)
-                            Text("Last 3 days").tag(3)
-                            Text("Last 7 days").tag(7)
-                        }
-                        Toggle("Include my posts", isOn: $includeOwnPosts)
-                        Button("Apply filters") {
-                            Task { await reloadFeed() }
-                        }
-                    } label: {
-                        Label("Filters", systemImage: "slider.horizontal.3")
-                            .foregroundStyle(.white)
-                    }
-
                     Button {
                         Task { await reloadFeed() }
                     } label: {

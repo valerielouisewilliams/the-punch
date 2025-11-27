@@ -15,24 +15,41 @@ enum ProfileStatType {
 
 struct ProfileHeaderView: View {
     let user: User
+    let postCount: Int
     var onStatTap: ((ProfileStatType) -> Void)?
 
     var body: some View {
         VStack(spacing: 16) {
 
             // Profile Picture with Orange Border
-            Circle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 100, height: 100)
-                .overlay(
-                    Circle()
-                        .stroke(Color(red: 0.95, green: 0.60, blue: 0.20), lineWidth: 3)
-                )
-                .overlay(
-                    Text(user.username.prefix(1).uppercased())
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundColor(.white)
-                )
+            ZStack {
+                if let avatarUrl = user.avatarUrl,
+                    let url = URL(string: avatarUrl) {
+                        AsyncImage(url: url) { image in
+                            image
+                            .resizable()
+                            .scaledToFill()
+                            } placeholder: {
+                                Circle()
+                                    .fill(Color.white.opacity(0.1))
+                            }
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.white.opacity(0.1))
+                                .frame(width: 100, height: 100)
+                                .overlay(
+                                    Text(user.username.prefix(1).uppercased())
+                                        .font(.system(size: 40, weight: .bold))
+                                        .foregroundColor(.white)
+                                )
+                        }
+
+                        Circle()
+                            .stroke(Color(red: 0.95, green: 0.60, blue: 0.20), lineWidth: 3)
+                            .frame(width: 100, height: 100)
+                    }
 
             // Username + Display Name
             VStack(spacing: 4) {
@@ -61,7 +78,7 @@ struct ProfileHeaderView: View {
                     onStatTap?(.posts)
                 } label: {
                     StatView(
-                        count: 0,
+                        count: postCount,
                         label: "POSTS"
                     )
                 }
@@ -92,6 +109,7 @@ struct ProfileHeaderView: View {
                 .fill(Color.white.opacity(0.07))
         )
         .padding(.horizontal)
+
     }
 }
 

@@ -11,21 +11,39 @@ import Foundation
 struct CommentRow: View {
     let comment: Comment
     let onDelete: () -> Void
+
     @StateObject private var authManager = AuthManager.shared
     @State private var isDeleting = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Avatar
-            Circle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Text(comment.user?.displayNameOrUsername.prefix(1).uppercased() ?? "?")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                )
-            
+            Group {
+                if let avatarUrl = comment.user?.avatarUrl,
+                   let url = URL(string: avatarUrl) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Circle()
+                            .fill(Color.gray.opacity(0.2))
+                    }
+                    .frame(width: 24, height: 24)  // 👈 match size
+                    .clipShape(Circle())
+                    
+                } else {
+                    Circle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 24, height: 24)
+                        .overlay(
+                            Text(comment.user?.displayNameOrUsername.prefix(1).uppercased() ?? "?")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                        )
+                }
+            }
+
             VStack(alignment: .leading, spacing: 6) {
                 // Header
                 HStack(spacing: 4) {
@@ -84,7 +102,7 @@ struct CommentRow: View {
             do {
                 _ = try await APIService.shared.deleteComment(id: comment.id, token: token)
                 await MainActor.run {
-                    onDelete()
+                    onDelete()   // 👈 tell parent to remove it from array
                 }
             } catch {
                 print("Failed to delete comment: \(error)")
@@ -94,6 +112,10 @@ struct CommentRow: View {
             }
         }
     }
+    
+    // formatDate is perfect
+}
+
     
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()
@@ -117,4 +139,4 @@ struct CommentRow: View {
         
         return dateString
     }
-}
+

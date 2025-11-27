@@ -3,11 +3,19 @@ const router = express.Router();
 const { updateUserProfile } = require('../controllers/userController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const {
+  searchUsers,
   getUserByUsername,
   getUserById,
   getFollowers,
   getFollowing
 } = require('../controllers/userController');
+
+/**
+ * @route GET /api/users/search?query=
+ * @desc Search users by username or display name (partial + case-insensitive)
+ * @access Public
+ */
+router.get('/search', require('../controllers/userController').searchUsers);
 
 /**
  * @route   GET /api/users/:id

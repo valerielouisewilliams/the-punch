@@ -29,7 +29,6 @@ struct PostDetailView: View {
                     PostCard(post: post, context: .detail)
                         .padding(.horizontal)
                         .padding(.top)
-                        .allowsHitTesting(false) // Prevent interactions in detail view
                     
                     Divider()
                         .background(Color.gray.opacity(0.3))

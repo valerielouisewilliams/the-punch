@@ -92,7 +92,7 @@ const commentController = {
   async deleteComment(req, res) {
     try {
       const { id } = req.params;
-      const userId = req.user.userId;
+      const userId = req.user.id;
 
       // Check if comment exists
       const comment = await Comment.findById(id);

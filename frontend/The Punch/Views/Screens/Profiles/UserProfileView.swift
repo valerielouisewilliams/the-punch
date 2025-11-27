@@ -36,6 +36,7 @@ struct UserProfileView: View {
                     } else if let user {
                         ProfileHeaderView(
                             user: user,
+                            postCount: posts.count,
                             onStatTap: { stat in
                                 switch stat {
                                 case .posts:
@@ -102,7 +103,12 @@ struct UserProfileView: View {
                             .frame(maxWidth: .infinity)
                         } else {
                             ForEach(posts) { post in
-                                PostCard(post: post)
+                                NavigationLink {
+                                    PostDetailView(post: post)
+                                } label: {
+                                    PostCard(post: post, context: .profile)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -114,13 +120,18 @@ struct UserProfileView: View {
         
         // SETTINGS SHEET
         .sheet(isPresented: $showSettings) {
-            SettingsView {
-                // After logout, clear local UI
-                user = nil
-                posts = []
-            }
+            SettingsView(
+                onLoggedOut: {
+                    user = nil
+                    posts = []
+                },
+                onProfileUpdated: { updated in
+                    self.user = updated
+                }
+            )
             .environmentObject(authManager)
         }
+
         
         // FOLLOWERS SHEET
         .sheet(isPresented: $showFollowers) {

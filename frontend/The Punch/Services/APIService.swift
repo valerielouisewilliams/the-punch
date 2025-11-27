@@ -16,8 +16,10 @@ class APIService {
     // Bckend URL for device testing
 //    private let baseURL = URL(string: "http://10.74.201.159:3000/api")! // campus wifi
 //    private let baseURL = URL(string: "http://10.0.0.187:3000/api")! // apartment wifi
-//    private let baseURL = URL(string:"http://192.168.1.222:3000/api")! // home wifi
-    private let baseURL = URL(string:"http://10.251.58.90:3000/api")! // tatte cafe wifi
+//   private let baseURL = URL(string:"http://192.168.1.222:3000/api")! // home wifi
+//    private let baseURL = URL(string: "http://192.168.7.3:3000/api")! // aunties house wifi
+    private let baseURL = URL(string:"http://172.20.10.2:3000/api")!
+    
 
     private init() {}
     
@@ -373,6 +375,17 @@ class APIService {
             responseType: UserResponse.self
         )
     }
+    
+    func searchUsers(query: String, token: String? = nil) async throws -> UsersResponse {
+        let escaped = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        return try await makeRequest(
+            endpoint: "/users/search?query=\(escaped)",
+            method: "GET",
+            token: token,
+            responseType: UsersResponse.self
+        )
+    }
+
 
     
     // Followers Endpoints

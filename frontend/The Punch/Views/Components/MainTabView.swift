@@ -25,9 +25,14 @@ struct MainTabView: View {
                     .tag(1)
 
                 if let user = auth.currentUser {
-                    UserProfileView(userId: user.id)
-                        .tabItem { Label("Profile", systemImage: "person.crop.circle") }
-                        .tag(2)
+//                    UserProfileView(userId: user.id)
+//                        .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+//                        .tag(2)
+                    NavigationStack {
+                        UserProfileView(userId: user.id)
+                    }
+                    .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+                    .tag(2)
                 }
             }
             .tint(Color(red: 0.95, green: 0.60, blue: 0.20))

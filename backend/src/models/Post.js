@@ -39,15 +39,15 @@ class Post {
 
 
   // create a new post
-  static async create({ user_id, text, feeling_emoji }) {
+  static async create({ user_id, text, feeling_emoji, feeling_name }) {
     // set up query
-    const query = `INSERT INTO posts (user_id, text, feeling_emoji) 
-       VALUES (?, ?, ?)`;
+    const query = `INSERT INTO posts (user_id, text, feeling_emoji, feeling_name) 
+       VALUES (?, ?, ?, ?)`;
 
     // insert into database
     const [result] = await pool.execute(
       query,
-      [user_id, text, feeling_emoji]
+      [user_id, text, feeling_emoji, feeling_name]
     );
 
     // return the new post

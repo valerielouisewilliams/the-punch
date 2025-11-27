@@ -1,3 +1,4 @@
+const { pool } = require('../config/database');
 const User = require('../models/User');
 const Follow = require('../models/Follow');
 
@@ -169,10 +170,71 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+const searchUsers = async (req, res) => {
+  try {
+    const query = req.query.query;
+
+    if (!query || query.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required"
+      });
+    }
+
+    const searchTerm = `%${query.toLowerCase()}%`;
+
+    const [rows] = await pool.execute(
+      `
+      SELECT 
+        id,
+        username,
+        display_name,
+        bio,
+        avatar_url
+      FROM users
+      WHERE is_active = 1
+        AND (
+          LOWER(username) LIKE ?
+          OR LOWER(display_name) LIKE ?
+        )
+      ORDER BY 
+        CASE 
+          WHEN LOWER(username) LIKE ? THEN 1
+          WHEN LOWER(display_name) LIKE ? THEN 2
+          ELSE 3
+        END
+      LIMIT 20
+      `,
+      [searchTerm, searchTerm, `${query.toLowerCase()}%`, `${query.toLowerCase()}%`]
+    );
+
+    return res.json({
+      success: true,
+      count: rows.length,
+      data: rows.map(u => ({
+        id: u.id,
+        username: u.username,
+        displayName: u.display_name,
+        bio: u.bio,
+        avatarUrl: u.avatar_url
+      }))
+    });
+
+  } catch (error) {
+    console.error("Search users error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not perform search"
+    });
+  }
+};
+
+
 module.exports = {
   getUserByUsername,
   getUserById,
   getFollowers,
   getFollowing,
-  updateUserProfile
+  updateUserProfile,
+  searchUsers
 };

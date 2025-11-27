@@ -27,6 +27,13 @@ struct UserResponse: Codable {
     let data: User
 }
 
+// For multiple users
+struct UsersResponse: Codable {
+    let success: Bool
+    let count: Int
+    let data: [UserProfile]
+}
+
 struct UserProfileResponse: Codable {
     let success: Bool
     let data: UserProfile

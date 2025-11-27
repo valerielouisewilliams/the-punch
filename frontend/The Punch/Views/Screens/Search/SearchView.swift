@@ -10,7 +10,7 @@ import SwiftUI
 struct SearchView: View {
     // State
     @State private var query = ""
-    @State private var results: [User] = []
+    @State private var results: [UserProfile] = []
     @State private var isLoading = false
     @State private var searchTask: Task<Void, Never>? = nil
     @FocusState private var isFocused: Bool
@@ -71,11 +71,6 @@ struct SearchView: View {
                                 Text(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Recent" : "No results")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
-                                if !query.isEmpty {
-                                    Text("Usernames must match exactly.")
-                                        .font(.system(size: 12, weight: .regular))
-                                        .foregroundColor(.white.opacity(0.6))
-                                }
                             }
                             .padding(.horizontal)
                         } else {
@@ -113,33 +108,19 @@ struct SearchView: View {
     }
 
     // Networking
-
-    /// Calls API service to fetch a single user by exact username,
-    /// then maps to 0 or 1 result.
-    @MainActor
     private func performSearch() async {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Clear state when empty
-        guard !trimmed.isEmpty else {
+        guard !query.isEmpty else {
             results = []
-            isLoading = false
             return
         }
-
-        isLoading = true
-        defer { isLoading = false }
-
+            
         do {
-            // If your endpoint needs auth, pass the token; else `nil` is fine.
-            let token = auth.getToken()
-            let resp = try await APIService.shared.getUserByUsername(username: trimmed, token: token)
-
-            // Expecting: struct UserResponse { let user: User, ... }
-            results = [resp.data]
+            let response = try await APIService.shared.searchUsers(query: query)
+            await MainActor.run {
+                results = response.data
+            }
         } catch {
-            // Treat "not found" and other errors the same for now: empty results.
-            results = []
+            print("Search error:", error)
         }
     }
 }

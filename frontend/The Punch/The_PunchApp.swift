@@ -15,6 +15,14 @@ struct The_PunchApp: App {
     // Watch AuthManager for changes
     @StateObject private var authManager = AuthManager.shared
     
+    // Notification System
+    @StateObject var punchState = PunchState()
+    
+    init() {
+        NotificationManager.shared.requestPermission()
+        NotificationManager.shared.scheduleTodayPunch()
+    }
+    
     var body: some Scene {
         WindowGroup {
             // Switches when isAuthenticated changes

@@ -4,6 +4,8 @@ import SwiftUI
  The welcome screen for new users.
  */
 struct WelcomeView: View {
+    @EnvironmentObject var punchState: PunchState
+
     var body: some View {
         ZStack {
             Color(red: 0.12, green: 0.10, blue: 0.10) // deep brown/black background
@@ -51,7 +53,19 @@ struct WelcomeView: View {
                 .padding(.horizontal, 50)
                 .padding(.bottom, 80)
             }
+            .onReceive(NotificationCenter.default.publisher(for: .punchTimeTriggered)) { _ in
+                print("🔥 Punch Time triggered!")
+                
+                if let date = NotificationManager.shared.getTodayPunchTime(),
+                   let id = NotificationManager.shared.getTodayPunchId() {
+                    
+                    punchState.isPunchTimeActive = true
+                    punchState.punchTime = date
+                    punchState.punchId = id
+                }
+            }
         }
     }
 }
+
 

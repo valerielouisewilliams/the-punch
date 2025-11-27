@@ -11,6 +11,7 @@ class User {
     this.display_name = userData.display_name;
     this.bio = userData.bio;
     this.created_at = userData.created_at;
+    this.avatar_url = userData.avatar_url;
   }
 
   // create a new user
@@ -311,6 +312,7 @@ static async findByIdWithStatsAndRelationship(targetId, viewerId = null) {
       created_at: this.created_at,
       follower_count: this.follower_count ?? 0,
       following_count: this.following_count ?? 0,
+      avatar_url: this.avatar_url,
       // include is_following (true/false) or null if not applicable
       is_following: (this.is_following === undefined) ? null : this.is_following,
     };

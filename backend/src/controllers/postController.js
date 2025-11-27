@@ -8,19 +8,26 @@ const postController = {
   // Create a new post
   async createPost(req, res) {
     try {
-      const { text, feeling_emoji, feeling_name } = req.body;
+      const { text } = req.body;
+      const feelingEmoji = req.body.feeling_emoji || null;
+      const feelingName  = req.body.feeling_name  || null;
       const user_id = req.user.id;
+
+      //DEBUG
+      console.log("BODY:", req.body);
+      console.log("snake:", req.body.feeling_emoji, req.body.feeling_name);
+      console.log("camel:", req.body.feelingEmoji, req.body.feelingName);
 
       // Validate required fields
       if (!text || text.trim().length === 0) {
         return res.status(400).json({ error: 'Post text is required' });
       }
-
+      
       const post = await Post.create({ 
         user_id, 
         text: text.trim(), 
-        feeling_emoji,
-        feeling_name 
+        feeling_emoji: feelingEmoji,
+        feeling_name: feelingName
       });
 
       // Format the post with stats

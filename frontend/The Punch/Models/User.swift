@@ -13,6 +13,7 @@ protocol UserDisplayable: Identifiable {
     var username: String { get }
     var displayName: String { get }
     var bio: String? { get }
+    var avatarUrl: String? { get }
 }
 
 struct User: Codable, Identifiable {
@@ -33,6 +34,7 @@ struct UserProfile: Codable, Identifiable {
     let username: String
     let displayName: String
     let bio: String?
+    let avatarUrl: String?
 }
 
 extension User: UserDisplayable {}

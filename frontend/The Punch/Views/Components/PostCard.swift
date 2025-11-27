@@ -36,14 +36,31 @@ struct PostCard: View {
             // Header
             HStack(spacing: 12) {
                 // Avatar
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Text(post.author.displayNameOrUsername.prefix(1).uppercased())
-                            .font(.headline)
-                            .foregroundColor(.white)
-                    )
+                Group {
+                    if let avatarUrl = post.author.avatarUrl,
+                       let url = URL(string: avatarUrl) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Circle()
+                                .fill(Color.gray.opacity(0.3))
+                        }
+                        .frame(width: 50, height: 50)
+                        .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 50, height: 50)
+                            .overlay(
+                                Text(post.author.displayNameOrUsername.prefix(1).uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                    }
+                }
+
                 
                 // User Info
                 VStack(alignment: .leading, spacing: 2) {
@@ -51,33 +68,35 @@ struct PostCard: View {
                         .font(.headline)
                         .foregroundColor(.white)
                     
-                    // Show username except on own profile
-                    if shouldShowUsername {
-                        Text("@\(post.author.username)")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
+                    Text("@\(post.author.username)")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+
                 }
                 
                 Spacer()
                 
-                // Feeling
-                if let emoji = post.feelingEmoji {
-                    HStack(spacing: 4) {
-                        Text(emoji)
-                            .font(.title2)
-                        if let name = post.feelingName {
-                            Text(name)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }
-                
+               
+
                 // Time
                 Text(formatDate(post.createdAt))
                     .font(.caption)
                     .foregroundColor(.gray)
+                
+                
+                // Options Menu (for own posts)
+                if isOwnPost && context == .profile {
+                    Menu {
+                        Button(role: .destructive) {
+                            deletePost()
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gray)
+                    }
+                }
             }
             
             // MARK: - Content
@@ -107,29 +126,37 @@ struct PostCard: View {
                 {
                     HStack(spacing: 4) {
                         Image(systemName: "bubble.right")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.white.opacity(0.8))
                         Text("\(post.stats.commentCount)")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.white.opacity(0.7))
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
                 
                 Spacer()
                 
-                // Options Menu (for own posts)
-                if isOwnPost && context == .profile {
-                    Menu {
-                        Button(role: .destructive) {
-                            deletePost()
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
+                // FEELING BADGE (bottom-right corner)
+                if let emoji = post.feelingEmoji, let name = post.feelingName {
+                    HStack(spacing: 6) {
+                        Text("Feeling:")
+                            .font(.caption)
                             .foregroundColor(.gray)
+
+                        Text(name.capitalized)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.9))
+
+                        Text(emoji)
+                            .font(.caption)
                     }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(Capsule())
+                    .frame(maxWidth: .infinity, alignment: .trailing) // 🔥 replaces Spacer + fixes hit-test
                 }
+
             }
             .font(.footnote)
             
@@ -160,17 +187,10 @@ struct PostCard: View {
         .padding()
         .background(Color(red: 0.15, green: 0.13, blue: 0.13))
         .cornerRadius(12)
+        .contentShape(Rectangle())
+
     }
-    
-    // Helper Properties
-    private var shouldShowUsername: Bool {
-        // Don't show username if viewing own posts on profile
-        if context == .profile && isOwnPost {
-            return false
-        }
-        return true
-    }
-    
+        
     private var isOwnPost: Bool {
         authManager.currentUser?.id == post.author.id
     }
@@ -315,14 +335,33 @@ struct CommentView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            Circle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 24, height: 24)
-                .overlay(
-                    Text(comment.user?.displayNameOrUsername.prefix(1).uppercased() ?? "?")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                )
+            // Avatar
+            Group {
+                if let avatarUrl = comment.user?.avatarUrl,
+                   let url = URL(string: avatarUrl) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Circle()
+                            .fill(Color.gray.opacity(0.2))
+                    }
+                    .frame(width: 24, height: 24)
+                    .clipShape(Circle())
+                    
+                } else {
+                    Circle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 24, height: 24)
+                        .overlay(
+                            Text(comment.user?.displayNameOrUsername.prefix(1).uppercased() ?? "?")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                        )
+                }
+            }
+
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(comment.user?.displayNameOrUsername ?? "Unknown")

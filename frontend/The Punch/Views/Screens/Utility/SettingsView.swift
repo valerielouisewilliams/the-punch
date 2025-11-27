@@ -6,6 +6,7 @@ struct SettingsView: View {
 
     /// Called after a successful logout so the parent can clear state or route to login.
     var onLoggedOut: (() -> Void)? = nil
+    var onProfileUpdated: ((User) -> Void)? = nil
 
     var body: some View {
         NavigationStack {
@@ -14,8 +15,17 @@ struct SettingsView: View {
 
                 List {
                     Section {
+                        Button("Test Punch in 5s") {
+                            print("Testing Punch Notif")
+                            NotificationManager.shared.scheduleTestNotification(seconds: 5)
+                        }
+                    } header : {
+                        Text("Admin Only")
+                    }
+
+                    Section {
                         NavigationLink {
-                            EditProfileView(user: auth.currentUser!)
+                            EditProfileView(user: auth.currentUser!, onProfileUpdated: onProfileUpdated)
                         } label: {
                             HStack {
                                 Image(systemName: "pencil")
@@ -24,7 +34,7 @@ struct SettingsView: View {
                         }
 
                         NavigationLink {
-                            //FAQView() //TODO: Create this functionality
+                            //FAQView()
                         } label: {
                             HStack {
                                 Image(systemName: "questionmark.circle")
