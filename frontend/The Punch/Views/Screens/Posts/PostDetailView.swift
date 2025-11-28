@@ -128,6 +128,27 @@ struct PostDetailView: View {
             post.stats.userHasLiked = isLiked
             post.stats.likeCount = likeCount
         }
+        .onReceive(NotificationCenter.default.publisher(for: .commentDidCreate)) { notif in
+            guard
+                let postId = notif.userInfo?["postId"] as? Int,
+                postId == post.id,
+                let newComment = notif.userInfo?["comment"] as? Comment
+            else { return }
+
+            // Don't double-insert if it was created inside this view
+            if !comments.contains(where: { $0.id == newComment.id }) {
+                comments.insert(newComment, at: 0)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .commentDidDelete)) { notif in
+            guard
+                let postId = notif.userInfo?["postId"] as? Int,
+                postId == post.id,
+                let deletedId = notif.userInfo?["commentId"] as? Int
+            else { return }
+
+            comments.removeAll { $0.id == deletedId }
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Comments")
@@ -203,6 +224,17 @@ struct PostDetailView: View {
                     newCommentText = ""
                     isCommentFieldFocused = false
                     isPostingComment = false
+                    
+                    // Notify listeners
+                    NotificationCenter.default.post(
+                        name: .commentDidCreate,
+                        object: nil,
+                        userInfo: [
+                            "postId": post.id,
+                            "comment": newComment
+                        ]
+                    )
+
                 }
             } catch {
                 await MainActor.run {
@@ -216,5 +248,15 @@ struct PostDetailView: View {
     
     private func removeComment(_ comment: Comment) {
         comments.removeAll { $0.id == comment.id }
+
+        NotificationCenter.default.post(
+            name: .commentDidDelete,
+            object: nil,
+            userInfo: [
+                "postId": post.id,
+                "commentId": comment.id
+            ]
+        )
+
     }
 }

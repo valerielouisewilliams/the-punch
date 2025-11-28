@@ -101,6 +101,24 @@ struct FeedView: View {
                 posts[index].stats.likeCount = likeCount
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .commentDidCreate)) { notif in
+            guard
+                let postId = notif.userInfo?["postId"] as? Int
+            else { return }
+
+            if let index = posts.firstIndex(where: { $0.id == postId }) {
+                posts[index].stats.commentCount += 1
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .commentDidDelete)) { notif in
+            guard
+                let postId = notif.userInfo?["postId"] as? Int
+            else { return }
+
+            if let index = posts.firstIndex(where: { $0.id == postId }) {
+                posts[index].stats.commentCount = max(0, posts[index].stats.commentCount - 1)
+            }
+        }
         .tabItem { Label("Home", systemImage: "house.fill") }
     }
     
