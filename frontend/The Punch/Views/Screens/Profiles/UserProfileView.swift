@@ -322,10 +322,7 @@ struct UserProfileView: View {
             }
         } catch {
             await MainActor.run {
-                self.user = nil
                 self.isLoadingUser = false
-                self.errorMessage = "Failed to load profile"
-                self.showError = true
             }
         }
     }

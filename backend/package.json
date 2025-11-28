@@ -2,10 +2,10 @@
   "name": "the-punch-api",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -31,10 +31,5 @@
     "nodemon": "^3.1.10",
     "nyc": "^17.1.0",
     "supertest": "^7.1.4"
-  },
-  "scripts": {
-  "start": "node app.js",
-  "start:cov": "nyc --reporter=html --reporter=text-summary node server.js"
   }
-
 }

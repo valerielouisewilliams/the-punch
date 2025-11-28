@@ -13,13 +13,14 @@ class APIService {
     // Backend URL for sim testing
     //private let baseURL = "http://localhost:3000/api" // for simulator
     
-    // Bckend URL for device testing
+    // Backend URL for device testing
 //    private let baseURL = URL(string: "http://10.74.201.159:3000/api")! // campus wifi
 //    private let baseURL = URL(string: "http://10.0.0.187:3000/api")! // apartment wifi
 //   private let baseURL = URL(string:"http://192.168.1.222:3000/api")! // home wifi
-    private let baseURL = URL(string: "http://192.168.7.5:3000/api")! // aunties house wifi
+//  private let baseURL = URL(string: "http://192.168.7.5:3000/api")! // aunties house wifi
 //    private let baseURL = URL(string:"http://172.20.10.2:3000/api")! // hotel wifi
-    
+    private let baseURL = URL(string: "https://the-punch-backend-production.up.railway.app/api")!
+
 
     private init() {}
     

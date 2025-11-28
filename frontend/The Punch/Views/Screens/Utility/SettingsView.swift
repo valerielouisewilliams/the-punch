@@ -24,12 +24,14 @@ struct SettingsView: View {
                     }
 
                     Section {
-                        NavigationLink {
-                            EditProfileView(user: auth.currentUser!, onProfileUpdated: onProfileUpdated)
-                        } label: {
-                            HStack {
-                                Image(systemName: "pencil")
-                                Text("Edit Profile")
+                        if let user = auth.currentUser {
+                            NavigationLink {
+                                EditProfileView(user: user, onProfileUpdated: onProfileUpdated)
+                            } label: {
+                                HStack {
+                                    Image(systemName: "pencil")
+                                    Text("Edit Profile")
+                                }
                             }
                         }
 

@@ -9,19 +9,19 @@ console.log('Loaded .env values:', {
   DB_NAME: process.env.DB_NAME
 });
 
-
-// database configuration using environment variables
-const dbConfig = {
+// create a connection pool
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  charset: 'utf8mb4' // For emoji support
-};
+  port: process.env.DB_PORT,
+  charset: 'utf8mb4',
+  ssl: {
+    rejectUnauthorized: false  // Aiven fix
+  }
+});
 
-// create a connection pool
-const pool = mysql.createPool(dbConfig);
 
 // test if database connection works
 const initDatabase = async () => {

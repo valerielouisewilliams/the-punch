@@ -72,7 +72,7 @@ struct CreatePunchView: View {
                             .foregroundColor(.gray)
                         
                         HStack(spacing: 10) {
-                            TextField("Type anything (e.g., grateful, feral, inspired…)", text: $feelingText)
+                            TextField("Type anything...", text: $feelingText)
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
                                 .foregroundColor(.white)
