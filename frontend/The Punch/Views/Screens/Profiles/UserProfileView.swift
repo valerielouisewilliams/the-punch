@@ -102,11 +102,11 @@ struct UserProfileView: View {
                             .padding()
                             .frame(maxWidth: .infinity)
                         } else {
-                            ForEach(posts) { post in
+                            ForEach(posts.indices, id: \.self) { index in
                                 NavigationLink {
-                                    PostDetailView(post: post)
+                                    PostDetailView(post: $posts[index])
                                 } label: {
-                                    PostCard(post: post, context: .profile)
+                                    PostCard(post: posts[index], context: .profile)
                                 }
                                 .buttonStyle(.plain)
                             }

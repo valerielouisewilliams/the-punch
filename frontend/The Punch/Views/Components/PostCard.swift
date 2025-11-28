@@ -117,20 +117,13 @@ struct PostCard: View {
                 .buttonStyle(PlainButtonStyle())
                 
                 // Navigate to comments
-                NavigationLink(destination: PostDetailView(post: post)
-                                                .toolbar(.hidden, for: .tabBar)
-                                                .navigationBarHidden(false))
-                {
-                    HStack(spacing: 4) {
-                        Image(systemName: "bubble.right")
-                            .foregroundColor(.white.opacity(0.8))
-                        Text("\(post.stats.commentCount)")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
-                    }
+                HStack(spacing: 4) {
+                    Image(systemName: "bubble.right")
+                        .foregroundColor(.white.opacity(0.8))
+                    Text("\(post.stats.commentCount)")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
                 }
-                .buttonStyle(PlainButtonStyle())
-                
                 Spacer()
                 
                 // FEELING BADGE (bottom-right corner)

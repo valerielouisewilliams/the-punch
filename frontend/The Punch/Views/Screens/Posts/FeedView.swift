@@ -43,12 +43,17 @@ struct FeedView: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 16) {
-                                ForEach(posts) { post in
-                                    PostCard(post: post)
-                                        .padding(.horizontal, 12)
+                                ForEach(posts.indices, id: \.self) { index in
+                                    NavigationLink {
+                                        PostDetailView(post: $posts[index])
+                                    } label: {
+                                        PostCard(post: posts[index])
+                                            .padding(.horizontal, 12)
+                                    }
+                                    .buttonStyle(.plain)
 
                                     // Infinite scroll trigger
-                                    if post == posts.last && hasMore && !isLoading {
+                                    if index == posts.count - 1 && hasMore && !isLoading {
                                         ProgressView()
                                             .tint(.white)
                                             .frame(maxWidth: .infinity)
@@ -58,6 +63,7 @@ struct FeedView: View {
                                             }
                                     }
                                 }
+
                             }
                             .padding(.top, 10)
                         }

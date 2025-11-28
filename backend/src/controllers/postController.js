@@ -52,7 +52,7 @@ const postController = {
   async getPostById(req, res) {
     try {
       const { id } = req.params;
-      const viewerId = req.user?.id || null;
+      const viewerId = req.user?.id ?? 0;   // 0 = safe non-null fallback
 
       const post = await Post.findById(id);
 

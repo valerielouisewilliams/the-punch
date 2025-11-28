@@ -38,7 +38,7 @@ router.get('/:id', getPostById);
  * @desc    Get all posts by a specific user
  * @access  Public
  */
-router.get('/user/:user_id', getPostsByUserId);
+router.get('/user/:user_id', optionalAuth, getPostsByUserId);
 
 /**
  * @route   PUT /api/posts/:id

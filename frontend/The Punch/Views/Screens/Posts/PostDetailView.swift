@@ -10,7 +10,7 @@ import SwiftUI
 import Foundation
 
 struct PostDetailView: View {
-    @State var post: Post
+    @Binding var post: Post
     @State private var comments: [Comment] = []
     @State private var isLoadingComments = false
     @State private var newCommentText = ""
