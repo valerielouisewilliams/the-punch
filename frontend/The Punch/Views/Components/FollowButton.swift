@@ -1,9 +1,3 @@
-//  FollowButton.swift
-//  ThePunch
-//
-//  Created by Valerie Williams on 10/19/25.
-//
-
 import SwiftUI
 
 struct FollowButton: View {
@@ -13,7 +7,6 @@ struct FollowButton: View {
 
     @State private var isFollowing = false
     @State private var loading = false
-    @State private var didLoadForThisUser = false
 
     var body: some View {
         Button {
@@ -29,13 +22,16 @@ struct FollowButton: View {
         }
         .disabled(loading || !canFollow)
         .opacity(loading ? 0.6 : 1.0)
-        // Load on first appear and whenever the viewed user changes
+        // Load when this button appears OR when the viewed user changes
         .task(id: viewedUserId) {
             await loadInitialState()
         }
-        // If auth token/currentUser arrives later (e.g., post-login), refresh
+        .onAppear {
+            Task { await loadInitialState() }
+        }
+        // If you log in later, refresh the state
         .onChange(of: auth.token) { _, _ in
-            Task { await loadInitialState(force: true) }
+            Task { await loadInitialState() }
         }
     }
 
@@ -44,18 +40,19 @@ struct FollowButton: View {
         return me.id != viewedUserId
     }
 
-    private func loadInitialState(force: Bool = false) async {
+    private func loadInitialState() async {
         guard canFollow, let token = auth.token else { return }
-        if didLoadForThisUser && !force { return }
 
         do {
-            let status = try await APIService.shared.checkIfFollowing(userId: viewedUserId, token: token)
+            let status = try await APIService.shared.checkIfFollowing(
+                userId: viewedUserId,
+                token: token
+            )
             await MainActor.run {
                 self.isFollowing = status.following
-                self.didLoadForThisUser = true
             }
         } catch {
-            //nit: add toast
+            print("checkIfFollowing failed:", error)
         }
     }
 
@@ -66,14 +63,31 @@ struct FollowButton: View {
 
         do {
             if isFollowing {
-                _ = try await APIService.shared.unfollowUser(userId: viewedUserId, token: token)
+                _ = try await APIService.shared.unfollowUser(
+                    userId: viewedUserId,
+                    token: token
+                )
                 await MainActor.run { isFollowing = false }
             } else {
-                _ = try await APIService.shared.followUser(userId: viewedUserId, token: token)
+                _ = try await APIService.shared.followUser(
+                    userId: viewedUserId,
+                    token: token
+                )
                 await MainActor.run { isFollowing = true }
             }
+
+            // 🔔 broadcast follow change
+            NotificationCenter.default.post(
+                name: .followDidChange,
+                object: nil,
+                userInfo: [
+                    "userId": viewedUserId,
+                    "followerId": auth.currentUser?.id ?? 0,
+                    "isFollowing": isFollowing
+                ]
+            )
         } catch {
-            //nit: add toast
+            print("toggleFollow failed:", error)
         }
     }
 }

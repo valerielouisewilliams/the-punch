@@ -286,15 +286,22 @@ struct PostCard: View {
     private func deletePost() {
         Task {
             guard let token = authManager.token else { return }
-            
+
             do {
                 _ = try await APIService.shared.deletePost(id: post.id, token: token)
-                // Post will be removed from list by parent view
+
+                // Notify listeners
+                NotificationCenter.default.post(
+                    name: .postDidDelete,
+                    object: nil,
+                    userInfo: ["id": post.id]
+                )
             } catch {
                 print("Delete failed: \(error)")
             }
         }
     }
+
     
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()

@@ -57,6 +57,9 @@ struct FollowingListResponse: Codable {
     let following: [UserProfile]
 }
 
+struct FollowStatusResponse: Codable {
+    let following: Bool
+}
 
 // Post Responses
 
@@ -127,15 +130,21 @@ struct LikeStatusResponse: Codable {
 }
 
 // Follow Responses
-
-struct FollowStatusResponse: Codable {
-    let success: Bool
-    let following: Bool
-}
+//
+//struct FollowStatusResponse: Codable {
+//    let success: Bool
+//    let following: Bool
+//}
 
 // Generic Responses
 
 struct MessageResponse: Codable {
     let message: String
     let like: Like?
+}
+
+struct SimpleResponse: Codable {
+    let success: Bool?
+    let message: String?
+    let error: String?
 }

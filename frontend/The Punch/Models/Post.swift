@@ -28,8 +28,8 @@ struct Post: Codable, Identifiable, Equatable {
 struct PostAuthor: Codable, Equatable {
     let id: Int
     let username: String
-    let displayName: String?
-    let avatarUrl: String?
+    var displayName: String?
+    var avatarUrl: String?
     
     var displayNameOrUsername: String {
         displayName ?? username

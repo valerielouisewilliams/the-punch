@@ -300,35 +300,36 @@ class APIService {
     
     // Follow Endpoints
     
-    /// Follow a user (requires authentication)
-    func followUser(userId: Int, token: String) async throws -> MessageResponse {
-        return try await makeRequest(
-            endpoint: "/follows/user/\(userId)",
-            method: "POST",
-            token: token,
-            responseType: MessageResponse.self
-        )
-    }
+//    /// Follow a user (requires authentication)
+//    func followUser(userId: Int, token: String) async throws -> MessageResponse {
+//        return try await makeRequest(
+//            endpoint: "/follows/user/\(userId)",
+//            method: "POST",
+//            token: token,
+//            responseType: MessageResponse.self
+//        )
+//    }
+//    
+//    /// Unfollow a user (requires authentication)
+//    func unfollowUser(userId: Int, token: String) async throws -> MessageResponse {
+//        return try await makeRequest(
+//            endpoint: "/follows/user/\(userId)",
+//            method: "DELETE",
+//            token: token,
+//            responseType: MessageResponse.self
+//        )
+//    }
+//    
+//    /// Check if current user is following another user (requires authentication)
+//    func checkIfFollowing(userId: Int, token: String) async throws -> FollowStatusResponse {
+//        return try await makeRequest(
+//            endpoint: "/follows/user/\(userId)/check",
+//            method: "GET",
+//            token: token,
+//            responseType: FollowStatusResponse.self
+//        )
+//    }
     
-    /// Unfollow a user (requires authentication)
-    func unfollowUser(userId: Int, token: String) async throws -> MessageResponse {
-        return try await makeRequest(
-            endpoint: "/follows/user/\(userId)",
-            method: "DELETE",
-            token: token,
-            responseType: MessageResponse.self
-        )
-    }
-    
-    /// Check if current user is following another user (requires authentication)
-    func checkIfFollowing(userId: Int, token: String) async throws -> FollowStatusResponse {
-        return try await makeRequest(
-            endpoint: "/follows/user/\(userId)/check",
-            method: "GET",
-            token: token,
-            responseType: FollowStatusResponse.self
-        )
-    }
     
     // User Endpoints
     
@@ -592,3 +593,40 @@ extension APIService {
     }
 }
 
+extension APIService {
+    func checkIfFollowing(
+        userId: Int,
+        token: String
+    ) async throws -> FollowStatusResponse {
+        return try await makeRequest(
+            endpoint: "/follows/user/\(userId)/check",
+            method: "GET",
+            token: token,
+            responseType: FollowStatusResponse.self
+        )
+    }
+
+    func followUser(
+        userId: Int,
+        token: String
+    ) async throws -> SimpleResponse {
+        try await makeRequest(
+            endpoint: "/follows/user/\(userId)",
+            method: "POST",
+            token: token,
+            responseType: SimpleResponse.self
+        )
+    }
+
+    func unfollowUser(
+        userId: Int,
+        token: String
+    ) async throws -> SimpleResponse {
+        try await makeRequest(
+            endpoint: "/follows/user/\(userId)",
+            method: "DELETE",
+            token: token,
+            responseType: SimpleResponse.self
+        )
+    }
+}

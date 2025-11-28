@@ -173,6 +173,20 @@ struct EditProfileView: View {
                 onProfileUpdated?(updatedUser)
                 isSaving = false
                 dismiss()
+                
+                // Notify listeners
+                NotificationCenter.default.post(
+                    name: .userProfileDidUpdate,
+                    object: nil,
+                    userInfo: [
+                        "id": updatedUser.id,              // user ID who updated profile
+                        "displayName": updatedUser.displayName,
+                        "bio": updatedUser.bio ?? "",
+                        "avatarUrl": updatedUser.avatarUrl ?? ""
+                    ]
+                )
+
+                
             }
         } catch {
             await MainActor.run {

@@ -20,13 +20,13 @@ struct User: Codable, Identifiable {
     let id: Int
     let username: String
     let email: String?
-    let displayName: String
-    let bio: String?
+    var displayName: String
+    var bio: String?
     let createdAt: String
-    let followerCount: Int?
-    let followingCount: Int?
-    let avatarUrl: String?
-    let isFollowing: Bool?
+    var followerCount: Int?
+    var followingCount: Int?
+    var avatarUrl: String?
+    var isFollowing: Bool?
 }
 
 struct UserProfile: Codable, Identifiable {

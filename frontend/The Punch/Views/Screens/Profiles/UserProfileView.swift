@@ -206,6 +206,75 @@ struct UserProfileView: View {
                 posts[index].stats.commentCount = max(0, posts[index].stats.commentCount - 1)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .followDidChange)) { notif in
+            guard
+                let targetId = notif.userInfo?["userId"] as? Int,
+                let followerId = notif.userInfo?["followerId"] as? Int,
+                let newState = notif.userInfo?["isFollowing"] as? Bool
+            else { return }
+
+            // CASE 1: I am viewing *someone else's profile*
+            if user?.id == targetId {
+                user?.isFollowing = newState
+                if newState {
+                    user?.followerCount? += 1
+                } else {
+                    user?.followerCount? = max(0, (user?.followerCount ?? 1) - 1)
+                }
+            }
+
+            // CASE 2: I am viewing *my own profile* and I follow/unfollow someone
+            if authManager.currentUser?.id == user?.id {
+                if newState {
+                    user?.followingCount? += 1
+                } else {
+                    user?.followingCount? = max(0, (user?.followingCount ?? 1) - 1)
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .postDidDelete)) { notif in
+            guard let id = notif.userInfo?["id"] as? Int else { return }
+
+            // Remove the post instantly
+            posts.removeAll { $0.id == id }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { notif in
+            guard let updatedId = notif.userInfo?["id"] as? Int else { return }
+
+            // Only update if it's the same profile being viewed
+            guard updatedId == userId else { return }
+
+            if var u = user {
+                if let displayName = notif.userInfo?["displayName"] as? String {
+                    u.displayName = displayName
+                }
+                if let bio = notif.userInfo?["bio"] as? String {
+                    u.bio = bio
+                }
+                if let avatar = notif.userInfo?["avatarUrl"] as? String {
+                    u.avatarUrl = avatar
+                }
+                self.user = u
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { notif in
+            guard let updatedId = notif.userInfo?["id"] as? Int else { return }
+
+            for i in posts.indices {
+                if posts[i].author.id == updatedId {
+                    if let displayName = notif.userInfo?["displayName"] as? String {
+                        posts[i].author.displayName = displayName
+                    }
+                    if let avatar = notif.userInfo?["avatarUrl"] as? String {
+                        posts[i].author.avatarUrl = avatar
+                    }
+                }
+            }
+        }
+
+
+
+
     }
     
     
