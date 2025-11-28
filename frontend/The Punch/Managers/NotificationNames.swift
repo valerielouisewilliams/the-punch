@@ -16,6 +16,11 @@ extension NSNotification.Name {
     static let postDidDelete = NSNotification.Name("postDidDelete")
 }
 
+extension Notification.Name {
+    static let postDidCreate = Notification.Name("postDidCreate")
+}
+
+
 // Comments
 extension Notification.Name {
     static let commentDidCreate = Notification.Name("commentDidCreate")

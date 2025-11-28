@@ -1,9 +1,5 @@
 import SwiftUI
 
-extension Notification.Name {
-    static let postDidCreate = Notification.Name("postDidCreate")
-}
-
 struct CreatePunchView: View {
     var onPosted: ((Post) -> Void)? = nil
     
@@ -241,7 +237,12 @@ struct CreatePunchView: View {
             let created = response.data
             
             await MainActor.run {
-                NotificationCenter.default.post(name: .postDidCreate, object: created)
+                NotificationCenter.default.post(
+                    name: .postDidCreate,
+                    object: nil,
+                    userInfo: ["post": created]
+                )
+
                 dismiss()
             }
         } catch {

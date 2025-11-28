@@ -119,6 +119,15 @@ struct FeedView: View {
                 posts[index].stats.commentCount = max(0, posts[index].stats.commentCount - 1)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .postDidCreate)) { notif in
+            guard let newPost = notif.userInfo?["post"] as? Post else { return }
+
+            // Only add if includeOwnPosts = true OR post isn't by me
+            if includeOwnPosts || newPost.author.id != authManager.currentUser?.id {
+                posts.insert(newPost, at: 0)
+            }
+        }
+
         .tabItem { Label("Home", systemImage: "house.fill") }
     }
     

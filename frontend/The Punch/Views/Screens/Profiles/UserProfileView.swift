@@ -271,9 +271,26 @@ struct UserProfileView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .postDidCreate)) { notif in
+            // Support both patterns: userInfo["post"] and object as Post
+            let newPost: Post?
 
+            if let p = notif.userInfo?["post"] as? Post {
+                newPost = p
+            } else if let p = notif.object as? Post {
+                newPost = p
+            } else {
+                return
+            }
 
+            guard let post = newPost else { return }
 
+            // Only insert if this is the profile we're currently viewing
+            guard post.author.id == userId else { return }
+
+            // Put newest at the top
+            posts.insert(post, at: 0)
+        }
 
     }
     
