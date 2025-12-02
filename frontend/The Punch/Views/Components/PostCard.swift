@@ -145,7 +145,7 @@ struct PostCard: View {
                     .padding(.vertical, 4)
                     .background(Color.white.opacity(0.08))
                     .clipShape(Capsule())
-                    .frame(maxWidth: .infinity, alignment: .trailing) // 🔥 replaces Spacer + fixes hit-test
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                 }
 
             }
@@ -187,35 +187,6 @@ struct PostCard: View {
     }
     
     // Actions
-//    private func toggleLike() {
-//        Task {
-//            guard let token = authManager.token else { return }
-//            
-//            // Save for rollback
-//            let prevLiked = isLiked
-//            let prevCount = likeCount
-//            
-//            // Optimistic update
-//            isLiked.toggle()
-//            likeCount += isLiked ? 1 : -1
-//            
-//            do {
-//                if isLiked {
-//                    _ = try await APIService.shared.likePost(postId: post.id, token: token)
-//                } else {
-//                    _ = try await APIService.shared.unlikePost(postId: post.id, token: token)
-//                }
-//            } catch {
-//                // Rollback on error
-//                await MainActor.run {
-//                    isLiked = prevLiked
-//                    likeCount = prevCount
-//                }
-//                print("Like toggle failed: \(error)")
-//            }
-//        }
-//    }
-    
     @MainActor
     private func toggleLike() {
       // 0) Probes
@@ -226,10 +197,6 @@ struct PostCard: View {
         print("No token; bailing.")
         return
       }
-//      guard !likeInFlight else {
-//        print("Like already in flight; ignoring tap.")
-//        return
-//      }
 
       // 2) Mark in-flight & snapshot
       likeInFlight = true
@@ -335,7 +302,7 @@ struct PostCard: View {
     }
 }
 
-// MARK: - Comment View (if in same file)
+// MARK: - Comment View
 struct CommentView: View {
     let comment: Comment
     

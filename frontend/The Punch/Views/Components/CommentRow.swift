@@ -102,7 +102,7 @@ struct CommentRow: View {
             do {
                 _ = try await APIService.shared.deleteComment(id: comment.id, token: token)
                 await MainActor.run {
-                    onDelete()   // 👈 tell parent to remove it from array
+                    onDelete()   // tell parent to remove it from array
                 }
             } catch {
                 print("Failed to delete comment: \(error)")
@@ -113,7 +113,6 @@ struct CommentRow: View {
         }
     }
     
-    // formatDate is perfect
 }
 
     

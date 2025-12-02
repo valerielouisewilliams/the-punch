@@ -78,7 +78,7 @@ struct FollowButton: View {
                 await MainActor.run { isFollowing = true }
             }
 
-            // 🔔 broadcast follow change
+            // broadcast follow change
             NotificationCenter.default.post(
                 name: .followDidChange,
                 object: nil,
