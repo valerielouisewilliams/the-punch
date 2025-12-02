@@ -60,7 +60,9 @@ struct FollowButton: View {
         guard canFollow, let token = auth.token else { return }
         await MainActor.run { loading = true }
         defer { Task { await MainActor.run { loading = false } } }
-
+        
+        SoundManager.shared.playSound(.follow)
+        
         do {
             if isFollowing {
                 _ = try await APIService.shared.unfollowUser(

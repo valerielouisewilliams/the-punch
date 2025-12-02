@@ -234,6 +234,8 @@ struct PostDetailView: View {
                             "comment": newComment
                         ]
                     )
+                    
+                    SoundManager.shared.playSound(.comment)
 
                 }
             } catch {

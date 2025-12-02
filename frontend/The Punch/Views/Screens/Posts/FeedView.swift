@@ -77,7 +77,8 @@ struct FeedView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
-                        Task { await reloadFeed() }
+                        Task { SoundManager.shared.playSound(.refresh)
+                            await reloadFeed() }
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundStyle(.white)

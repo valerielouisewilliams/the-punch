@@ -5,7 +5,6 @@
 //  Created by Valerie Williams on 11/26/25.
 //
 
-
 import Foundation
 import UserNotifications
 
@@ -134,7 +133,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let req = UNNotificationRequest(identifier: "testPunch", content: content, trigger: trigger)
         
         UNUserNotificationCenter.current().add(req)
-        print("🧪 Test notification scheduled for \(seconds)s")
+        print("Test notification scheduled for \(seconds)s")
     }
     
     // MARK: - Getters

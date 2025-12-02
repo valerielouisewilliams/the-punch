@@ -205,6 +205,8 @@ struct CreatePunchView: View {
     
     // Submit
     private func submit() async {
+        SoundManager.shared.playSound(.punch)
+        
         if isPosting { return }
         
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -105,7 +105,8 @@ struct PostCard: View {
             // MARK: - Engagement Bar
             HStack(spacing: 24) {
                 // Like Button
-                Button(action: { toggleLike() }) {
+                Button(action: {SoundManager.shared.playSound(.like)
+                    toggleLike() }) {
                     HStack(spacing: 4) {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .foregroundColor(isLiked ? .red : .gray)
