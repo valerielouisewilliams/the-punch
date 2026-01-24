@@ -1,0 +1,1873 @@
+openapi: 3.0.0
+info:
+  title: The Punch API
+  description: |
+    Social media platform API for The Punch - A full-featured social network with posts, comments, likes, follows, and personalized feeds.
+    
+    ## Authentication
+    Most endpoints require JWT authentication via Bearer token in the Authorization header.
+    Obtain tokens through `/api/auth/register` or `/api/auth/login`.
+    
+    ## Response Format
+    All responses follow a standard format:
+    - Success: `{ "success": true, "data": {...}, "message": "..." }`
+    - Error: `{ "success": false, "error": "...", "message": "..." }`
+  version: 1.0.0
+  contact:
+    name: Valerie
+    email: support@thepunch.app
+    
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.thepunch.app
+    description: Production server
+
+tags:
+  - name: Auth
+    description: User authentication and registration
+  - name: Users
+    description: User profiles and search
+  - name: Posts
+    description: Create, read, update, and delete posts
+  - name: Comments
+    description: Comment on posts
+  - name: Likes
+    description: Like and unlike posts
+  - name: Follows
+    description: Follow/unfollow users and view relationships
+  - name: Feed
+    description: Personalized user feed
+
+paths:
+  # ==================== AUTH ROUTES ====================
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      description: Create a new user account and receive an authentication token
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              username: "johndoe"
+              email: "john@example.com"
+              password: "SecurePass123!"
+              display_name: "John Doe"
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                success: true
+                message: "User registered successfully"
+                data:
+                  user:
+                    id: 123
+                    username: "johndoe"
+                    display_name: "John Doe"
+                    bio: null
+                    avatar_url: null
+                    created_at: "2024-01-18T10:30:00Z"
+                    follower_count: 0
+                    following_count: 0
+                    is_following: null
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "User with this email already exists"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login user
+      description: Authenticate user and receive a JWT token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "john@example.com"
+              password: "SecurePass123!"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                success: true
+                message: "Login successful"
+                data:
+                  user:
+                    id: 123
+                    username: "johndoe"
+                    display_name: "John Doe"
+                    bio: "Software developer"
+                    avatar_url: "https://example.com/avatars/john.jpg"
+                    created_at: "2024-01-10T08:15:00Z"
+                    follower_count: 42
+                    following_count: 38
+                    is_following: null
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Invalid email or password"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get current user
+      description: Retrieve the authenticated user's profile information
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserPublic'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== USER ROUTES ====================
+  /api/users/search:
+    get:
+      tags:
+        - Users
+      summary: Search users
+      description: Search for users by username or display name (partial, case-insensitive matching). Returns top 20 results.
+      operationId: searchUsers
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search term to match against username or display name
+          schema:
+            type: string
+            minLength: 1
+            example: "john"
+      responses:
+        '200':
+          description: List of matching users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 2
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserSearchResult'
+              example:
+                success: true
+                count: 2
+                data:
+                  - id: 1
+                    username: "johndoe"
+                    displayName: "John Doe"
+                    bio: "Software developer"
+                    avatarUrl: "https://example.com/avatars/john.jpg"
+                  - id: 5
+                    username: "johnny123"
+                    displayName: "Johnny"
+                    bio: null
+                    avatarUrl: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      description: Retrieve a user's public profile by their numeric ID. If authenticated, includes whether the viewer follows this user.
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserPublic'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/users/username/{username}:
+    get:
+      tags:
+        - Users
+      summary: Get user by username
+      description: Retrieve a user's public profile by their username
+      operationId: getUserByUsername
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username (case-sensitive)
+          schema:
+            type: string
+            example: "janedoe"
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserPublic'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/users/{id}/followers:
+    get:
+      tags:
+        - Users
+      summary: Get user's followers
+      description: Retrieve list of users who follow the specified user
+      operationId: getFollowersByUserId
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: List of followers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 2
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FollowUser'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/users/{id}/following:
+    get:
+      tags:
+        - Users
+      summary: Get users that this user follows
+      description: Retrieve list of users that the specified user is following
+      operationId: getFollowingByUserId
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: List of users being followed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 2
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FollowUser'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/users/me:
+    put:
+      tags:
+        - Users
+      summary: Update current user's profile
+      description: Update the authenticated user's display name, bio, and avatar URL
+      operationId: updateUserProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            examples:
+              fullUpdate:
+                summary: Update all fields
+                value:
+                  display_name: "Jane Marie Doe"
+                  bio: "Designer, developer, and creative thinker"
+                  avatar_url: "https://example.com/avatars/jane-new.jpg"
+              partialUpdate:
+                summary: Update only bio
+                value:
+                  bio: "New bio text"
+      responses:
+        '200':
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserPublic'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== POST ROUTES ====================
+  /api/posts:
+    post:
+      tags:
+        - Posts
+      summary: Create a new post
+      description: Create a new post with text and optional feeling emoji
+      operationId: createPost
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+            examples:
+              simplePost:
+                summary: Simple text post
+                value:
+                  text: "Just had the best coffee!"
+              postWithFeeling:
+                summary: Post with feeling emoji
+                value:
+                  text: "Finished my first marathon!"
+                  feeling_emoji: "🎉"
+                  feeling_name: "excited"
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Post created successfully"
+                  data:
+                    $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    get:
+      tags:
+        - Posts
+      summary: Get all posts
+      description: Retrieve all posts with pagination. Includes engagement stats (likes, comments) and whether the authenticated user has liked each post.
+      operationId: getAllPosts
+      parameters:
+        - name: limit
+          in: query
+          description: Number of posts to return (max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Number of posts to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  count:
+                    type: integer
+                    example: 50
+                  pagination:
+                    type: object
+                    properties:
+                      limit:
+                        type: integer
+                        example: 50
+                      offset:
+                        type: integer
+                        example: 0
+                      hasMore:
+                        type: boolean
+                        example: true
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/posts/{id}:
+    get:
+      tags:
+        - Posts
+      summary: Get post by ID
+      description: Retrieve a single post with full details including comments
+      operationId: getPostById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Post ID
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: Post details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Post'
+                      - type: object
+                        properties:
+                          comments:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Comment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    put:
+      tags:
+        - Posts
+      summary: Update a post
+      description: Update a post's text or feeling (owner only)
+      operationId: updatePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Post ID
+          schema:
+            type: integer
+            example: 456
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+            example:
+              text: "Updated post text!"
+              feeling_emoji: "😊"
+              feeling_name: "happy"
+      responses:
+        '200':
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Post updated successfully"
+                  data:
+                    $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      tags:
+        - Posts
+      summary: Delete a post
+      description: Soft delete a post (owner only)
+      operationId: deletePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Post ID
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Post deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/posts/user/{user_id}:
+    get:
+      tags:
+        - Posts
+      summary: Get posts by user
+      description: Retrieve all posts created by a specific user
+      operationId: getPostsByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: User's posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  count:
+                    type: integer
+                    example: 15
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== COMMENT ROUTES ====================
+  /api/comments/post/{postId}:
+    post:
+      tags:
+        - Comments
+      summary: Create a comment
+      description: Add a comment to a post
+      operationId: createComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: Post ID to comment on
+          schema:
+            type: integer
+            example: 456
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+            example:
+              text: "Great post! I totally agree with this."
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment created successfully"
+                  comment:
+                    $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: "Post not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    get:
+      tags:
+        - Comments
+      summary: Get comments for a post
+      description: Retrieve all comments for a specific post
+      operationId: getCommentsByPost
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: Post ID
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 3
+                  comments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: "Post not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/comments/{id}:
+    get:
+      tags:
+        - Comments
+      summary: Get comment by ID
+      description: Retrieve a single comment
+      operationId: getCommentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '200':
+          description: Comment details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comment:
+                    $ref: '#/components/schemas/Comment'
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: "Comment not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      tags:
+        - Comments
+      summary: Delete a comment
+      description: Soft delete a comment (owner only)
+      operationId: deleteComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '200':
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not authorized to delete this comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: "Not authorized to delete this comment"
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: "Comment not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== LIKE ROUTES ====================
+  /api/likes/post/{postId}:
+    post:
+      tags:
+        - Likes
+      summary: Like a post
+      description: Add a like to a post (idempotent - won't error if already liked)
+      operationId: likePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: Post ID to like
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: Post liked successfully (or already liked)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Post liked successfully"
+                  like:
+                    $ref: '#/components/schemas/Like'
+              examples:
+                newLike:
+                  summary: Successfully created new like
+                  value:
+                    message: "Post liked successfully"
+                    like:
+                      id: 999
+                      post_id: 456
+                      user_id: 123
+                      created_at: "2024-01-18T15:30:00Z"
+                alreadyLiked:
+                  summary: Already liked
+                  value:
+                    message: "Already liked"
+                    like: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      tags:
+        - Likes
+      summary: Unlike a post
+      description: Remove a like from a post
+      operationId: unlikePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: Post ID to unlike
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: Post unliked successfully (or like not found)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Post unliked successfully"
+                  like:
+                    type: object
+                    nullable: true
+                    example: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    get:
+      tags:
+        - Likes
+      summary: Get likes for a post
+      description: Retrieve all likes for a specific post
+      operationId: getLikesByPost
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: Post ID
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: List of likes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 42
+                  likes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Like'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: "Post not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/likes/post/{postId}/check:
+    get:
+      tags:
+        - Likes
+      summary: Check if user liked a post
+      description: Check whether the authenticated user has liked a specific post
+      operationId: checkIfLiked
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: Post ID
+          schema:
+            type: integer
+            example: 456
+      responses:
+        '200':
+          description: Like status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liked:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== FOLLOW ROUTES ====================
+  /api/follows/user/{userId}:
+    post:
+      tags:
+        - Follows
+      summary: Follow a user
+      description: Follow another user (cannot follow yourself)
+      operationId: followUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of user to follow
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '201':
+          description: Successfully followed user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Followed successfully"
+        '400':
+          description: Invalid request (already following or trying to follow self)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              examples:
+                alreadyFollowing:
+                  summary: Already following
+                  value:
+                    error: "Already following this user"
+                selfFollow:
+                  summary: Cannot follow yourself
+                  value:
+                    error: "Cannot follow yourself"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      tags:
+        - Follows
+      summary: Unfollow a user
+      description: Stop following a user
+      operationId: unfollowUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of user to unfollow
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '200':
+          description: Successfully unfollowed user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Unfollowed successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/follows/user/{userId}/check:
+    get:
+      tags:
+        - Follows
+      summary: Check follow status
+      description: Check whether the authenticated user is following another user
+      operationId: checkIfFollowing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of user to check
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '200':
+          description: Follow status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  following:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/follows/user/{userId}/followers:
+    get:
+      tags:
+        - Follows
+      summary: Get user's followers
+      description: Retrieve list of users who follow the specified user
+      operationId: getFollowers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '200':
+          description: List of followers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                    example: 789
+                  count:
+                    type: integer
+                    example: 2
+                  followers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FollowUser'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/follows/user/{userId}/following:
+    get:
+      tags:
+        - Follows
+      summary: Get users that this user follows
+      description: Retrieve list of users that the specified user is following
+      operationId: getFollowing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 789
+      responses:
+        '200':
+          description: List of users being followed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                    example: 789
+                  count:
+                    type: integer
+                    example: 2
+                  following:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FollowUser'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== FEED ROUTES ====================
+  /api/feed:
+    get:
+      tags:
+        - Feed
+      summary: Get personalized feed
+      description: |
+        Retrieve the authenticated user's personalized feed of posts from users they follow.
+        Posts are from the last 24 hours by default, sorted by most recent.
+      operationId: getFeed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Number of posts to return (max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of posts to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: days
+          in: query
+          description: Number of days back to fetch posts (minimum 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 2
+        - name: includeOwn
+          in: query
+          description: Whether to include the user's own posts in the feed
+          schema:
+            type: string
+            enum: ['0', '1', 'true', 'false']
+            default: '0'
+      responses:
+        '200':
+          description: Personalized feed of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Post'
+                      pagination:
+                        type: object
+                        properties:
+                          limit:
+                            type: integer
+                            example: 20
+                          offset:
+                            type: integer
+                            example: 0
+                          hasMore:
+                            type: boolean
+                            example: true
+                      filters:
+                        type: object
+                        properties:
+                          timeWindow:
+                            type: string
+                            example: "last_2d"
+                          includesOwnPosts:
+                            type: boolean
+                            example: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# ==================== COMPONENTS ====================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login/register endpoints
+
+  schemas:
+    # ========== AUTH SCHEMAS ==========
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          description: Unique username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "john@example.com"
+        password:
+          type: string
+          minLength: 8
+          description: User password (will be hashed)
+          example: "SecurePass123!"
+        display_name:
+          type: string
+          maxLength: 50
+          description: Display name (defaults to username if not provided)
+          example: "John Doe"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "john@example.com"
+        password:
+          type: string
+          description: User password
+          example: "SecurePass123!"
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserPublic'
+            token:
+              type: string
+              description: JWT authentication token
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # ========== USER SCHEMAS ==========
+    UserPublic:
+      type: object
+      description: Public user profile information
+      properties:
+        id:
+          type: integer
+          description: Unique user identifier
+          example: 123
+        username:
+          type: string
+          description: Unique username
+          example: "janedoe"
+        display_name:
+          type: string
+          description: Display name shown in UI
+          example: "Jane Doe"
+        bio:
+          type: string
+          nullable: true
+          description: User biography/description
+          example: "Software engineer and coffee enthusiast"
+        avatar_url:
+          type: string
+          nullable: true
+          format: uri
+          description: URL to user's avatar image
+          example: "https://example.com/avatars/jane.jpg"
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2024-01-10T08:15:00Z"
+        follower_count:
+          type: integer
+          description: Number of users following this user
+          example: 156
+        following_count:
+          type: integer
+          description: Number of users this user is following
+          example: 89
+        is_following:
+          type: boolean
+          nullable: true
+          description: |
+            Whether the authenticated viewer follows this user.
+            - `true`: viewer follows this user
+            - `false`: viewer does not follow this user
+            - `null`: not applicable (unauthenticated request or viewing own profile)
+          example: true
+      required:
+        - id
+        - username
+        - display_name
+        - created_at
+        - follower_count
+        - following_count
+
+    UserSearchResult:
+      type: object
+      description: Simplified user information for search results
+      properties:
+        id:
+          type: integer
+          example: 123
+        username:
+          type: string
+          example: "janedoe"
+        displayName:
+          type: string
+          example: "Jane Doe"
+        bio:
+          type: string
+          nullable: true
+          example: "Software engineer"
+        avatarUrl:
+          type: string
+          nullable: true
+          format: uri
+          example: "https://example.com/avatars/jane.jpg"
+      required:
+        - id
+        - username
+        - displayName
+
+    FollowUser:
+      type: object
+      description: User information in follower/following lists
+      properties:
+        id:
+          type: integer
+          description: User ID
+          example: 45
+        username:
+          type: string
+          description: Username
+          example: "alice"
+        displayName:
+          type: string
+          description: Display name
+          example: "Alice Wonder"
+        bio:
+          type: string
+          nullable: true
+          description: User bio
+          example: "Explorer and adventurer"
+        avatarUrl:
+          type: string
+          nullable: true
+          format: uri
+          description: Avatar URL
+          example: "https://example.com/avatars/alice.jpg"
+        followedAt:
+          type: string
+          format: date-time
+          description: When the follow relationship was created
+          example: "2024-03-15T12:30:00Z"
+      required:
+        - id
+        - username
+        - displayName
+        - followedAt
+
+    UpdateProfileRequest:
+      type: object
+      description: Request body for updating user profile
+      properties:
+        display_name:
+          type: string
+          description: New display name
+          minLength: 1
+          maxLength: 50
+          example: "Jane Marie Doe"
+        bio:
+          type: string
+          nullable: true
+          description: New bio (null to clear)
+          maxLength: 500
+          example: "Designer and creative thinker"
+        avatar_url:
+          type: string
+          nullable: true
+          format: uri
+          description: New avatar URL (null to clear)
+          example: "https://example.com/avatars/new-avatar.jpg"
+
+    # ========== POST SCHEMAS ==========
+    Post:
+      type: object
+      description: A social media post with engagement statistics
+      properties:
+        id:
+          type: integer
+          description: Unique post identifier
+          example: 456
+        text:
+          type: string
+          description: Post content
+          example: "Just finished an amazing coding session!"
+        feelingEmoji:
+          type: string
+          nullable: true
+          description: Optional emoji representing user's feeling
+          example: "🎉"
+        feelingName:
+          type: string
+          nullable: true
+          description: Name of the feeling
+          example: "excited"
+        createdAt:
+          type: string
+          format: date-time
+          description: When the post was created
+          example: "2024-01-18T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the post was last updated
+          example: "2024-01-18T10:30:00Z"
+        user:
+          type: object
+          description: Post author information
+          properties:
+            id:
+              type: integer
+              example: 123
+            username:
+              type: string
+              example: "janedoe"
+            displayName:
+              type: string
+              example: "Jane Doe"
+            avatarUrl:
+              type: string
+              nullable: true
+              example: "https://example.com/avatars/jane.jpg"
+        engagement:
+          type: object
+          description: Post engagement metrics
+          properties:
+            likeCount:
+              type: integer
+              description: Total number of likes
+              example: 42
+            commentCount:
+              type: integer
+              description: Total number of comments
+              example: 8
+            userHasLiked:
+              type: boolean
+              description: Whether the authenticated user has liked this post
+              example: true
+      required:
+        - id
+        - text
+        - createdAt
+        - updatedAt
+        - user
+        - engagement
+
+    CreatePostRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Post content (required, cannot be empty)
+          example: "Just had the best coffee!"
+        feeling_emoji:
+          type: string
+          nullable: true
+          description: Optional emoji representing feeling
+          example: "☕"
+        feeling_name:
+          type: string
+          nullable: true
+          description: Name of the feeling
+          example: "energized"
+
+    UpdatePostRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Updated post content
+          example: "Updated: Just had the BEST coffee ever!"
+        feeling_emoji:
+          type: string
+          nullable: true
+          description: Updated feeling emoji
+          example: "☕"
+        feeling_name:
+          type: string
+          nullable: true
+          description: Updated feeling name
+          example: "energized"
+
+    # ========== COMMENT SCHEMAS ==========
+    Comment:
+      type: object
+      description: A comment on a post
+      properties:
+        id:
+          type: integer
+          description: Unique comment identifier
+          example: 789
+        postId:
+          type: integer
+          description: ID of the post this comment belongs to
+          example: 456
+        userId:
+          type: integer
+          description: ID of the user who created the comment
+          example: 123
+        text:
+          type: string
+          description: Comment content
+          example: "Great post! I totally agree."
+        createdAt:
+          type: string
+          format: date-time
+          description: When the comment was created
+          example: "2024-01-18T11:00:00Z"
+        username:
+          type: string
+          description: Username of comment author
+          example: "janedoe"
+        displayName:
+          type: string
+          description: Display name of comment author
+          example: "Jane Doe"
+        avatarUrl:
+          type: string
+          nullable: true
+          description: Avatar URL of comment author
+          example: "https://example.com/avatars/jane.jpg"
+      required:
+        - id
+        - postId
+        - userId
+        - text
+        - createdAt
+        - username
+        - displayName
+
+    CreateCommentRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Comment content (required, cannot be empty)
+          example: "This is a great point!"
+
+    # ========== LIKE SCHEMAS ==========
+    Like:
+      type: object
+      description: A like on a post
+      properties:
+        id:
+          type: integer
+          description: Unique like identifier
+          example: 999
+        post_id:
+          type: integer
+          description: ID of the liked post
+          example: 456
+        user_id:
+          type: integer
+          description: ID of the user who liked the post
+          example: 123
+        created_at:
+          type: string
+          format: date-time
+          description: When the like was created
+          example: "2024-01-18T15:30:00Z"
+      required:
+        - id
+        - post_id
+        - user_id
+        - created_at
+
+    # ========== ERROR SCHEMAS ==========
+    ErrorResponse:
+      type: object
+      description: Standard error response with success flag
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Error message
+          example: "User not found"
+      required:
+        - success
+        - message
+
+    SimpleError:
+      type: object
+      description: Simple error response (used by some endpoints)
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request"
+        details:
+          type: string
+          description: Additional error details
+          example: "User ID must be a number"
+
+  # ========== REUSABLE RESPONSES ==========
+  responses:
+    BadRequest:
+      description: Invalid request parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - $ref: '#/components/schemas/SimpleError'
+          examples:
+            standardFormat:
+              summary: Standard error format
+              value:
+                success: false
+                message: "Please provide username, email and password"
+            simpleFormat:
+              summary: Simple error format
+              value:
+                error: "Invalid user ID"
+
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - $ref: '#/components/schemas/SimpleError'
+          examples:
+            standardFormat:
+              summary: Standard error format
+              value:
+                success: false
+                message: "Authentication required"
+            simpleFormat:
+              summary: Simple error format
+              value:
+                error: "Unauthorized - token missing or invalid"
+
+    Forbidden:
+      description: User does not have permission to perform this action
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - $ref: '#/components/schemas/SimpleError'
+          examples:
+            standardFormat:
+              summary: Standard error format
+              value:
+                success: false
+                error: "Not authorized to update this post"
+            simpleFormat:
+              summary: Simple error format
+              value:
+                error: "Not authorized to delete this comment"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - $ref: '#/components/schemas/SimpleError'
+          examples:
+            standardFormat:
+              summary: Standard error format
+              value:
+                success: false
+                message: "User not found"
+            simpleFormat:
+              summary: Simple error format
+              value:
+                error: "Post not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - $ref: '#/components/schemas/SimpleError'
+          examples:
+            standardFormat:
+              summary: Standard error format
+              value:
+                success: false
+                message: "Something went wrong during registration"
+            simpleFormat:
+              summary: Simple error format with details
+              value:
+                error: "Failed to create post"
+                details: "Database connection error"
