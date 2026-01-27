@@ -32,7 +32,8 @@
 
 ### Backend
 - **Node.js / Express**
-- **SQLite**
+- **MySQL**
+- **Amazon RDS & ECS Instances for Backend Database Storage and Migration**
 - **RESTful API** for users, posts, and comments
 
 ---
@@ -41,11 +42,18 @@
 ```bash
 the-punch/
 ├── backend/
-│   ├── routes/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
 │   ├── models/
+│   ├── routes/
+│   ├── utils/
 │   └── server.js
 │
 └── frontend/
-    ├── Views/
+    ├── Managers/
     ├── Models/
+    ├── Services/
+    ├── Utilites/
+    ├── Views/
     └── ThePunchApp.swift
