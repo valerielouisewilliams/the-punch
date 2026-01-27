@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import FirebaseCore
+import FirebaseAnalytics
 
 @main
 struct The_PunchApp: App {
@@ -19,6 +21,9 @@ struct The_PunchApp: App {
     @StateObject var punchState = PunchState()
     
     init() {
+        FirebaseApp.configure()
+        Analytics.logEvent("debug_connection_test", parameters: nil)
+
         NotificationManager.shared.requestPermission()
         NotificationManager.shared.scheduleTodayPunch()
     }
