@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EB3E81422F282AA80001B961 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = EB3E81412F282AA80001B961 /* FirebaseAnalytics */; };
+		EB3E81442F282AA80001B961 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EB3E81432F282AA80001B961 /* FirebaseAuth */; };
+		EB3E81462F292E550001B961 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = EB3E81452F292E4E0001B961 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		568265A32E8C29EB0059617D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +33,7 @@
 		568265952E8C29EA0059617D /* The Punch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "The Punch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265A22E8C29EB0059617D /* The PunchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265AC2E8C29EB0059617D /* The PunchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EB3E81452F292E4E0001B961 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +59,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB3E81422F282AA80001B961 /* FirebaseAnalytics in Frameworks */,
+				EB3E81442F282AA80001B961 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,7 +87,9 @@
 				568265972E8C29EA0059617D /* The Punch */,
 				568265A52E8C29EB0059617D /* The PunchTests */,
 				568265AF2E8C29EB0059617D /* The PunchUITests */,
+				EBA6AE122F28299C008D7EB1 /* Frameworks */,
 				568265962E8C29EA0059617D /* Products */,
+				EB3E81452F292E4E0001B961 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -90,6 +101,13 @@
 				568265AC2E8C29EB0059617D /* The PunchUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		EBA6AE122F28299C008D7EB1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +130,8 @@
 			);
 			name = "The Punch";
 			packageProductDependencies = (
+				EB3E81412F282AA80001B961 /* FirebaseAnalytics */,
+				EB3E81432F282AA80001B961 /* FirebaseAuth */,
 			);
 			productName = "The Punch";
 			productReference = 568265952E8C29EA0059617D /* The Punch.app */;
@@ -195,6 +215,9 @@
 			);
 			mainGroup = 5682658C2E8C29EA0059617D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EB3E81402F282AA80001B961 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 568265962E8C29EA0059617D /* Products */;
 			projectDirPath = "";
@@ -212,6 +235,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB3E81462F292E550001B961 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,7 +421,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The-Punch-Info.plist";
@@ -411,7 +435,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.valeriewilliams.thepunch-com.valeriewilliams.thepunch-com.valeriewilliams.thepunch";
+				PRODUCT_BUNDLE_IDENTIFIER = com.valeriewilliams.thepunch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -426,7 +450,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The-Punch-Info.plist";
@@ -440,7 +464,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.valeriewilliams.thepunch-com.valeriewilliams.thepunch-com.valeriewilliams.thepunch";
+				PRODUCT_BUNDLE_IDENTIFIER = com.valeriewilliams.thepunch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -556,6 +580,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EB3E81402F282AA80001B961 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EB3E81412F282AA80001B961 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EB3E81402F282AA80001B961 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		EB3E81432F282AA80001B961 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EB3E81402F282AA80001B961 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5682658D2E8C29EA0059617D /* Project object */;
 }
