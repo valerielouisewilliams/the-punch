@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import FirebaseAuth
 
 /**
  AuthManager handles all authentication-related functionality.
@@ -17,22 +18,56 @@ import SwiftUI
 final class AuthManager: ObservableObject {
     // Singleton
     static let shared = AuthManager()
+    
+// ------------------------
+// OLD TOKEN AUTHENTICATION
+// ------------------------
+    
+//    private init() {
+//        migrateLegacyTokenKeyIfNeeded() // DELETE ONCE FULLY MIGRATED
+//
+//        // Load persisted token & user at launch
+//        self.token = UserDefaults.standard.string(forKey: Keys.token)
+//        if let data = UserDefaults.standard.data(forKey: Keys.user),
+//           let u = try? JSONDecoder().decode(User.self, from: data) {
+//            self.currentUser = u
+//        }
+//
+//        // Derive isAuthenticated from whether we have a token or not
+//        self.isAuthenticated = (self.token != nil)
+//
+//        // If we have a token but no user, optionally refresh from server
+//        if self.token != nil, self.currentUser == nil {
+//            Task { await loadCurrentUser() }
+//        }
+//    }
+    
     private init() {
         migrateLegacyTokenKeyIfNeeded()
 
-        // Load persisted token & user at launch
-        self.token = UserDefaults.standard.string(forKey: Keys.token)
-        if let data = UserDefaults.standard.data(forKey: Keys.user),
-           let u = try? JSONDecoder().decode(User.self, from: data) {
-            self.currentUser = u
-        }
-
-        // Derive isAuthenticated from whether we have a token or not
-        self.isAuthenticated = (self.token != nil)
-
-        // If we have a token but no user, optionally refresh from server
-        if self.token != nil, self.currentUser == nil {
-            Task { await loadCurrentUser() }
+        // Listen for Firebase Auth changes to get a FRESH token on every launch
+        Auth.auth().addStateDidChangeListener { [weak self] auth, user in
+            guard let self = self else { return }
+            
+            if let firebaseUser = user {
+                Task {
+                    do {
+                        // Force refresh ensures the token isn't expired when sent to EC2
+                        let freshToken = try await firebaseUser.getIDToken(forcingRefresh: true)
+                        self.token = freshToken
+                        
+                        // Now that we have a fresh token, fetch the MySQL profile
+                        await self.loadCurrentUser()
+                    } catch {
+                        print("❌ AuthManager refresh failed: \(error)")
+                        self.logout()
+                    }
+                }
+            } else {
+                self.token = nil
+                self.currentUser = nil
+                self.isAuthenticated = false
+            }
         }
     }
 
@@ -70,6 +105,24 @@ final class AuthManager: ObservableObject {
         }
     }
 
+    // New Firebase login:
+    func loginWithFirebase(email: String, password: String) async {
+        do {
+            let result = try await Auth.auth().signIn(withEmail: email, password: password)
+            let firebaseUser = result.user
+            let idToken = try await firebaseUser.getIDToken(forcingRefresh: true)
+            
+            self.token = idToken
+            
+            // Try to load user from backend
+            await loadCurrentUser()
+            
+            print("✅ Firebase Auth Success: \(firebaseUser.uid)")
+        } catch {
+            print("❌ Firebase Login Failed: \(error.localizedDescription)")
+        }
+    }
+    
     // Session Lifecycle
 
     /// Call this right after a successful login.
@@ -104,8 +157,10 @@ final class AuthManager: ObservableObject {
     }
 
     /// Log out: clear token + user and notify UI.
+    // Updated to include Firebase
     func logout() {
         print("Logging out...")
+        try? Auth.auth().signOut() // Sign out of Firebase too
         self.token = nil
         self.currentUser = nil
         print("Logged out.")
@@ -118,6 +173,9 @@ final class AuthManager: ObservableObject {
 
     // Migration
     /// If we previously saved under "auth_token", move it to "authToken" so @AppStorage("authToken") can read it.
+    ///
+    //
+    // DELETE ONCE FULLY MIGRATED
     private func migrateLegacyTokenKeyIfNeeded() {
         let defaults = UserDefaults.standard
         if defaults.string(forKey: Keys.token) == nil,

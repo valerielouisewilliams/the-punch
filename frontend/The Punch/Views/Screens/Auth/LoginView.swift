@@ -84,35 +84,43 @@ struct LoginView: View {
         .onAppear { testAPIConnection() }
     }
 
-    // Login
+    // Login with Firebase
     func login() async {
         isLoading = true
         defer { isLoading = false }
-
-        do {
-            let response = try await APIService.shared.login(email: email, password: password)
-
-            // Single source of truth: persists token to "authToken" + user; flips isAuthenticated
-            await MainActor.run {
-                AuthManager.shared.completeLogin(
-                    user: response.data.user,
-                    token: response.data.token 
-                )
-            }
-
-            #if DEBUG
-            let saved = UserDefaults.standard.string(forKey: "authToken") ?? "<nil>"
-            print("Login OK. Saved authToken prefix:", saved.prefix(12), "…")
-            #endif
-
-        } catch let apiErr as APIError {
-            errorMessage = apiErr.localizedDescription
-            showError = true
-        } catch {
-            errorMessage = "Something went wrong. Please try again."
-            showError = true
-        }
+        
+        await authManager.loginWithFirebase(email: email, password: password)
     }
+   
+// ---------------
+// OLD LOGIN LOGIC:
+// ---------------
+// func login() async {
+
+//        do {
+//            let response = try await APIService.shared.login(email: email, password: password)
+//
+//            // Single source of truth: persists token to "authToken" + user; flips isAuthenticated
+//            await MainActor.run {
+//                AuthManager.shared.completeLogin(
+//                    user: response.data.user,
+//                    token: response.data.token 
+//                )
+//            }
+//
+//            #if DEBUG
+//            let saved = UserDefaults.standard.string(forKey: "authToken") ?? "<nil>"
+//            print("Login OK. Saved authToken prefix:", saved.prefix(12), "…")
+//            #endif
+//
+//        } catch let apiErr as APIError {
+//            errorMessage = apiErr.localizedDescription
+//            showError = true
+//        } catch {
+//            errorMessage = "Something went wrong. Please try again."
+//            showError = true
+//        }
+//  }
 
     // Quick connectivity sanity check
     func testAPIConnection() {

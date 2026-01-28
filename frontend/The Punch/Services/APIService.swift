@@ -14,7 +14,8 @@ class APIService {
     //private let baseURL = "http://localhost:3000/api" // for simulator
     
     // Backend URL for device testing
-    private let baseURL = URL(string: "http://3.130.171.129:3000/api")!
+    private let baseURL =  "http://3.130.171.129:3000/api"
+    
 
     private init() {}
     
@@ -622,6 +623,32 @@ extension APIService {
             method: "DELETE",
             token: token,
             responseType: SimpleResponse.self
+        )
+    }
+}
+
+
+// Add this extension to your APIService.swift file
+
+extension APIService {
+    
+    /// Register a new user with Firebase UID
+    func registerFirebaseUser(
+        email: String,
+        username: String,
+        firebaseUid: String
+    ) async throws -> UserResponse {
+        let body: [String: Any] = [
+            "email": email,
+            "username": username,
+            "firebaseUid": firebaseUid  // This will be converted to snake_case
+        ]
+        
+        return try await makeRequest(
+            endpoint: "/auth/register",
+            method: "POST",
+            body: body,
+            responseType: UserResponse.self
         )
     }
 }
