@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 - Ongoing refactors to support media uploads and deployment workflow
 
 ### Fixed
-- 
+- N/A
 
 ---
 
