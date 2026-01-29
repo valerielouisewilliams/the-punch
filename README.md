@@ -27,9 +27,9 @@
 - **Firebase** for authentication and post storage
 
 ### Backend
-- **AWS RDS for hosting our MySQL Database**
-- **AWS EC2 for our Node.JS/Express Server**
-- **AWS S3 Bucket for media storage**
+- **AWS RDS** for hosting our MySQL Database**
+- **AWS EC2** for our Node.JS/Express Server**
+- **AWS S3** Bucket for media storage**
 - **RESTful API** for users, posts, and comments
 
 ---
