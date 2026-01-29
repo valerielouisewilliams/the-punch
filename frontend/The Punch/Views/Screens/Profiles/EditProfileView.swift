@@ -12,6 +12,7 @@ import PhotosUI
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var authManager = AuthManager.shared
+    private let baseURL = URL(string: "http://3.130.171.129:3000/api")!
     
     let user: User
     var onProfileUpdated: ((User) -> Void)? = nil
@@ -139,25 +140,37 @@ struct EditProfileView: View {
             errorMessage = nil
         }
         
+        let token = authManager.getToken() ?? ""
+        if token.isEmpty {
+            await MainActor.run {
+                isSaving = false
+                errorMessage = "You’re not logged in. Please sign in again."
+            }
+            return
+        }
+        
         var avatarURL: String? = user.avatarUrl
         
-        // If user picked a new image, upload to Cloudinary
+        // If user picked a new image, upload to S3 via presigned URL
         if let selectedImage {
             do {
-                let uploadedUrl = try await CloudinaryUploader.uploadImage(selectedImage)
+                let uploadedUrl = try await S3AvatarUploader.uploadAvatar(
+                    selectedImage,
+                    apiBaseURL: baseURL,
+                    token: token
+                )
                 avatarURL = uploadedUrl
             } catch {
                 await MainActor.run {
                     isSaving = false
                     errorMessage = "Failed to upload image."
                 }
-                print("Cloudinary upload error:", error)
+                print("S3 upload error:", error)
                 return
             }
         }
         
         do {
-            let token = authManager.getToken() ?? ""
             let response = try await APIService.shared.updateUserProfile(
                 displayName: displayName,
                 bio: bio,
@@ -168,25 +181,21 @@ struct EditProfileView: View {
             let updatedUser = response.data
             
             await MainActor.run {
-                // Update global currentUser if you track it
                 authManager.currentUser = updatedUser
                 onProfileUpdated?(updatedUser)
                 isSaving = false
                 dismiss()
                 
-                // Notify listeners
                 NotificationCenter.default.post(
                     name: .userProfileDidUpdate,
                     object: nil,
                     userInfo: [
-                        "id": updatedUser.id,              // user ID who updated profile
+                        "id": updatedUser.id,
                         "displayName": updatedUser.displayName,
                         "bio": updatedUser.bio ?? "",
                         "avatarUrl": updatedUser.avatarUrl ?? ""
                     ]
                 )
-
-                
             }
         } catch {
             await MainActor.run {

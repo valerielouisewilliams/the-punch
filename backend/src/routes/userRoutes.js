@@ -7,7 +7,8 @@ const {
   getUserByUsername,
   getUserById,
   getFollowers,
-  getFollowing
+  getFollowing,
+  updateMyAvatar
 } = require('../controllers/userController');
 
 /**
@@ -44,6 +45,13 @@ router.get('/:id/followers', getFollowers);
  * @access  Public
  */
 router.get('/:id/following', getFollowing);
+
+/**
+ * @route PATCH /api/users/me/avatar
+ * @descs Updates a user's avatar
+ * @access Public
+ */
+router.patch("/me/avatar", authenticateToken, updateMyAvatar);
 
 /**
  * @route PUT /api/users/me
