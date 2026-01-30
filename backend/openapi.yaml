@@ -14,8 +14,8 @@ info:
     - Error: `{ "success": false, "error": "...", "message": "..." }`
   version: 1.0.0
   contact:
-    name: Valerie
-    email: support@thepunch.app
+    name: TODO
+    email: TODO
     
 servers:
   - url: http://localhost:3000
