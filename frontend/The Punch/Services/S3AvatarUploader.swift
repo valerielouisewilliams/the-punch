@@ -42,7 +42,8 @@ struct S3AvatarUploader {
         apiBaseURL: URL,          // e.g. http://3.130.171.129:3000/api
         token: String
     ) async throws -> String {
-
+        let token = try await AuthManager.shared.firebaseIdToken()
+        
         // 1) Convert image -> data
         guard let imageData = image.jpegData(compressionQuality: 0.85) else {
             throw NSError(domain: "S3Upload", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode image"])

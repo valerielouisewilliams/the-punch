@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 class User {
   constructor(userData) {
     this.id = userData.id;
+    this.firebase_uid = userData.firebase_uid; // add this
     this.username = userData.username;
     this.email = userData.email;
     this.password_hash = userData.password_hash;
@@ -30,6 +31,32 @@ class User {
     
     // Return the new user (without password)
     return this.findById(result.insertId);
+  }
+
+    static async findByFirebaseUid(firebaseUid) {
+    const query = "SELECT * FROM users WHERE firebase_uid = ? AND is_active = true";
+    const [rows] = await pool.execute(query, [firebaseUid]);
+    return rows.length > 0 ? new User(rows[0]) : null;
+  }
+
+  static async createFromFirebase({ firebase_uid, email }) {
+    // Create a placeholder user row. We'll fill username/display_name in complete-profile.
+    const query = `
+      INSERT INTO users (firebase_uid, email, username, display_name)
+      VALUES (?, ?, CONCAT('user_', FLOOR(RAND()*1000000)), 'New User')
+    `;
+    const [result] = await pool.execute(query, [firebase_uid, email]);
+    return this.findById(result.insertId);
+  }
+
+  static async updateProfileByFirebaseUid(firebaseUid, { username, display_name }) {
+    const query = `
+      UPDATE users
+      SET username = ?, display_name = ?
+      WHERE firebase_uid = ? AND is_active = true
+    `;
+    await pool.execute(query, [username, display_name, firebaseUid]);
+    return this.findByFirebaseUid(firebaseUid)
   }
 
   // find user by ID

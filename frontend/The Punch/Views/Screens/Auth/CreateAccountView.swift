@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 /**
 The view that allows users to create accounts.
@@ -208,76 +209,26 @@ struct CreateAccountView: View {
      Handle account registration with backend.
      */
     func register() async {
-        print("Starting registration for: \(username)")
-        
-        // Step 1: Show loading state
         isLoading = true
-        
-        // Step 2: Call the API
+        defer { isLoading = false }
+
         do {
-            // 'await' pauses here until backend responds
-            // Could take 0.5-3 seconds depending on:
-            // - Network speed
-            // - Password hashing (bcrypt takes time on purpose for security)
-            let response = try await APIService.shared.register(
-                username: username.trimmingCharacters(in: .whitespaces),  // Remove spaces
-                email: email.trimmingCharacters(in: .whitespaces).lowercased(),  // Lowercase email
-                password: password,
-                displayName: displayName.isEmpty ? username : displayName  // Use username if displayName empty
+            _ = try await Auth.auth().createUser(withEmail: email, password: password)
+
+            // You still want username/displayName in *your* DB, so send it to backend
+            let token = try await AuthManager.shared.firebaseIdToken()
+
+            try await APIService.shared.completeProfile(
+                firebaseToken: token,
+                username: username.trimmingCharacters(in: .whitespaces),
+                displayName: displayName.isEmpty ? username : displayName
             )
-            
-            // Step 3: Registration succeeded!
-            print("Registration successful!")
-            print("User ID: \(response.data.user.id)")
-            print("Username: \(response.data.user.username)")
-            print("Token received: \(response.data.token.prefix(20))...")
-            
-            // Step 4: Save token and user data
-            // This automatically logs the user in!
-            authManager.saveToken(response.data.token)
-            authManager.currentUser = response.data.user
-            
-            // Step 5: Navigation happens automatically
-            // When saveToken() is called:
-            // - isAuthenticated changes to true
-            // - Your App.swift detects this change (reactive programming!)
-            // - SwiftUI automatically shows MainTabView
-            // - User is now logged in and can create posts!
-            
-            print("User logged in, navigating to feed...")
-            
-        } catch let error as APIError {
-            // Step 6: Handle API-specific errors
-            print("Registration failed: \(error)")
-            
-            // Provide user-friendly error messages
-            switch error {
-            case .httpError(409):
-                // 409 Conflict means email already exists
-                errorMessage = "An account with this email already exists. Please login instead."
-            case .httpError(400):
-                // 400 Bad Request means invalid input
-                errorMessage = "Invalid information provided. Please check your inputs."
-            case .httpError(let code):
-                // Other HTTP errors
-                errorMessage = "Registration failed (Error \(code)). Please try again."
-            case .decodingError:
-                // Response format doesn't match expected format
-                errorMessage = "Something went wrong. Please try again later."
-            default:
-                errorMessage = error.localizedDescription
-            }
-            
-            showError = true
-            
+
+            // then pull /me (or have completeProfile return the user)
+            try await AuthManager.shared.syncSessionWithBackend()
+
         } catch {
-            // Step 7: Handle unexpected errors
-            print("Unexpected error: \(error)")
-            errorMessage = "Something went wrong. Please try again."
+            errorMessage = error.localizedDescription
             showError = true
-        }
         
-        // Step 8: Hide loading spinner
-        isLoading = false
-    }
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct LoginView: View {
     // Single source of truth for auth state
@@ -90,29 +91,15 @@ struct LoginView: View {
         defer { isLoading = false }
 
         do {
-            let response = try await APIService.shared.login(email: email, password: password)
+            _ = try await Auth.auth().signIn(withEmail: email, password: password)
 
-            // Single source of truth: persists token to "authToken" + user; flips isAuthenticated
-            await MainActor.run {
-                AuthManager.shared.completeLogin(
-                    user: response.data.user,
-                    token: response.data.token 
-                )
-            }
+            // now tell backend “this Firebase user is signed in”
+            try await AuthManager.shared.syncSessionWithBackend()
 
-            #if DEBUG
-            let saved = UserDefaults.standard.string(forKey: "authToken") ?? "<nil>"
-            print("Login OK. Saved authToken prefix:", saved.prefix(12), "…")
-            #endif
-
-        } catch let apiErr as APIError {
-            errorMessage = apiErr.localizedDescription
-            showError = true
         } catch {
-            errorMessage = "Something went wrong. Please try again."
+            errorMessage = error.localizedDescription
             showError = true
         }
-    }
 
     // Quick connectivity sanity check
     func testAPIConnection() {

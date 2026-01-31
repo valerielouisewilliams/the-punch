@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5620F5962F2C68D000095BC7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5620F5952F2C68D000095BC7 /* FirebaseAuth */; };
+		5620F5982F2C69A100095BC7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5620F5972F2C69A100095BC7 /* GoogleService-Info.plist */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		568265A32E8C29EB0059617D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5620F5972F2C69A100095BC7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		568265952E8C29EA0059617D /* The Punch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "The Punch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265A22E8C29EB0059617D /* The PunchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265AC2E8C29EB0059617D /* The PunchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5620F5962F2C68D000095BC7 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +86,7 @@
 				568265A52E8C29EB0059617D /* The PunchTests */,
 				568265AF2E8C29EB0059617D /* The PunchUITests */,
 				568265962E8C29EA0059617D /* Products */,
+				5620F5972F2C69A100095BC7 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -112,6 +120,7 @@
 			);
 			name = "The Punch";
 			packageProductDependencies = (
+				5620F5952F2C68D000095BC7 /* FirebaseAuth */,
 			);
 			productName = "The Punch";
 			productReference = 568265952E8C29EA0059617D /* The Punch.app */;
@@ -195,6 +204,9 @@
 			);
 			mainGroup = 5682658C2E8C29EA0059617D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 568265962E8C29EA0059617D /* Products */;
 			projectDirPath = "";
@@ -212,6 +224,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5620F5982F2C69A100095BC7 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -556,6 +569,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5620F5952F2C68D000095BC7 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5682658D2E8C29EA0059617D /* Project object */;
 }

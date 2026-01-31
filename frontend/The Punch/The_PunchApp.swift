@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct The_PunchApp: App {
@@ -21,6 +22,7 @@ struct The_PunchApp: App {
     init() {
         NotificationManager.shared.requestPermission()
         NotificationManager.shared.scheduleTodayPunch()
+        FirebaseApp.configure()
     }
     
     var body: some Scene {

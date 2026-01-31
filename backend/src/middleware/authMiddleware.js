@@ -1,30 +1,45 @@
-// middleware/authMiddleware.js
-const jwt = require('jsonwebtoken');
+const admin = require("../firebaseAdmin");
+const User = require("../models/User");
 
-function authenticateToken(req, res, next) {
-  const auth = req.headers['authorization'] || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
-  if (!token) return res.status(401).json({ success: false, error: 'Unauthorized' });
-
+// Require auth AND require the Firebase user to be linked to a DB user row
+async function authenticateToken(req, res, next) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id };
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ success: false, message: "Missing token" });
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    // decoded.uid is the Firebase UID
+    const dbUser = await User.findByFirebaseUid(decoded.uid);
+    if (!dbUser) {
+      return res.status(403).json({
+        success: false,
+        message: "User not linked. Call POST /api/auth/session first."
+      });
+    }
+
+    req.user = { id: dbUser.id, firebase_uid: decoded.uid, email: decoded.email };
     next();
-  } catch {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  } catch (err) {
+    return res.status(401).json({ success: false, message: "Invalid token" });
   }
 }
 
-function optionalAuth(req, res, next) {
-  const auth = req.headers['authorization'] || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = { id: decoded.id };
-    } catch {/* ignore */}
+// Optional auth (don’t fail if missing token)
+async function optionalAuth(req, res, next) {
+  try {
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) return next();
+
+    const decoded = await admin.auth().verifyIdToken(token);
+    const dbUser = await User.findByFirebaseUid(decoded.uid);
+    if (dbUser) req.user = { id: dbUser.id, firebase_uid: decoded.uid, email: decoded.email };
+    next();
+  } catch {
+    next();
   }
-  next();
 }
 
 module.exports = { authenticateToken, optionalAuth };

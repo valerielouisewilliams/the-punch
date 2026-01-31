@@ -38,9 +38,7 @@ class APIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add auth token if provided
-        if let token = token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        let token = try await AuthManager.shared.firebaseIdToken()
         
         // Add body if provided
         if let body = body {
@@ -118,12 +116,22 @@ class APIService {
         )
     }
     
-    /// Get current authenticated user
-    func getCurrentUser(token: String) async throws -> UserResponse {
+    // Creates/refreshes a backend session based on Firebase token (returns your User)
+    func createSession(firebaseToken: String) async throws -> UserResponse {
+        return try await makeRequest(
+            endpoint: "/auth/session",
+            method: "POST",
+            token: firebaseToken,
+            responseType: UserResponse.self
+        )
+    }
+
+    // /auth/me but using Firebase token
+    func getCurrentUser(firebaseToken: String) async throws -> UserResponse {
         return try await makeRequest(
             endpoint: "/auth/me",
             method: "GET",
-            token: token,
+            token: firebaseToken,
             responseType: UserResponse.self
         )
     }
@@ -134,6 +142,7 @@ class APIService {
     func getFeed(limit: Int = 50, offset: Int = 0, token: String) async throws -> PostsResponse {
         // Append query params to the endpoint for GET
         let endpoint = "/posts/feed?limit=\(limit)&offset=\(offset)"
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: endpoint,
             method: "GET",
@@ -144,6 +153,7 @@ class APIService {
     
     /// Get all posts (with optional authentication)
     func getPosts(token: String? = nil) async throws -> PostsResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/posts",
             method: "GET",
@@ -154,6 +164,7 @@ class APIService {
     
     /// Get a single post by ID with comments and like count
     func getPost(id: Int, token: String? = nil) async throws -> SinglePostResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/posts/\(id)",
             method: "GET",
@@ -185,6 +196,8 @@ class APIService {
             "feeling_emoji": emoji
         ]
         
+        let token = try await AuthManager.shared.firebaseIdToken()
+        
         return try await makeRequest(
             endpoint: "/posts/\(id)",
             method: "PUT",
@@ -196,6 +209,7 @@ class APIService {
     
     /// Delete a post (requires authentication and ownership)
     func deletePost(id: Int, token: String) async throws -> MessageResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/posts/\(id)",
             method: "DELETE",
@@ -206,6 +220,7 @@ class APIService {
     
     /// Get all posts by a specific user
     func getUserPosts(userId: Int, token: String? = nil) async throws -> PostsResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/posts/user/\(userId)",
             method: "GET",
@@ -218,6 +233,7 @@ class APIService {
     
     /// Like a post (requires authentication)
     func likePost(postId: Int, token: String) async throws -> MessageResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/likes/post/\(postId)",
             method: "POST",
@@ -228,6 +244,7 @@ class APIService {
     
     /// Unlike a post (requires authentication)
     func unlikePost(postId: Int, token: String) async throws -> MessageResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/likes/post/\(postId)",
             method: "DELETE",
@@ -238,6 +255,7 @@ class APIService {
     
     /// Get all likes for a post
     func getLikes(postId: Int, token: String? = nil) async throws -> LikesResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/likes/post/\(postId)",
             method: "GET",
@@ -248,6 +266,7 @@ class APIService {
     
     /// Check if current user has liked a post (requires authentication)
     func checkIfLiked(postId: Int, token: String) async throws -> LikeStatusResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/likes/post/\(postId)/check",
             method: "GET",
@@ -264,6 +283,8 @@ class APIService {
             "text": text
         ]
         
+        let token = try await AuthManager.shared.firebaseIdToken()
+    
         return try await makeRequest(
             endpoint: "/comments/post/\(postId)",
             method: "POST",
@@ -275,6 +296,7 @@ class APIService {
     
     /// Get all comments for a post
     func getComments(postId: Int, token: String? = nil) async throws -> CommentsResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/comments/post/\(postId)",
             method: "GET",
@@ -285,6 +307,7 @@ class APIService {
     
     /// Delete a comment (requires authentication and ownership)
     func deleteComment(id: Int, token: String) async throws -> MessageResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/comments/\(id)",
             method: "DELETE",
@@ -327,9 +350,24 @@ class APIService {
     
     
     // User Endpoints
+    func completeProfile(firebaseToken: String, username: String, displayName: String) async throws -> UserResponse {
+        let body: [String: Any] = [
+            "username": username,
+            "display_name": displayName
+        ]
+
+        return try await makeRequest(
+            endpoint: "/auth/complete-profile",
+            method: "POST",
+            body: body,
+            token: firebaseToken,
+            responseType: UserResponse.self
+        )
+    }
     
     /// Get user profile by ID
     func getUserProfile(userId: Int, token: String? = nil) async throws -> UserResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/users/\(userId)",
             method: "GET",
@@ -340,6 +378,7 @@ class APIService {
     
     /// Get user profile by username
     func getUserByUsername(username: String, token: String? = nil) async throws -> UserResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/users/username/\(username)",
             method: "GET",
@@ -360,6 +399,7 @@ class APIService {
             "display_name": displayName
         ]
         
+        let token = try await AuthManager.shared.firebaseIdToken()
         if let bio = bio { body["bio"] = bio }
         if let avatarUrl = avatarUrl { body["avatar_url"] = avatarUrl }
         
@@ -374,6 +414,7 @@ class APIService {
     
     func searchUsers(query: String, token: String? = nil) async throws -> UsersResponse {
         let escaped = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/users/search?query=\(escaped)",
             method: "GET",
@@ -388,6 +429,7 @@ class APIService {
 
     /// Get a user's followers (LIST VIEW)
     func getFollowersList(userId: Int, token: String? = nil) async throws -> FollowersListResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/follows/user/\(userId)/followers",
             method: "GET",
@@ -397,6 +439,7 @@ class APIService {
     }
     
     func getFollowingList(userId: Int, token: String? = nil) async throws -> FollowingListResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/follows/user/\(userId)/following",
             method: "GET",
@@ -503,6 +546,7 @@ extension APIService {
 
 
     func getUserPosts(userId: Int, token: String) async throws -> PostsResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         var req = URLRequest(url: URL(string: "\(baseURL)/posts?userId=\(userId)")!)
         req.httpMethod = "GET"
         req.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -575,6 +619,7 @@ extension APIService {
     ) async throws -> CreatePostResponse {
 
         var body: [String: Any] = ["text": text]
+        let token = try await AuthManager.shared.firebaseIdToken()
         if let feelingEmoji { body["feeling_emoji"] = feelingEmoji }   // snake_case
         if let feelingName  { body["feeling_name"]  = feelingName  }   // snake_case
 
@@ -593,6 +638,7 @@ extension APIService {
         userId: Int,
         token: String
     ) async throws -> FollowStatusResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/follows/user/\(userId)/check",
             method: "GET",
@@ -605,6 +651,7 @@ extension APIService {
         userId: Int,
         token: String
     ) async throws -> SimpleResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         try await makeRequest(
             endpoint: "/follows/user/\(userId)",
             method: "POST",
@@ -617,6 +664,7 @@ extension APIService {
         userId: Int,
         token: String
     ) async throws -> SimpleResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
         try await makeRequest(
             endpoint: "/follows/user/\(userId)",
             method: "DELETE",

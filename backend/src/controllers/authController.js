@@ -1,6 +1,65 @@
 // handles user registration and login
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
+const admin = require("../firebaseAdmin");
+
+// POST /api/auth/session
+// Verifies Firebase token and ensures there is a linked DB user.
+// Returns your normal public user payload.
+const session = async (req, res) => {
+  try {
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ success: false, message: "Missing token" });
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    let user = await User.findByFirebaseUid(decoded.uid);
+    if (!user) {
+      user = await User.createFromFirebase({ firebase_uid: decoded.uid, email: decoded.email });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user.getPublicProfile()
+    });
+  } catch (err) {
+    console.error("Session error:", err);
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
+};
+
+// POST /api/auth/complete-profile
+// Called after Firebase account creation to set username/display_name.
+const completeProfile = async (req, res) => {
+  try {
+    const header = req.headers.authorization || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ success: false, message: "Missing token" });
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    const { username, display_name } = req.body;
+    if (!username) {
+      return res.status(400).json({ success: false, message: "username is required" });
+    }
+
+    // Ensure a user row exists
+    let user = await User.findByFirebaseUid(decoded.uid);
+    if (!user) user = await User.createFromFirebase({ firebase_uid: decoded.uid, email: decoded.email });
+
+    // Update profile fields
+    const updated = await User.updateProfileByFirebaseUid(decoded.uid, {
+      username,
+      display_name: display_name || username,
+    });
+
+    return res.status(200).json({ success: true, data: updated.getPublicProfile() });
+  } catch (err) {
+    console.error("Complete profile error:", err);
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
+};
 
 // helper function to create JWT tokens
 const generateToken = (userId) => {
@@ -143,4 +202,4 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getCurrentUser };
+module.exports = { register, login, getCurrentUser, session, completeProfile };
