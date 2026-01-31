@@ -1,7 +1,7 @@
 // handles user registration and login
 const User = require('../models/User');
 // const jwt = require('jsonwebtoken');
-const admin = require("../firebaseAdmin");
+const admin = require("../config/firebaseAdmin");
 
 // POST /api/auth/session
 // Verifies Firebase token and ensures there is a linked DB user.
