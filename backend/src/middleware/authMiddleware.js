@@ -1,4 +1,4 @@
-const admin = require("../firebaseAdmin");
+const admin = require("../config/firebaseAdmin");
 const User = require("../models/User");
 
 // Require auth AND require the Firebase user to be linked to a DB user row
