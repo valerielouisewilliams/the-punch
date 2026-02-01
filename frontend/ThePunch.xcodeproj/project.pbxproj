@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		5620F5962F2C68D000095BC7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5620F5952F2C68D000095BC7 /* FirebaseAuth */; };
-		5620F5982F2C69A100095BC7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5620F5972F2C69A100095BC7 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,11 +28,27 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		5620F5972F2C69A100095BC7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		568265952E8C29EA0059617D /* The Punch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "The Punch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265A22E8C29EB0059617D /* The PunchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265AC2E8C29EB0059617D /* The PunchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5620F60C2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The Punch" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"GoogleService-Info.plist",
+			);
+			target = 568265942E8C29EA0059617D /* The Punch */;
+		};
+		5620F60D2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The PunchUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"GoogleService-Info.plist",
+			);
+			target = 568265AB2E8C29EB0059617D /* The PunchUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		568265972E8C29EA0059617D /* The Punch */ = {
@@ -48,6 +63,10 @@
 		};
 		568265AF2E8C29EB0059617D /* The PunchUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5620F60C2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The Punch" target */,
+				5620F60D2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The PunchUITests" target */,
+			);
 			path = "The PunchUITests";
 			sourceTree = "<group>";
 		};
@@ -86,7 +105,6 @@
 				568265A52E8C29EB0059617D /* The PunchTests */,
 				568265AF2E8C29EB0059617D /* The PunchUITests */,
 				568265962E8C29EA0059617D /* Products */,
-				5620F5972F2C69A100095BC7 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -224,7 +242,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5620F5982F2C69A100095BC7 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

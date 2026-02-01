@@ -13,7 +13,7 @@ struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var authManager = AuthManager.shared
     private let baseURL = URL(string: "http://3.130.171.129:3000/api")!
-    
+
     let user: User
     var onProfileUpdated: ((User) -> Void)? = nil
     
@@ -135,22 +135,26 @@ struct EditProfileView: View {
     
     private func saveChanges() async {
         guard !isSaving else { return }
+
         await MainActor.run {
             isSaving = true
             errorMessage = nil
         }
-        
-        let token = authManager.getToken() ?? ""
-        if token.isEmpty {
+
+        // New auth flow: get Firebase ID token on-demand
+        let token: String
+        do {
+            token = try await authManager.firebaseIdToken()
+        } catch {
             await MainActor.run {
                 isSaving = false
                 errorMessage = "You’re not logged in. Please sign in again."
             }
             return
         }
-        
+
         var avatarURL: String? = user.avatarUrl
-        
+
         // If user picked a new image, upload to S3 via presigned URL
         if let selectedImage {
             do {
@@ -169,7 +173,7 @@ struct EditProfileView: View {
                 return
             }
         }
-        
+
         do {
             let response = try await APIService.shared.updateUserProfile(
                 displayName: displayName,
@@ -177,15 +181,15 @@ struct EditProfileView: View {
                 avatarUrl: avatarURL,
                 token: token
             )
-            
+
             let updatedUser = response.data
-            
+
             await MainActor.run {
                 authManager.currentUser = updatedUser
                 onProfileUpdated?(updatedUser)
                 isSaving = false
                 dismiss()
-                
+
                 NotificationCenter.default.post(
                     name: .userProfileDidUpdate,
                     object: nil,

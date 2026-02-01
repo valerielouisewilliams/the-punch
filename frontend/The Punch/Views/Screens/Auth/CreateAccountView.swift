@@ -175,10 +175,10 @@ struct CreateAccountView: View {
      */
     var isFormValid: Bool {
         return !username.isEmpty &&
-               !email.isEmpty &&
-               isValidEmail(email) &&
-               password.count >= 6 &&
-               acceptedTerms
+        !email.isEmpty &&
+        isValidEmail(email) &&
+        password.count >= 6 &&
+        acceptedTerms
     }
     
     /**
@@ -211,24 +211,25 @@ struct CreateAccountView: View {
     func register() async {
         isLoading = true
         defer { isLoading = false }
-
+        
         do {
             _ = try await Auth.auth().createUser(withEmail: email, password: password)
-
+            
             // You still want username/displayName in *your* DB, so send it to backend
             let token = try await AuthManager.shared.firebaseIdToken()
-
+            
             try await APIService.shared.completeProfile(
                 firebaseToken: token,
                 username: username.trimmingCharacters(in: .whitespaces),
                 displayName: displayName.isEmpty ? username : displayName
             )
-
+            
             // then pull /me (or have completeProfile return the user)
             try await AuthManager.shared.syncSessionWithBackend()
-
+            
         } catch {
             errorMessage = error.localizedDescription
             showError = true
-        
+        }
+    }
 }

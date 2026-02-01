@@ -55,7 +55,6 @@ struct UserProfileView: View {
                         // Show Follow if it's someone else; otherwise show Settings (i.e. we're looking at our own profile)
                         if let me = authManager.currentUser, me.id != user.id {
                             FollowButton(viewedUserId: user.id)
-                                .environmentObject(authManager)
                                 .padding(.horizontal)
                         } else {
                             Button {
@@ -308,14 +307,25 @@ struct UserProfileView: View {
     
     private func loadUser() async {
         await MainActor.run { isLoadingUser = true }
-        
+
+        let token: String
         do {
-            let token = authManager.getToken()
+            token = try await authManager.firebaseIdToken()
+        } catch {
+            await MainActor.run {
+                isLoadingUser = false
+                errorMessage = "You're not logged in."
+                showError = true
+            }
+            return
+        }
+
+        do {
             let response = try await APIService.shared.getUserProfile(
                 userId: userId,
                 token: token
             )
-            
+
             await MainActor.run {
                 self.user = response.data
                 self.isLoadingUser = false
@@ -323,27 +333,38 @@ struct UserProfileView: View {
         } catch {
             await MainActor.run {
                 self.isLoadingUser = false
+                self.errorMessage = "Failed to load user profile."
+                self.showError = true
             }
+            print("loadUser error:", error)
         }
     }
     
     func loadPosts() async {
-        await MainActor.run {
-            isLoadingPosts = true
+        await MainActor.run { isLoadingPosts = true }
+
+        let token: String
+        do {
+            token = try await authManager.firebaseIdToken()
+        } catch {
+            await MainActor.run {
+                isLoadingPosts = false
+            }
+            return
         }
-        
+
         do {
             let response = try await APIService.shared.getUserPosts(
                 userId: userId,
-                token: authManager.token
+                token: token
             )
-            
+
             await MainActor.run {
                 self.posts = response.data
                 self.isLoadingPosts = false
             }
         } catch {
-            print("Error loading posts: \(error)")
+            print("Error loading posts:", error)
             await MainActor.run {
                 self.isLoadingPosts = false
             }

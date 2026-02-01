@@ -67,7 +67,8 @@ struct FollowingListView: View {
         }
 
         do {
-            let token = authManager.getToken()
+            let token = try await authManager.firebaseIdToken()
+
             let response = try await APIService.shared.getFollowingList(
                 userId: userId,
                 token: token
@@ -80,12 +81,19 @@ struct FollowingListView: View {
         } catch {
             await MainActor.run {
                 self.isLoading = false
+
                 if let apiError = error as? APIError {
-                    self.errorMessage = apiError.errorDescription ?? "Failed to load following."
+                    switch apiError {
+                    case .noToken:
+                        self.errorMessage = "Log in to view who they're following."
+                    default:
+                        self.errorMessage = apiError.errorDescription ?? "Failed to load following."
+                    }
                 } else {
                     self.errorMessage = "Failed to load following."
                 }
             }
+
             print("Following load error:", error)
         }
     }

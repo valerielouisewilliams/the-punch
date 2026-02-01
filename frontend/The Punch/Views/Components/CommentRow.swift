@@ -12,8 +12,8 @@ struct CommentRow: View {
     let comment: Comment
     let onDelete: () -> Void
 
-    @StateObject private var authManager = AuthManager.shared
     @State private var isDeleting = false
+    @ObservedObject private var authManager = AuthManager.shared
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -94,15 +94,15 @@ struct CommentRow: View {
     }
     
     private func deleteComment() {
-        guard let token = authManager.token else { return }
-        
         isDeleting = true
-        
+
         Task {
             do {
+                let token = try await AuthManager.shared.firebaseIdToken()
                 _ = try await APIService.shared.deleteComment(id: comment.id, token: token)
+
                 await MainActor.run {
-                    onDelete()   // tell parent to remove it from array
+                    onDelete()
                 }
             } catch {
                 print("Failed to delete comment: \(error)")
@@ -112,9 +112,6 @@ struct CommentRow: View {
             }
         }
     }
-    
-}
-
     
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()
@@ -138,4 +135,9 @@ struct CommentRow: View {
         
         return dateString
     }
+    
+}
+
+    
+   
 

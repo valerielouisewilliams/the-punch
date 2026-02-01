@@ -163,14 +163,29 @@ struct PostDetailView: View {
     
     private func loadComments() {
         Task {
-            isLoadingComments = true
-            errorMessage = nil
-            
+            await MainActor.run {
+                isLoadingComments = true
+                errorMessage = nil
+            }
+
+            // get Firebase token on demand
+            let token: String
+            do {
+                token = try await authManager.firebaseIdToken()
+            } catch {
+                await MainActor.run {
+                    errorMessage = "You're not logged in."
+                    isLoadingComments = false
+                }
+                return
+            }
+
             do {
                 let response = try await APIService.shared.getComments(
                     postId: post.id,
-                    token: authManager.token
+                    token: token
                 )
+
                 await MainActor.run {
                     comments = response.comments
                     isLoadingComments = false
@@ -180,31 +195,42 @@ struct PostDetailView: View {
                     errorMessage = "Failed to load comments"
                     isLoadingComments = false
                 }
-                print("Failed to load comments: \(error)")
+                print("Failed to load comments:", error)
             }
         }
     }
     
     private func postComment() {
         let trimmedText = newCommentText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let token = authManager.token, !trimmedText.isEmpty else { return }
-        
+        guard !trimmedText.isEmpty else { return }
+
         isPostingComment = true
         errorMessage = nil
-        
+
         Task {
+            // get Firebase token on demand
+            let token: String
+            do {
+                token = try await authManager.firebaseIdToken()
+            } catch {
+                await MainActor.run {
+                    errorMessage = "You're not logged in."
+                    isPostingComment = false
+                }
+                return
+            }
+
             do {
                 let response = try await APIService.shared.createComment(
                     postId: post.id,
                     text: trimmedText,
                     token: token
                 )
-                
+
                 await MainActor.run {
-                    // Add user info to the new comment if not included
+                    // Add user info if backend didn’t include it
                     var newComment = response.comment
                     if newComment.user == nil {
-                        // Create user info from current user
                         newComment = Comment(
                             id: response.comment.id,
                             postId: response.comment.postId,
@@ -219,13 +245,12 @@ struct PostDetailView: View {
                             )
                         )
                     }
-                    
+
                     comments.insert(newComment, at: 0)
                     newCommentText = ""
                     isCommentFieldFocused = false
                     isPostingComment = false
-                    
-                    // Notify listeners
+
                     NotificationCenter.default.post(
                         name: .commentDidCreate,
                         object: nil,
@@ -234,16 +259,15 @@ struct PostDetailView: View {
                             "comment": newComment
                         ]
                     )
-                    
-                    SoundManager.shared.playSound(.comment)
 
+                    SoundManager.shared.playSound(.comment)
                 }
             } catch {
                 await MainActor.run {
                     errorMessage = "Failed to post comment"
                     isPostingComment = false
                 }
-                print("Failed to post comment: \(error)")
+                print("Failed to post comment:", error)
             }
         }
     }

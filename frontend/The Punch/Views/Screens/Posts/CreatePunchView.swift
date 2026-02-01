@@ -206,52 +206,54 @@ struct CreatePunchView: View {
     // Submit
     private func submit() async {
         SoundManager.shared.playSound(.punch)
-        
+
         if isPosting { return }
-        
+
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            errorMessage = "Say something before posting."
+            await MainActor.run { errorMessage = "Say something before posting." }
             return
         }
-        guard let token = AuthManager.shared.getToken(), !token.isEmpty else {
-            errorMessage = "You must be logged in."
+
+        // Firebase token (async)
+        do {
+            _ = try await AuthManager.shared.firebaseIdToken()
+        } catch {
+            await MainActor.run { errorMessage = "You must be logged in." }
             return
         }
-        
+
         await MainActor.run {
             isPosting = true
             errorMessage = nil
         }
         defer { Task { await MainActor.run { isPosting = false } } }
-        
-        // Allow either or both to be empty — backend can treat them as optional
+
         let finalFeeling = feelingText.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalEmoji = emojiText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         do {
             let response = try await APIService.shared.createPost(
                 text: trimmed,
-                feelingEmoji: finalEmoji,          // any emoji, or ""
-                feelingName: finalFeeling,         // any text, or ""
-                token: token
+                feelingEmoji: finalEmoji.isEmpty ? nil : finalEmoji,
+                feelingName: finalFeeling.isEmpty ? nil : finalFeeling
             )
+
             let created = response.data
-            
+
             await MainActor.run {
                 NotificationCenter.default.post(
                     name: .postDidCreate,
                     object: nil,
                     userInfo: ["post": created]
                 )
-
                 dismiss()
             }
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription.isEmpty
-                ? "Failed to create post. Please try again."
-                : error.localizedDescription
+                    ? "Failed to create post. Please try again."
+                    : error.localizedDescription
             }
         }
     }

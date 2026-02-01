@@ -146,7 +146,11 @@ struct FeedView: View {
 
     @MainActor
     private func loadFeed(offset: Int, replacing: Bool) async {
-        guard let token = authManager.token else {
+        // Fetch Firebase token on demand
+        let token: String
+        do {
+            token = try await authManager.firebaseIdToken()
+        } catch {
             errorMessage = "You're not logged in."
             return
         }
@@ -179,10 +183,21 @@ struct FeedView: View {
             errorMessage = error.localizedDescription
         }
     }
-
+    
     @MainActor
     private func loadMore() async {
-        guard !isLoading, hasMore, let token = authManager.token else { return }
+        guard !isLoading, hasMore else { return }
+
+        // Fetch Firebase token on demand
+        let token: String
+        do {
+            token = try await authManager.firebaseIdToken()
+        } catch {
+            // soft-fail pagination
+            print("Not logged in; can't paginate.")
+            return
+        }
+
         isLoading = true
         defer { isLoading = false }
 

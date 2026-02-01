@@ -38,8 +38,9 @@ class APIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add auth token if provided
-        let token = try await AuthManager.shared.firebaseIdToken()
-        
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         // Add body if provided
         if let body = body {
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -515,10 +516,6 @@ extension APIService {
         req.httpMethod = "GET"
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Accept")
-        // If your server uses x-user-id for userHasLiked, add it:
-        if let uid = await AuthManager.shared.getToken() {
-            req.setValue(String(uid), forHTTPHeaderField: "x-user-id")
-        }
 
         let (data, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw APIError.invalidResponse }
@@ -614,14 +611,17 @@ extension APIService {
     func createPost(
         text: String,
         feelingEmoji: String?,
-        feelingName: String?,
-        token: String
+        feelingName: String?
     ) async throws -> CreatePostResponse {
 
-        var body: [String: Any] = ["text": text]
         let token = try await AuthManager.shared.firebaseIdToken()
-        if let feelingEmoji { body["feeling_emoji"] = feelingEmoji }   // snake_case
-        if let feelingName  { body["feeling_name"]  = feelingName  }   // snake_case
+
+        var body: [String: Any] = [
+            "text": text
+        ]
+
+        if let feelingEmoji { body["feeling_emoji"] = feelingEmoji }
+        if let feelingName  { body["feeling_name"]  = feelingName }
 
         return try await makeRequest(
             endpoint: "/posts",
@@ -630,8 +630,7 @@ extension APIService {
             token: token,
             responseType: CreatePostResponse.self
         )
-    }
-}
+    }}
 
 extension APIService {
     func checkIfFollowing(
@@ -646,26 +645,26 @@ extension APIService {
             responseType: FollowStatusResponse.self
         )
     }
-
+    
     func followUser(
         userId: Int,
         token: String
     ) async throws -> SimpleResponse {
         let token = try await AuthManager.shared.firebaseIdToken()
-        try await makeRequest(
+        return try await makeRequest(
             endpoint: "/follows/user/\(userId)",
             method: "POST",
             token: token,
             responseType: SimpleResponse.self
         )
     }
-
+    
     func unfollowUser(
         userId: Int,
         token: String
     ) async throws -> SimpleResponse {
         let token = try await AuthManager.shared.firebaseIdToken()
-        try await makeRequest(
+        return try await makeRequest(
             endpoint: "/follows/user/\(userId)",
             method: "DELETE",
             token: token,
@@ -673,3 +672,4 @@ extension APIService {
         )
     }
 }
+

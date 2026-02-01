@@ -105,8 +105,10 @@ struct PostCard: View {
             // MARK: - Engagement Bar
             HStack(spacing: 24) {
                 // Like Button
-                Button(action: {SoundManager.shared.playSound(.like)
-                    toggleLike() }) {
+                Button {
+                    SoundManager.shared.playSound(.like)
+                    toggleLike()
+                } label: {
                     HStack(spacing: 4) {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .foregroundColor(isLiked ? .red : .gray)
@@ -115,7 +117,9 @@ struct PostCard: View {
                             .foregroundColor(.gray)
                     }
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
+                .disabled(likeInFlight)
+                .opacity(likeInFlight ? 0.6 : 1.0)
                 
                 // Navigate to comments
                 HStack(spacing: 4) {
@@ -187,75 +191,57 @@ struct PostCard: View {
     }
     
     // Actions
-    @MainActor
     private func toggleLike() {
-      // 0) Probes
-      print("toggleLike() tapped")
+        guard !likeInFlight else { return }
 
-      // 1) Guards
-      guard let token = authManager.token else {
-        print("No token; bailing.")
-        return
-      }
+        // Snapshot current UI state
+        let prevLiked = isLiked
+        let prevCount = likeCount
 
-      // 2) Mark in-flight & snapshot
-      likeInFlight = true
-      let prevLiked = isLiked
-      let prevCount = likeCount
+        // Optimistic UI update (on main)
+        likeInFlight = true
+        isLiked.toggle()
+        likeCount = max(0, prevCount + (isLiked ? 1 : -1))
 
-      // 3) Optimistic UI
-      isLiked.toggle()
-      likeCount = max(0, prevCount + (isLiked ? 1 : -1))
-    
-      // 4) Broadcast a notif
-      NotificationCenter.default.post(
+        // Broadcast UI change immediately
+        NotificationCenter.default.post(
             name: .postDidUpdate,
             object: nil,
             userInfo: ["id": post.id, "isLiked": isLiked, "likeCount": likeCount]
         )
 
+        // Do async work in a Task
+        Task {
+            do {
+                let token = try await authManager.firebaseIdToken()
 
-      // 5) Kick off network work
-      Task {
-        defer {
-          Task { @MainActor in
-            likeInFlight = false
-          }
+                if prevLiked == false {
+                    _ = try await APIService.shared.likePost(postId: post.id, token: token)
+                } else {
+                    _ = try await APIService.shared.unlikePost(postId: post.id, token: token)
+                }
+
+                // success: nothing else needed
+                await MainActor.run { likeInFlight = false }
+
+            } catch {
+                // Roll back optimistic UI on real failure
+                await MainActor.run {
+                    isLiked = prevLiked
+                    likeCount = prevCount
+                    likeInFlight = false
+                }
+                print("Like toggle failed:", error)
+            }
         }
-
-        do {
-          if prevLiked == false {
-            _ = try await APIService.shared.likePost(postId: post.id, token: token)
-          } else {
-            _ = try await APIService.shared.unlikePost(postId: post.id, token: token)
-          }
-        } catch {
-          let msg = (error as NSError).localizedDescription.lowercased()
-          let alreadyLiked  = msg.contains("already liked")
-          let notLiked      = msg.contains("not liked") || msg.contains("already unliked")
-
-          // Treat idempotent server states as success
-          if (isLiked && alreadyLiked) || (!isLiked && notLiked) {
-            print("Idempotent server state; keeping optimistic UI.")
-            return
-          }
-
-          // Real failure — rollback on main
-          await MainActor.run {
-            isLiked = prevLiked
-            likeCount = prevCount
-          }
-          print("Like toggle failed:", error)
-        }
-      }
     }
 
-    
     private func deletePost() {
         Task {
-            guard let token = authManager.token else { return }
-
             do {
+                // Get Firebase ID token on-demand (your new auth flow)
+                let token = try await authManager.firebaseIdToken()
+
                 _ = try await APIService.shared.deletePost(id: post.id, token: token)
 
                 // Notify listeners
@@ -265,7 +251,7 @@ struct PostCard: View {
                     userInfo: ["id": post.id]
                 )
             } catch {
-                print("Delete failed: \(error)")
+                print("Delete failed:", error)
             }
         }
     }

@@ -43,9 +43,17 @@ struct FollowersListView: View {
         .background(Color.black.ignoresSafeArea())
         .navigationTitle("Followers")
         .navigationBarTitleDisplayMode(.inline)
-        .task {
+
+        // ✅ Load when the viewed user changes
+        .task(id: userId) {
             await loadFollowers()
         }
+
+        // ✅ Reload when login state changes (optional but nice)
+        .task(id: authManager.currentUser?.id) {
+            await loadFollowers()
+        }
+
         .refreshable {
             await loadFollowers()
         }
@@ -60,7 +68,9 @@ struct FollowersListView: View {
         }
 
         do {
-            let token = authManager.getToken()
+            // ✅ Get a fresh Firebase token on demand
+            let token = try await authManager.firebaseIdToken()
+
             let response = try await APIService.shared.getFollowersList(
                 userId: userId,
                 token: token
@@ -73,8 +83,14 @@ struct FollowersListView: View {
         } catch {
             await MainActor.run {
                 self.isLoading = false
+
                 if let apiError = error as? APIError {
-                    self.errorMessage = apiError.errorDescription ?? "Failed to load followers."
+                    switch apiError {
+                    case .noToken:
+                        self.errorMessage = "Log in to view followers."
+                    default:
+                        self.errorMessage = apiError.errorDescription ?? "Failed to load followers."
+                    }
                 } else {
                     self.errorMessage = "Failed to load followers."
                 }
@@ -83,4 +99,3 @@ struct FollowersListView: View {
         }
     }
 }
-

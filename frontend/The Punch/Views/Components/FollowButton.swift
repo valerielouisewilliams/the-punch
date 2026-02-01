@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct FollowButton: View {
-    @EnvironmentObject var auth: AuthManager
-
+    @ObservedObject private var auth = AuthManager.shared
     let viewedUserId: Int
 
     @State private var isFollowing = false
@@ -22,16 +21,15 @@ struct FollowButton: View {
         }
         .disabled(loading || !canFollow)
         .opacity(loading ? 0.6 : 1.0)
-        // Load when this button appears OR when the viewed user changes
+
+        // load whenever the viewed user changes
         .task(id: viewedUserId) {
             await loadInitialState()
         }
-        .onAppear {
-            Task { await loadInitialState() }
-        }
-        // If you log in later, refresh the state
-        .onChange(of: auth.token) { _, _ in
-            Task { await loadInitialState() }
+
+        // refresh when auth state changes (login/logout)
+        .task(id: auth.currentUser?.id) {
+            await loadInitialState()
         }
     }
 
@@ -41,13 +39,17 @@ struct FollowButton: View {
     }
 
     private func loadInitialState() async {
-        guard canFollow, let token = auth.token else { return }
+        guard canFollow else { return }
 
         do {
+            // Get a fresh Firebase ID token on-demand
+            let token = try await auth.firebaseIdToken()
+
             let status = try await APIService.shared.checkIfFollowing(
                 userId: viewedUserId,
                 token: token
             )
+
             await MainActor.run {
                 self.isFollowing = status.following
             }
@@ -57,13 +59,17 @@ struct FollowButton: View {
     }
 
     private func toggleFollow() async {
-        guard canFollow, let token = auth.token else { return }
+        guard canFollow else { return }
+
         await MainActor.run { loading = true }
         defer { Task { await MainActor.run { loading = false } } }
-        
+
         SoundManager.shared.playSound(.follow)
-        
+
         do {
+            // Get a fresh token right before the request
+            let token = try await auth.firebaseIdToken()
+
             if isFollowing {
                 _ = try await APIService.shared.unfollowUser(
                     userId: viewedUserId,
@@ -78,7 +84,6 @@ struct FollowButton: View {
                 await MainActor.run { isFollowing = true }
             }
 
-            // broadcast follow change
             NotificationCenter.default.post(
                 name: .followDidChange,
                 object: nil,
@@ -93,4 +98,3 @@ struct FollowButton: View {
         }
     }
 }
-
