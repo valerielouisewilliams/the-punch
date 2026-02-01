@@ -354,10 +354,7 @@ struct UserProfileView: View {
         }
 
         do {
-            let response = try await APIService.shared.getUserPosts(
-                userId: userId,
-                token: token
-            )
+            let response = try await APIService.shared.getUserPosts(userId: userId)
 
             await MainActor.run {
                 self.posts = response.data

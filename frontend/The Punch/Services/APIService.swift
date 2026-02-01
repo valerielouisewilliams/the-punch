@@ -220,7 +220,7 @@ class APIService {
     }
     
     /// Get all posts by a specific user
-    func getUserPosts(userId: Int, token: String? = nil) async throws -> PostsResponse {
+    func getUserPosts(userId: Int) async throws -> PostsResponse {
         let token = try await AuthManager.shared.firebaseIdToken()
         return try await makeRequest(
             endpoint: "/posts/user/\(userId)",
@@ -229,6 +229,7 @@ class APIService {
             responseType: PostsResponse.self
         )
     }
+
     
     // Like Endpoints
     

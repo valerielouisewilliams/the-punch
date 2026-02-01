@@ -75,14 +75,11 @@ struct PostCard: View {
                 }
                 
                 Spacer()
-                
-               
 
                 // Time
                 Text(formatDate(post.createdAt))
                     .font(.caption)
                     .foregroundColor(.gray)
-                
                 
                 // Options Menu (for own posts)
                 if isOwnPost && context == .profile {
