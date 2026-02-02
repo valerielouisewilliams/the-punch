@@ -9,6 +9,8 @@ const commentRoutes = require('./commentRoutes');
 const likeRoutes = require('./likeRoutes');
 const followRoutes = require('./followRoutes');
 const feedRoutes = require('./feedRoutes')
+const mediaRoutes = require('./mediaRoutes');
+
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -18,6 +20,7 @@ router.use('/comments', commentRoutes);
 router.use('/likes', likeRoutes);
 router.use('/follows', followRoutes);
 router.use('/feed', feedRoutes);
+router.use('/media', mediaRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

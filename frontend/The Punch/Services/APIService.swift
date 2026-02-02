@@ -11,7 +11,7 @@ class APIService {
     static let shared = APIService()
     
     // Backend URL for sim testing
-    //private let baseURL = "http://localhost:3000/api" // for simulator
+//    private let baseURL = "http://localhost:3000/api" // for simulator
     
     // Backend URL for device testing
     private let baseURL =  "http://3.130.171.129:3000/api"

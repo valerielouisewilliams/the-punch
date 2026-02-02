@@ -229,6 +229,29 @@ const searchUsers = async (req, res) => {
   }
 };
 
+const updateMyAvatar = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { avatar_url } = req.body;
+    if (!avatar_url || typeof avatar_url !== "string") {
+      return res.status(400).json({ success: false, message: "avatar_url (string) is required" });
+    }
+
+    const updated = await User.updateAvatarUrl(userId, avatar_url);
+
+    return res.json({
+      success: true,
+      message: "Avatar updated",
+      data: updated.getPublicProfile()
+    });
+  } catch (e) {
+    console.error("updateMyAvatar error:", e);
+    return res.status(500).json({ success: false, message: "Could not update avatar" });
+  }
+};
+
 
 module.exports = {
   getUserByUsername,
@@ -236,5 +259,6 @@ module.exports = {
   getFollowers,
   getFollowing,
   updateUserProfile,
-  searchUsers
+  searchUsers,
+  updateMyAvatar
 };
