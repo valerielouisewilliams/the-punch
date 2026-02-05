@@ -203,6 +203,7 @@ struct EditProfileView: View {
             }
         } catch {
             await MainActor.run {
+                
                 isSaving = false
                 if let apiError = error as? APIError {
                     errorMessage = apiError.errorDescription ?? "Failed to update profile."

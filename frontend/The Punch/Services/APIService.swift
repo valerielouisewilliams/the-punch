@@ -62,6 +62,15 @@ class APIService {
         }
         #endif
         
+        #if DEBUG
+        print("REQUEST URL:", request.url?.absoluteString ?? "nil")
+        print("REQUEST HEADERS:", request.allHTTPHeaderFields ?? [:])
+        if let body = request.httpBody, let s = String(data: body, encoding: .utf8) {
+            print("REQUEST BODY:", s)
+        }
+        #endif
+
+        
         guard (200...299).contains(httpResponse.statusCode) else {
             throw APIError.httpError(httpResponse.statusCode)
         }
