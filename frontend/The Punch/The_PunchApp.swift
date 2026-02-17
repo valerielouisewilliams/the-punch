@@ -7,27 +7,26 @@
 
 import SwiftUI
 import FirebaseCore
+import UIKit
+import FirebaseMessaging
 
 @main
 struct The_PunchApp: App {
-    // For UI state changes like toggling the floating post button
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     @StateObject private var uiState = UIState()
-    
-    // Watch AuthManager for changes
     @StateObject private var authManager = AuthManager.shared
-    
-    // Notification System
     @StateObject var punchState = PunchState()
-    
+
     init() {
-        NotificationManager.shared.requestPermission()
-        NotificationManager.shared.scheduleTodayPunch()
         FirebaseApp.configure()
+
+        // Keep permission request (needed for remote push too)
+        NotificationManager.shared.requestPermission()
     }
-    
+
     var body: some Scene {
         WindowGroup {
-            // Switches when isAuthenticated changes
             if authManager.isAuthenticated {
                 MainTabView()
                     .environmentObject(uiState)
@@ -38,3 +37,19 @@ struct The_PunchApp: App {
         }
     }
 }
+
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        // Links APNs <-> FCM for iOS delivery
+        Messaging.messaging().apnsToken = deviceToken
+    }
+
+    func application(_ application: UIApplication,
+                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("Failed to register for remote notifications:", error.localizedDescription)
+    }
+}
+

@@ -7,8 +7,12 @@
 
 import Foundation
 import UserNotifications
+import UIKit
+import FirebaseMessaging
 
-class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
+class NotificationManager: NSObject,
+                           UNUserNotificationCenterDelegate,
+                           MessagingDelegate {
     
     static let shared = NotificationManager()
     
@@ -20,13 +24,27 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     private override init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
+        Messaging.messaging().delegate = self
     }
+
     
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound, .badge])
     }
+    
+    // MARK: - Firebase Notification Helpers
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let token = fcmToken else { return }
+
+        print("FCM TOKEN RECEIVED:")
+        print(token)
+
+        // TODO next step:
+        // Send this token to your backend
+    }
+
     
     // MARK: - Permission
     func requestPermission() {
@@ -35,11 +53,18 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         ) { granted, error in
             if let error = error {
                 print("Permission error:", error.localizedDescription)
-            } else {
-                print("Notifications permission granted:", granted)
+                return
+            }
+
+            print("Notifications permission granted:", granted)
+
+            guard granted else { return }
+            DispatchQueue.main.async {
+                UIApplication.shared.registerForRemoteNotifications()
             }
         }
     }
+
     
     // MARK: - Random Punch Time Generator
     func generateRandomPunchTime() -> Date {
