@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5620F5962F2C68D000095BC7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5620F5952F2C68D000095BC7 /* FirebaseAuth */; };
-		56DC076B2F4515EE0001CE4B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 56DC076A2F4515EE0001CE4B /* FirebaseMessaging */; };
+		56F154B62F4564C800927B49 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 56F154B52F4564C800927B49 /* FirebaseAuth */; };
+		56F154B82F4564C800927B49 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 56F154B72F4564C800927B49 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,23 +34,6 @@
 		568265AC2E8C29EB0059617D /* The PunchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5620F60C2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The Punch" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"GoogleService-Info.plist",
-			);
-			target = 568265942E8C29EA0059617D /* The Punch */;
-		};
-		5620F60D2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The PunchUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"GoogleService-Info.plist",
-			);
-			target = 568265AB2E8C29EB0059617D /* The PunchUITests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		568265972E8C29EA0059617D /* The Punch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -64,10 +47,6 @@
 		};
 		568265AF2E8C29EB0059617D /* The PunchUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5620F60C2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The Punch" target */,
-				5620F60D2F2EC73B00095BC7 /* Exceptions for "The PunchUITests" folder in "The PunchUITests" target */,
-			);
 			path = "The PunchUITests";
 			sourceTree = "<group>";
 		};
@@ -78,8 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56DC076B2F4515EE0001CE4B /* FirebaseMessaging in Frameworks */,
-				5620F5962F2C68D000095BC7 /* FirebaseAuth in Frameworks */,
+				56F154B82F4564C800927B49 /* FirebaseMessaging in Frameworks */,
+				56F154B62F4564C800927B49 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,7 +85,6 @@
 				568265972E8C29EA0059617D /* The Punch */,
 				568265A52E8C29EB0059617D /* The PunchTests */,
 				568265AF2E8C29EB0059617D /* The PunchUITests */,
-				56DC07692F4515EE0001CE4B /* Frameworks */,
 				568265962E8C29EA0059617D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -119,13 +97,6 @@
 				568265AC2E8C29EB0059617D /* The PunchUITests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		56DC07692F4515EE0001CE4B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -148,8 +119,8 @@
 			);
 			name = "The Punch";
 			packageProductDependencies = (
-				5620F5952F2C68D000095BC7 /* FirebaseAuth */,
-				56DC076A2F4515EE0001CE4B /* FirebaseMessaging */,
+				56F154B52F4564C800927B49 /* FirebaseAuth */,
+				56F154B72F4564C800927B49 /* FirebaseMessaging */,
 			);
 			productName = "The Punch";
 			productReference = 568265952E8C29EA0059617D /* The Punch.app */;
@@ -234,7 +205,7 @@
 			mainGroup = 5682658C2E8C29EA0059617D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				56F154B42F4564C800927B49 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 568265962E8C29EA0059617D /* Products */;
@@ -436,7 +407,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = NJU23KJ3RY;
@@ -466,7 +436,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = NJU23KJ3RY;
@@ -601,25 +570,25 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		56F154B42F4564C800927B49 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.8.0;
+				minimumVersion = 12.9.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5620F5952F2C68D000095BC7 /* FirebaseAuth */ = {
+		56F154B52F4564C800927B49 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = 56F154B42F4564C800927B49 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
 		};
-		56DC076A2F4515EE0001CE4B /* FirebaseMessaging */ = {
+		56F154B72F4564C800927B49 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5620F5942F2C68D000095BC7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = 56F154B42F4564C800927B49 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
