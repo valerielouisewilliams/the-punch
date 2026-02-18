@@ -1,0 +1,14 @@
+# Firebase
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+
+# iOS build junk
+DerivedData/
+.build/
+*.xcworkspace
+*.xcuserdata
+*.DS_Store
+
+# Node
+node_modules/
+.env
