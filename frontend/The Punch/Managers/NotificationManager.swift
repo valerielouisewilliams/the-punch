@@ -9,17 +9,22 @@ import Foundation
 import UserNotifications
 import UIKit
 import FirebaseMessaging
+import FirebaseAuth
 
+@MainActor
 class NotificationManager: NSObject,
                            UNUserNotificationCenterDelegate,
                            MessagingDelegate {
-    
+
     static let shared = NotificationManager()
     
     // Keys for UserDefaults
     private let punchTimeKey = "punchTimeDate"
     private let punchTimeIdKey = "punchTimeId"
     private let punchDayKey = "punchDay"
+    
+    private var pendingFCMToken: String?
+
     
     private override init() {
         super.init()
@@ -34,15 +39,21 @@ class NotificationManager: NSObject,
         completionHandler([.banner, .sound, .badge])
     }
     
-    // MARK: - Firebase Notification Helpers
+    // - MARK: Messaging and Token Upload
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let token = fcmToken else { return }
+        print("🔥 FCM TOKEN RECEIVED:\n\(token)")
+        pendingFCMToken = token
+        tryUploadPendingToken()
+    }
 
-        print("FCM TOKEN RECEIVED:")
-        print(token)
-
-        // TODO next step:
-        // Send this token to your backend
+    func tryUploadPendingToken() {
+        guard let token = pendingFCMToken else { return }
+        guard Auth.auth().currentUser != nil else {
+            print("No Firebase user yet — will upload token after login")
+            return
+        }
+        sendTokenToBackend(token)
     }
 
     
@@ -181,6 +192,50 @@ class NotificationManager: NSObject,
         
         completionHandler()
     }
+    
+    // MARK: - Sending Device Token to Backend
+    private func sendTokenToBackend(_ fcmToken: String) {
+        guard let user = Auth.auth().currentUser else {
+            print("No Firebase user yet — skipping device token upload")
+            return
+        }
+
+        user.getIDToken { idToken, error in
+            if let error = error {
+                print("Failed to get ID token:", error.localizedDescription)
+                return
+            }
+
+            guard let idToken = idToken else { return }
+
+            guard let url = URL(string: "http://3.130.171.129:3000/api") else { return }
+
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+
+            let body: [String: Any] = [
+                "token": fcmToken,
+                "platform": "ios"
+            ]
+
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Device token upload failed:", error.localizedDescription)
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("Device token upload status:", httpResponse.statusCode)
+                }
+            }.resume()
+        }
+    }
+
 }
 
 // MARK: - NotificationCenter Support
