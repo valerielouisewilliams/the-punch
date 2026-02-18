@@ -35,3 +35,13 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+
+# Firebase
+firebase-admin.json
+secrets/
+
+# Apple Push
+*.p8
+
+# Misc secrets
+*.pem

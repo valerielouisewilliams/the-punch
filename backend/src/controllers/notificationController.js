@@ -40,7 +40,16 @@ async function testPush(req, res) {
     };
 
     const resp = await admin.messaging().sendEachForMulticast(multicastMessage);
-
+    console.log("FCM multicast response:", {
+    	successCount: resp.successCount,
+    	failureCount: resp.failureCount,
+    	responses: resp.responses.map(r => ({
+    	success: r.success,
+    	code: r.error?.code,
+    	message: r.error?.message,
+  	})),
+    });
+		
     // deactivate dead tokens
     const deadCodes = new Set([
       "messaging/registration-token-not-registered",
