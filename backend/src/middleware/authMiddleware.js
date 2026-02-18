@@ -10,14 +10,6 @@ async function authenticateToken(req, res, next) {
 
     const decoded = await admin.auth().verifyIdToken(token);
 
-    //TESTING NORMALIZE
-    req.user = {
-      id: decoded.uid,        // normalize
-      uid: decoded.uid,
-      email: decoded.email,
-    };
-
-
     // decoded.uid is the Firebase UID
     const dbUser = await User.findByFirebaseUid(decoded.uid);
     if (!dbUser) {
