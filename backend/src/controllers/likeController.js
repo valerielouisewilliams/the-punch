@@ -7,60 +7,59 @@ const { pool } = require('../config/database');
 const likeController = {
     // Like a post
     async likePost(req, res) {
-    const postId = Number(req.params.postId);
-    const userId = req.user.id;
+      const postId = Number(req.params.postId);
+      const userId = req.user.id;
 
-    const sql = `INSERT IGNORE INTO likes (post_id, user_id, created_at)
-                VALUES (?, ?, NOW())`;
+      const sql = `INSERT IGNORE INTO likes (post_id, user_id, created_at)
+                  VALUES (?, ?, NOW())`;
 
-    const [result] = await pool.execute(sql, [postId, userId]);
-    const already = result.affectedRows === 0; // duplicate
+      const [result] = await pool.execute(sql, [postId, userId]);
+      const already = result.affectedRows === 0;
 
-    // If it was a NEW like, notify the post owner
-    if (!already) {
-      // Find the post owner
-      const [rows] = await pool.execute(
-        `SELECT user_id FROM posts WHERE post_id = ? LIMIT 1`,
-        [postId]
-      );
+      // only send push on a NEW like
+      if (!already) {
+        // find post owner
+        const [[post]] = await pool.execute(
+          `SELECT user_id FROM posts WHERE id = ? LIMIT 1`,
+          [postId]
+        );
 
-      const postOwnerId = rows?.[0]?.user_id;
+        if (post && post.user_id && post.user_id !== userId) {
+          // OPTIONAL: fetch liker name for nicer push
+          const [[liker]] = await pool.execute(
+            `SELECT username FROM users WHERE id = ? LIMIT 1`,
+            [userId]
+          );
 
-      // Don't notify self
-      if (postOwnerId && Number(postOwnerId) !== Number(userId)) {
-        // Get actor name for nicer message (optional)
-        let actorName = "Someone";
-        try {
-          const actor = await User.findById(userId);
-          actorName = actor?.display_name || actor?.username || "Someone";
-        } catch (_) {}
+          const username = liker?.username || "Someone";
 
-        // Fire-and-forget (don’t block response)
-        pushService
-          .sendToUser(postOwnerId, {
-            title: "New like 🫶",
-            body: `${actorName} liked your post`,
+          await pushService.sendToUser(post.user_id, {
+            notification: {
+              title: "New like ❤️",
+              body: `${username} liked your post`,
+            },
             data: {
               type: "LIKE",
               postId: String(postId),
+              fromUserId: String(userId),
             },
-          })
-          .catch((err) => console.error("Push like notify failed:", err));
+          });
+        }
       }
-    }
 
-    return res.json({
-      message: already ? "Already liked" : "Post liked successfully",
-      like: already
-        ? null
-        : {
-            id: result.insertId,
-            post_id: postId,
-            user_id: userId,
-            created_at: new Date().toISOString(),
-          },
-    });
+      return res.json({
+        message: already ? "Already liked" : "Post liked successfully",
+        like: already
+          ? null
+          : {
+              id: result.insertId,
+              post_id: postId,
+              user_id: userId,
+              created_at: new Date().toISOString(),
+            },
+      });
   },
+
 
 // Unlike a post
   async unlikePost(req, res) {
