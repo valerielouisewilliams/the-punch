@@ -1,6 +1,7 @@
 const Follow = require('../models/Follow');
 const pushService = require('../services/pushService');
 const { pool } = require('../config/database');
+const NotificationInbox = require('../models/NotificationInbox');
 
 const followController = {
   // POST /api/follows/user/:userId
@@ -27,6 +28,20 @@ const followController = {
       }
 
       await Follow.create(followerIdNum, followingId);
+
+      // Create inbox notification (non-fatal if it fails)
+      try {
+        await NotificationInbox.create({
+          recipientUserId: userIdNum,          // the user being followed
+          actorUserId: followerIdNum,          // the follower
+          type: "follow",
+          entityType: "user",
+          entityId: followerIdNum,             // deep link target = follower profile
+          message: "followed you"
+        });
+      } catch (nErr) {
+        console.error("Failed to create follow notification:", nErr);
+      }
 
       // send push notification to the user being followed
       // (don’t notify self is already handled above)
