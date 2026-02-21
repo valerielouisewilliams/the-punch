@@ -1,4 +1,6 @@
 const Follow = require('../models/Follow');
+const pushService = require('../services/pushService');
+const { pool } = require('../config/database');
 
 const followController = {
   // POST /api/follows/user/:userId
@@ -25,6 +27,27 @@ const followController = {
       }
 
       await Follow.create(followerIdNum, followingId);
+
+      // send push notification to the user being followed
+      // (don’t notify self is already handled above)
+      const [[follower]] = await pool.execute(
+        `SELECT username FROM users WHERE id = ? LIMIT 1`,
+        [followerIdNum]
+      );
+
+      const username = follower?.username || "Someone";
+
+      await pushService.sendToUser(followingId, {
+        notification: {
+          title: "New follower 👀",
+          body: `${username} followed you`,
+        },
+        data: {
+          type: "FOLLOW",
+          fromUserId: String(followerIdNum),
+        },
+      });
+
 
       return res.status(201).json({
         success: true,
