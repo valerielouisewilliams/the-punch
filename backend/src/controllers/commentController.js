@@ -1,43 +1,79 @@
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
+const pushService = require('../services/pushService');
+const { pool } = require('../config/database');
 
 const commentController = {
   // Create a comment on a post
   async createComment(req, res) {
     try {
-      const { postId } = req.params;
-      const { text } = req.body;
+      const postId = Number(req.params.postId);
       const userId = req.user.id;
+      const textRaw = req.body?.text ?? "";
+      const text = String(textRaw).trim();
 
-      // Validate required fields
-      if (!text || text.trim().length === 0) {
+      if (!text) {
         return res.status(400).json({ error: 'Comment text is required' });
       }
 
-      // Check if post exists
+      // Check if post exists (you already do this)
       const post = await Post.findById(postId);
       if (!post) {
         return res.status(404).json({ error: 'Post not found' });
       }
 
+      // Create comment
       const comment = await Comment.create({
         userId,
         postId,
-        text: text.trim()
+        text
       });
 
-      res.status(201).json({
+      // --- PUSH (only if commenting on someone else's post) ---
+      const [[postRow]] = await pool.execute(
+        `SELECT user_id FROM posts WHERE id = ? LIMIT 1`,
+        [postId]
+      );
+
+      const postOwnerId = postRow?.user_id;
+
+      if (postOwnerId && Number(postOwnerId) !== Number(userId)) {
+        const [[commenter]] = await pool.execute(
+          `SELECT username FROM users WHERE id = ? LIMIT 1`,
+          [userId]
+        );
+
+        const username = commenter?.username || "Someone";
+        const preview = text.length > 80 ? `${text.slice(0, 80)}…` : text;
+
+        await pushService.sendToUser(postOwnerId, {
+          notification: {
+            title: "New comment 💬",
+            body: `${username}: ${preview}`,
+          },
+          data: {
+            type: "COMMENT",
+            postId: String(postId),
+            commentId: String(comment?.id ?? ""),
+            fromUserId: String(userId),
+          },
+        });
+      }
+      // -------------------------------------------------------
+
+      return res.status(201).json({
         message: 'Comment created successfully',
         comment
       });
     } catch (error) {
       console.error('Create comment error:', error);
-      res.status(500).json({ 
+      return res.status(500).json({
         error: 'Failed to create comment',
-        details: error.message 
+        details: error.message
       });
     }
   },
+
 
   // Get all comments for a post
   async getCommentsByPost(req, res) {
