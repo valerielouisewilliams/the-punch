@@ -48,6 +48,14 @@ final class AuthManager: ObservableObject {
         didSet {
             if let user = currentUser, let data = try? JSONEncoder().encode(user) {
                 UserDefaults.standard.set(data, forKey: Keys.user)
+                Task {
+                    do {
+                        let token = try await firebaseIdToken()
+                        print("Firebase Token:", token)
+                    } catch {
+                        print("Error getting Firebase token:", error)
+                    }
+                }
             } else {
                 UserDefaults.standard.removeObject(forKey: Keys.user)
             }
@@ -83,7 +91,6 @@ final class AuthManager: ObservableObject {
             print("Failed to load current user:", error)
         }
     }
-
     // Full logout
     func logout() {
         do {
