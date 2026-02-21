@@ -32,7 +32,7 @@ const followController = {
       // Create inbox notification (non-fatal if it fails)
       try {
         await NotificationInbox.create({
-          recipientUserId: userIdNum,          // the user being followed
+          recipientUserId: followingId,          // the user being followed
           actorUserId: followerIdNum,          // the follower
           type: "follow",
           entityType: "user",
