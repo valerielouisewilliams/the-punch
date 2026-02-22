@@ -71,9 +71,9 @@ struct FeedView: View {
                     }
                 }
             }
+            .preferredColorScheme(.dark)
             .navigationTitle("Home 🏡")
             .toolbarBackground(Color(red: 0.12, green: 0.10, blue: 0.10), for: .navigationBar)
-            .toolbarColorScheme(.light)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {

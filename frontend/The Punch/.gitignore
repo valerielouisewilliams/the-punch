@@ -8,6 +8,7 @@ DerivedData/
 *.xcworkspace
 *.xcuserdata
 *.DS_Store
+*.xcuserdatad/
 
 # Node
 node_modules/
