@@ -23,6 +23,7 @@ struct The_PunchApp: App {
 
         // Keep permission request (needed for remote push too)
         NotificationManager.shared.requestPermission()
+    
     }
 
     var body: some Scene {
