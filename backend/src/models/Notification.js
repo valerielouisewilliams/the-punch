@@ -125,6 +125,22 @@ class Notification {
     );
     return result.affectedRows > 0;
   }
+
+  static async unreadCountForUser(recipient_user_id) {
+    const [rows] = await pool.query(
+        `
+        SELECT COUNT(*) AS unread_count
+        FROM notifications
+        WHERE recipient_user_id = ?
+        AND is_deleted = 0
+        AND read_at IS NULL
+        `,
+        [this._toInt(recipient_user_id, 0)]
+    );
+
+    return Number(rows?.[0]?.unread_count || 0);
+  }
+
 }
 
 module.exports = Notification;

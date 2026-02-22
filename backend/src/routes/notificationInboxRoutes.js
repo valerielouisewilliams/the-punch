@@ -7,6 +7,9 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 // List inbox
 router.get('/', authenticateToken, notificationInboxController.listInbox);
 
+// Unread count
+router.get('/unread-count', authenticateToken, notificationInboxController.unreadCount);
+
 // Mark one as read
 router.patch('/:id/read', authenticateToken, notificationInboxController.markRead);
 
@@ -15,5 +18,6 @@ router.patch('/read-all', authenticateToken, notificationInboxController.markAll
 
 // Soft delete
 router.delete('/:id', authenticateToken, notificationInboxController.deleteNotification);
+
 
 module.exports = router;

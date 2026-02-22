@@ -75,7 +75,21 @@ const notificationInboxController = {
       console.error('deleteNotification error:', error);
       res.status(500).json({ success: false, message: 'Failed to delete' });
     }
-  }
+  },
+
+    // GET /api/inbox/unread-count
+    async unreadCount(req, res) {
+    try {
+        const userId = req.user.id;
+        const count = await Notification.unreadCountForUser(userId);
+
+        res.json({ success: true, unread: count });
+    } catch (error) {
+        console.error('unreadCount error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch unread count' });
+    }
+ }
+
 };
 
 module.exports = notificationInboxController;
