@@ -36,7 +36,7 @@ struct SettingsView: View {
                         }
 
                         NavigationLink {
-                            //FAQView()
+                            FAQView()
                         } label: {
                             HStack {
                                 Image(systemName: "questionmark.circle")
