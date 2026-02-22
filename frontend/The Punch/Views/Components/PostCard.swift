@@ -94,10 +94,7 @@ struct PostCard: View {
             }
             
             // MARK: - Content
-            Text(post.text)
-                .font(.body)
-                .foregroundColor(.white)
-                .fixedSize(horizontal: false, vertical: true)
+            LinkedText(text: post.text)
             
             // MARK: - Engagement Bar
             HStack(spacing: 24) {
@@ -367,3 +364,65 @@ struct PostCard_Previews: PreviewProvider {
         .background(Color.black)
     }
 }
+
+// MARK: - NEW Linked Text View
+struct LinkedText: View {
+    let text: String
+    @State private var urlToOpen: URL? = nil
+    @State private var showConfirmation = false
+
+    var body: some View {
+        // detect URLs in the text
+        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let matches = detector?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
+        
+        if matches.isEmpty {
+            // render plain text
+            Text(text)
+                .font(.body)
+                .foregroundColor(.white)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            // build attributed string with links highlighted
+            Text(attributedString)
+                .font(.body)
+                .fixedSize(horizontal: false, vertical: true)
+                .environment(\.openURL, OpenURLAction { url in
+                    urlToOpen = url
+                    showConfirmation = true
+                    return .handled
+                })
+                .alert(
+                    "Leaving The Punch",
+                    isPresented: $showConfirmation)
+                {
+                    Button("Continue") {
+                        if let url = urlToOpen {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("You are about to navigate away from The Punch. Do you want to continue?")
+                }
+        }
+    }
+    
+    private var attributedString: AttributedString {
+        var attributed = AttributedString(text)
+        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let nsText = text as NSString
+        let matches = detector?.matches(in: text, range: NSRange(location: 0, length: nsText.length)) ?? []
+        
+        for match in matches {
+            guard let range = Range(match.range, in: text),
+                  let url = match.url else { continue }
+            let attrRange = AttributedString.Index(range.lowerBound, within: attributed)!..<AttributedString.Index(range.upperBound, within: attributed)!
+            attributed[attrRange].foregroundColor = Color(red: 0.95, green: 0.60, blue: 0.20) // orange
+            attributed[attrRange].underlineStyle = .single
+            attributed[attrRange].link = url
+        }
+        return attributed
+    }
+}
+
