@@ -10,11 +10,16 @@ import SwiftUI
 struct PostCard: View {
     let post: Post
     let context: PostContext
+    var onAuthorTap: (() -> Void)? = nil
     
     @State private var isLiked: Bool
     @State private var likeCount: Int
     @StateObject private var authManager = AuthManager.shared
-    @State private var likeInFlight = false // for idempotency
+    @State private var likeInFlight = false
+    @State private var showReportSheet = false
+    @State private var showReportConfirmation = false
+    
+    @State private var isHidden = false
     
     enum PostContext {
         case feed
@@ -23,10 +28,11 @@ struct PostCard: View {
         case search
     }
     
-    init(post: Post, context: PostContext = .feed) {
+    init(post: Post, context: PostContext = .feed, onAuthorTap: (() -> Void)? = nil) {
         self.post = post
         self.context = context
-        print("PostCard init - post \(post.id): userHasLiked = \(post.stats.userHasLiked), likeCount = \(post.stats.likeCount)") //debug
+        self.onAuthorTap = onAuthorTap
+        print("PostCard init - post \(post.id): userHasLiked = \(post.stats.userHasLiked), likeCount = \(post.stats.likeCount)")
         self._isLiked = State(initialValue: post.stats.userHasLiked)
         self._likeCount = State(initialValue: post.stats.likeCount)
     }
@@ -35,53 +41,49 @@ struct PostCard: View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack(spacing: 12) {
-                // Avatar
-                Group {
-                    if let avatarUrl = post.author.avatarUrl,
-                       let url = URL(string: avatarUrl) {
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            Circle()
-                                .fill(Color.gray.opacity(0.3))
+                Button {
+                    onAuthorTap?()
+                } label: {
+                    HStack(spacing: 12) {
+                        Group {
+                            if let avatarUrl = post.author.avatarUrl,
+                               let url = URL(string: avatarUrl) {
+                                AsyncImage(url: url) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    Circle().fill(Color.gray.opacity(0.3))
+                                }
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                            } else {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 50, height: 50)
+                                    .overlay(
+                                        Text(post.author.displayNameOrUsername.prefix(1).uppercased())
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.white)
+                                    )
+                            }
                         }
-                        .frame(width: 50, height: 50)
-                        .clipShape(Circle())
-                    } else {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 50, height: 50)
-                            .overlay(
-                                Text(post.author.displayNameOrUsername.prefix(1).uppercased())
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
-                            )
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(post.author.displayNameOrUsername)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Text("@\(post.author.username)")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.6))
+                        }
                     }
                 }
-
-                
-                // User Info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(post.author.displayNameOrUsername)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Text("@\(post.author.username)")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
-
-                }
+                .buttonStyle(.plain)
                 
                 Spacer()
 
-                // Time
                 Text(formatDate(post.createdAt))
                     .font(.caption)
                     .foregroundColor(.gray)
                 
-                // Options Menu (for own posts)
                 if isOwnPost && context == .profile {
                     Button(role: .destructive) {
                         deletePost()
@@ -89,7 +91,15 @@ struct PostCard: View {
                         Image(systemName: "trash")
                             .font(.caption.bold())
                     }
-                    
+                } else if !isOwnPost {
+                    Button {
+                        showReportSheet = true
+                    } label: {
+                        Image(systemName: "flag")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             
@@ -177,27 +187,41 @@ struct PostCard: View {
         .background(Color(red: 0.15, green: 0.13, blue: 0.13))
         .cornerRadius(12)
         .contentShape(Rectangle())
-
+        .sheet(isPresented: $showReportSheet) {
+            ReportSheetView(isPresented: $showReportSheet) { reason in
+                submitReport(reason: reason)
+            }
+            .presentationDetents([.large])
+        }
+        .alert("Thanks for keeping The Punch safe", isPresented: $showReportConfirmation) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("This Punch has been reported to our moderators. We review all reports and take action when our community guidelines are violated. Thank you for protecting our community!")
+        }
     }
         
     private var isOwnPost: Bool {
         authManager.currentUser?.id == post.author.id
     }
     
-    // Actions
+    private func submitReport(reason: String) {
+        print("Reported post \(post.id) for: \(reason)")
+        isHidden = true
+            NotificationCenter.default.post(
+                name: .postDidDelete,
+                object: nil,
+                userInfo: ["id": post.id]
+            )
+        showReportConfirmation = true
+    }
+    
     private func toggleLike() {
         guard !likeInFlight else { return }
-
-        // Snapshot current UI state
         let prevLiked = isLiked
         let prevCount = likeCount
-
-        // Optimistic UI update (on main)
         likeInFlight = true
         isLiked.toggle()
         likeCount = max(0, prevCount + (isLiked ? 1 : -1))
-
-        // Broadcast UI change immediately
         NotificationCenter.default.post(
             name: .postDidUpdate,
             object: nil,
@@ -332,40 +356,7 @@ struct CommentView: View {
     }
 }
 
-// MARK: - Preview Provider
-struct PostCard_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack {
-            PostCard(
-                post: Post(
-                    id: 1,
-                    text: "Just finished my workout! Feeling great 💪",
-                    feelingEmoji: "😊",
-                    feelingName: "happy",
-                    createdAt: "2025-01-15T10:30:00.000Z",
-                    updatedAt: "2025-01-15T10:30:00.000Z",
-                    author: PostAuthor(
-                        id: 1,
-                        username: "johndoe",
-                        displayName: "John Doe",
-                        avatarUrl: nil
-                    ),
-                    stats: PostStats(
-                        likeCount: 5,
-                        commentCount: 2,
-                        userHasLiked: false
-                    ),
-                    comments: nil
-                ),
-                context: .feed
-            )
-        }
-        .padding()
-        .background(Color.black)
-    }
-}
-
-// MARK: - NEW Linked Text View
+// MARK: - Linked Text View
 struct LinkedText: View {
     let text: String
     @State private var urlToOpen: URL? = nil
@@ -426,3 +417,115 @@ struct LinkedText: View {
     }
 }
 
+struct ReportSheetView: View {
+    @Binding var isPresented: Bool
+    let onReport: (String) -> Void
+    
+    private let reasons = [
+        "Spam",
+        "Harassment or bullying",
+        "Hate speech",
+        "Misinformation",
+        "Inappropriate content",
+        "Violence or threats",
+        "Other"
+    ]
+    
+    var body: some View {
+        ZStack {
+            Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                              
+                Text("Report this Punch")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text("Why are you reporting this Punch?")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .padding(.top, 4)
+                    .padding(.bottom, 24)
+                
+                VStack(spacing: 8) {
+                    ForEach(reasons, id: \.self) { reason in
+                        Button {
+                            isPresented = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                onReport(reason)
+                            }
+                        } label: {
+                            Text(reason)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.white.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    // Cancel button - different color
+                    Button {
+                        isPresented = false
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color(red: 0.95, green: 0.60, blue: 0.20).opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 4)
+                    
+                    Text("Reporting this Punch will remove it from the app immediately.")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 24)
+                        .padding(.bottom, 16)
+                    
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40)
+            }
+        }
+        
+    }
+}
+
+// MARK: - Preview Provider
+struct PostCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
+            PostCard(
+                post: Post(
+                    id: 1,
+                    text: "Just finished my workout! Feeling great 💪",
+                    feelingEmoji: "😊",
+                    feelingName: "happy",
+                    createdAt: "2025-01-15T10:30:00.000Z",
+                    updatedAt: "2025-01-15T10:30:00.000Z",
+                    author: PostAuthor(
+                        id: 1,
+                        username: "johndoe",
+                        displayName: "John Doe",
+                        avatarUrl: nil
+                    ),
+                    stats: PostStats(
+                        likeCount: 5,
+                        commentCount: 2,
+                        userHasLiked: false
+                    ),
+                    comments: nil
+                ),
+                context: .feed
+            )
+        }
+        .padding()
+        .background(Color.black)
+    }
+}
