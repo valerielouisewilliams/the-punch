@@ -36,7 +36,7 @@ struct LoginView: View {
                         .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
                     
                     VStack(spacing: 18) {
-                        TextField("Email", text: $email)
+                        TextField("", text: $email, prompt: Text("Email").foregroundColor(.white.opacity(0.6)))
                             .padding()
                             .background(
                                 RoundedRectangle(cornerRadius: 25)
@@ -45,8 +45,8 @@ struct LoginView: View {
                             .foregroundColor(.white)
                             .autocapitalization(.none)
                             .keyboardType(.emailAddress)
-                        
-                        SecureField("Password", text: $password)
+
+                        SecureField("", text: $password, prompt: Text("Password").foregroundColor(.white.opacity(0.6)))
                             .padding()
                             .background(
                                 RoundedRectangle(cornerRadius: 25)

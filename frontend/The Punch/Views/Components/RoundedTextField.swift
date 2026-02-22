@@ -12,7 +12,7 @@ struct RoundedTextField: View {
     @Binding var text: String
     
     var body: some View {
-        TextField(placeholder, text: $text)
+        TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.white.opacity(0.6)))
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 25)
@@ -28,7 +28,7 @@ struct RoundedSecureField: View {
     @Binding var text: String
     
     var body: some View {
-        SecureField(placeholder, text: $text)
+        SecureField("", text: $text, prompt: Text(placeholder).foregroundColor(.white.opacity(0.6)))
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 25)
