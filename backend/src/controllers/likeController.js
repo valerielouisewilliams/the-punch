@@ -3,6 +3,7 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const pushService = require('../services/pushService');
 const { pool } = require('../config/database');
+const Notification = require('../models/Notification');
 
 const likeController = {
     // Like a post
@@ -25,6 +26,16 @@ const likeController = {
         );
 
         if (post && post.user_id && post.user_id !== userId) {
+          // ✅ Create DB notification (inbox)
+          await Notification.create({
+            recipient_user_id: post.user_id,   // post owner
+            actor_user_id: userId,             // liker
+            type: 'like',
+            entity_type: 'post',
+            entity_id: postId,
+            message: null
+          });
+
           // OPTIONAL: fetch liker name for nicer push
           const [[liker]] = await pool.execute(
             `SELECT username FROM users WHERE id = ? LIMIT 1`,
