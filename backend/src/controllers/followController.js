@@ -1,7 +1,7 @@
 const Follow = require('../models/Follow');
 const pushService = require('../services/pushService');
 const { pool } = require('../config/database');
-const NotificationInbox = require('../models/NotificationInbox');
+const Notification = require('../models/Notification');
 
 const followController = {
   // POST /api/follows/user/:userId
@@ -29,22 +29,17 @@ const followController = {
 
       await Follow.create(followerIdNum, followingId);
 
-      // Create inbox notification (non-fatal if it fails)
-      try {
-        await NotificationInbox.create({
-          recipientUserId: followingId,          // the user being followed
-          actorUserId: followerIdNum,          // the follower
-          type: "follow",
-          entityType: "user",
-          entityId: followerIdNum,             // deep link target = follower profile
-          message: "followed you"
-        });
-      } catch (nErr) {
-        console.error("Failed to create follow notification:", nErr);
-      }
+      // Create DB notification (inbox)
+      await Notification.create({
+        recipient_user_id: followingId,
+        actor_user_id: followerIdNum,
+        type: "follow",
+        entity_type: "user",
+        entity_id: followerIdNum,
+        message: null
+      });
 
-      // send push notification to the user being followed
-      // (don’t notify self is already handled above)
+      // Push notification (FCM)
       const [[follower]] = await pool.execute(
         `SELECT username FROM users WHERE id = ? LIMIT 1`,
         [followerIdNum]
@@ -62,7 +57,6 @@ const followController = {
           fromUserId: String(followerIdNum),
         },
       });
-
 
       return res.status(201).json({
         success: true,

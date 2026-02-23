@@ -2,6 +2,7 @@ const Comment = require('../models/Comment');
 const Post = require('../models/Post');
 const pushService = require('../services/pushService');
 const { pool } = require('../config/database');
+const Notification = require('../models/Notification');
 
 const commentController = {
   // Create a comment on a post
@@ -38,6 +39,15 @@ const commentController = {
       const postOwnerId = postRow?.user_id;
 
       if (postOwnerId && Number(postOwnerId) !== Number(userId)) {
+        await Notification.create({
+          recipient_user_id: Number(postOwnerId),
+          actor_user_id: Number(userId),
+          type: 'comment',
+          entity_type: 'post',
+          entity_id: Number(postId),
+          message: null
+        });
+
         const [[commenter]] = await pool.execute(
           `SELECT username FROM users WHERE id = ? LIMIT 1`,
           [userId]

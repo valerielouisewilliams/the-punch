@@ -1,59 +1,95 @@
-const NotificationInbox = require("../models/NotificationInbox");
+const Notification = require('../models/Notification');
 
-async function listInbox(req, res) {
-  try {
-    const userId = req.user.id;
-    const limit = Math.min(parseInt(req.query.limit || "30", 10), 100);
+const notificationInboxController = {
+  // GET /api/inbox?limit=50&offset=0&unreadOnly=true
+  async listInbox(req, res) {
+    try {
+      const userId = req.user.id;
 
-    const items = await NotificationInbox.listForUser({ userId, limit });
+      let { limit = 50, offset = 0, unreadOnly = 'false' } = req.query;
+      const unread = String(unreadOnly).toLowerCase() === 'true';
 
-    return res.json({ success: true, data: items });
-  } catch (err) {
-    console.error("listInbox error:", err);
-    return res.status(500).json({ success: false, message: "Failed to fetch inbox" });
-  }
-}
+      const items = await Notification.listForUser(userId, {
+        limit,
+        offset,
+        unreadOnly: unread
+      });
 
-async function unreadCount(req, res) {
-  try {
-    const userId = req.user.id;
-    const count = await NotificationInbox.unreadCount(userId);
-
-    return res.json({ success: true, data: { count } });
-  } catch (err) {
-    console.error("unreadCount error:", err);
-    return res.status(500).json({ success: false, message: "Failed to fetch unread count" });
-  }
-}
-
-async function markRead(req, res) {
-  try {
-    const userId = req.user.id;
-    const notificationId = parseInt(req.params.id, 10);
-
-    const ok = await NotificationInbox.markRead({ userId, notificationId });
-
-    if (!ok) {
-      return res.status(404).json({ success: false, message: "Notification not found" });
+      res.json({
+        success: true,
+        data: items,
+        count: items.length
+      });
+    } catch (error) {
+      console.error('listInbox error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch inbox'
+      });
     }
+  },
 
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("markRead error:", err);
-    return res.status(500).json({ success: false, message: "Failed to mark read" });
-  }
-}
+  // PATCH /api/inbox/:id/read
+  async markRead(req, res) {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
 
-async function markAllRead(req, res) {
-  try {
-    const userId = req.user.id;
-    const updated = await NotificationInbox.markAllRead(userId);
+      const ok = await Notification.markRead(id, userId);
+      if (!ok) {
+        return res.status(404).json({ success: false, message: 'Notification not found' });
+      }
 
-    return res.json({ success: true, data: { updated } });
-  } catch (err) {
-    console.error("markAllRead error:", err);
-    return res.status(500).json({ success: false, message: "Failed to mark all read" });
-  }
-}
+      res.json({ success: true, message: 'Marked as read' });
+    } catch (error) {
+      console.error('markRead error:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark read' });
+    }
+  },
 
-module.exports = { listInbox, unreadCount, markRead, markAllRead };
+  // PATCH /api/inbox/read-all
+  async markAllRead(req, res) {
+    try {
+      const userId = req.user.id;
+      const updated = await Notification.markAllRead(userId);
+      res.json({ success: true, message: 'Marked all as read', updated });
+    } catch (error) {
+      console.error('markAllRead error:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark all read' });
+    }
+  },
+
+  // DELETE /api/inbox/:id  (soft delete)
+  async deleteNotification(req, res) {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+
+      const ok = await Notification.softDelete(id, userId);
+      if (!ok) {
+        return res.status(404).json({ success: false, message: 'Notification not found' });
+      }
+
+      res.json({ success: true, message: 'Deleted' });
+    } catch (error) {
+      console.error('deleteNotification error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete' });
+    }
+  },
+
+    // GET /api/inbox/unread-count
+    async unreadCount(req, res) {
+    try {
+        const userId = req.user.id;
+        const count = await Notification.unreadCountForUser(userId);
+
+        res.json({ success: true, unread: count });
+    } catch (error) {
+        console.error('unreadCount error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch unread count' });
+    }
+ }
+
+};
+
+module.exports = notificationInboxController;

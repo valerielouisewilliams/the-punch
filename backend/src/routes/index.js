@@ -11,7 +11,7 @@ const followRoutes = require('./followRoutes');
 const feedRoutes = require('./feedRoutes')
 const mediaRoutes = require('./mediaRoutes');
 const notificationRoutes = require("./notificationRoutes");
-const notificationInboxRoutes = require('./notificationInboxRoutes');
+const notificationInboxRoutes = require('./routes/notificationInboxRoutes'); // adjust path to match your project
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -23,7 +23,7 @@ router.use('/follows', followRoutes);
 router.use('/feed', feedRoutes);
 router.use('/media', mediaRoutes);
 router.use("/notifications", notificationRoutes);
-router.use("/notification-inbox", notificationInboxRoutes);
+router.use('/inbox', notificationInboxRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {
