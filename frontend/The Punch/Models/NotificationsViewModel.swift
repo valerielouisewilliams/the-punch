@@ -38,18 +38,22 @@ final class NotificationsViewModel: ObservableObject {
     }
 
     func markRead(_ id: Int) async {
-        // optimistic badge update
         if let idx = items.firstIndex(where: { $0.id == id }), items[idx].isUnread {
+            // optimistic UI update
+            items[idx].readAt = Date().ISO8601Format()
             unreadCount = max(0, unreadCount - 1)
         }
+
         do {
             _ = try await APIService.shared.markNotificationRead(id: id)
         } catch {
             print("Mark read failed:", error)
+            // rollback by refreshing
+            await loadInbox(unreadOnly: false)
             await refreshUnreadCount()
         }
     }
-
+    
     func delete(_ id: Int) async {
         // optimistic remove
         if let idx = items.firstIndex(where: { $0.id == id }) {

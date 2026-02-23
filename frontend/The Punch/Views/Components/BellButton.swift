@@ -15,18 +15,9 @@ struct BellButton: View {
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
-                Image(systemName: "bell")
+                Image(systemName: unread > 0 ? "bell.fill" : "bell")
                     .font(.system(size: 18, weight: .semibold))
-
-                if unread > 0 {
-                    Text(unread > 99 ? "99+" : "\(unread)")
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.red))
-                        .foregroundColor(.white)
-                        .offset(x: 10, y: -10)
-                }
+                    .foregroundStyle(unread > 0 ? .primary : .primary)
             }
         }
         .accessibilityLabel("Notifications")

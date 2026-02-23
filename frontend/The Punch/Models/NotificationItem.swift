@@ -15,11 +15,12 @@ struct NotificationItem: Decodable, Identifiable, Equatable {
     let entityId: Int?
     let message: String?
     let createdAt: String
-    let readAt: String?
+    var readAt: String?
     let isDeleted: Int
     let actorUsername: String?
     let actorDisplayName: String?
     let actorAvatarUrl: String?
+
 
     var isUnread: Bool { readAt == nil }
 

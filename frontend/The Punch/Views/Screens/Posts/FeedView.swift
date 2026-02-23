@@ -104,8 +104,10 @@ struct FeedView: View {
             .sheet(isPresented: $showNotifs) {
                 NavigationStack {
                     NotificationsView(vm: notifsVM)
+                        .navigationBarTitleDisplayMode(.inline)
                 }
             }
+            .presentationDetents([.large])
         }
         .onReceive(NotificationCenter.default.publisher(for: .postDidUpdate)) { notif in
             guard
