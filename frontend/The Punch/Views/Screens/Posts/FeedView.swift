@@ -8,6 +8,8 @@ struct FeedView: View {
     @State private var currentOffset = 0
     @State private var daysBack = 3
     @State private var includeOwnPosts = true
+    @StateObject private var notifsVM = NotificationsViewModel()
+    @State private var showNotifs = false
 
     @StateObject private var authManager = AuthManager.shared
 
@@ -89,6 +91,21 @@ struct FeedView: View {
             .task { await reloadFeed() }
             .onChange(of: includeOwnPosts) { _ in Task { await reloadFeed() } }
             .onChange(of: daysBack) { _ in Task { await reloadFeed() } }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    BellButton(unread: notifsVM.unreadCount) {
+                        showNotifs = true
+                    }
+                }
+            }
+            .task {
+                await notifsVM.refreshUnreadCount()
+            }
+            .sheet(isPresented: $showNotifs) {
+                NavigationStack {
+                    NotificationsView(vm: notifsVM)
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .postDidUpdate)) { notif in
             guard

@@ -60,29 +60,29 @@ class Notification {
     const where = [];
     const params = [];
 
-    where.push('recipient_user_id = ?');
+    where.push('n.recipient_user_id = ?');
     params.push(this._toInt(recipient_user_id, 0));
 
-    if (!includeDeleted) {
-      where.push('is_deleted = 0');
-    }
-
-    if (unreadOnly) {
-      where.push('read_at IS NULL');
-    }
+    if (!includeDeleted) where.push('n.is_deleted = 0');
+    if (unreadOnly) where.push('n.read_at IS NULL');
 
     const sql = `
-      SELECT *
-      FROM notifications
+      SELECT
+        n.*,
+        u.username       AS actor_username,
+        u.display_name   AS actor_display_name,
+        u.avatar_url     AS actor_avatar_url
+      FROM notifications n
+      LEFT JOIN users u ON u.id = n.actor_user_id
       WHERE ${where.join(' AND ')}
-      ORDER BY id DESC
+      ORDER BY n.id DESC
       LIMIT ? OFFSET ?
     `;
 
     params.push(lim, off);
 
     const [rows] = await pool.query(sql, params);
-    return rows.map((r) => new Notification(r));
+    return rows.map(r => new Notification(r));
   }
 
   static async markRead(id, recipient_user_id) {

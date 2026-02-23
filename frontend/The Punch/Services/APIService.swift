@@ -683,3 +683,55 @@ extension APIService {
     }
 }
 
+extension APIService {
+    func getInbox(limit: Int = 50, unreadOnly: Bool = true) async throws -> InboxResponse {
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+        let endpoint = "/inbox?limit=\(limit)&unreadOnly=\(unreadOnly ? "true" : "false")"
+        return try await makeRequest(
+            endpoint: endpoint,
+            method: "GET",
+            token: token,
+            responseType: InboxResponse.self
+        )
+    }
+
+    func getUnreadCount() async throws -> UnreadCountResponse {
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+        return try await makeRequest(
+            endpoint: "/inbox/unread-count",
+            method: "GET",
+            token: token,
+            responseType: UnreadCountResponse.self
+        )
+    }
+
+    func markNotificationRead(id: Int) async throws -> SimpleResponse {
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+        return try await makeRequest(
+            endpoint: "/inbox/\(id)/read",
+            method: "PATCH",
+            token: token,
+            responseType: SimpleResponse.self
+        )
+    }
+
+    func deleteNotification(id: Int) async throws -> SimpleResponse {
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+        return try await makeRequest(
+            endpoint: "/inbox/\(id)",
+            method: "DELETE",
+            token: token,
+            responseType: SimpleResponse.self
+        )
+    }
+
+    func markAllNotificationsRead() async throws -> SimpleResponse {
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+        return try await makeRequest(
+            endpoint: "/inbox/read-all",
+            method: "PATCH",
+            token: token,
+            responseType: SimpleResponse.self
+        )
+    }
+}

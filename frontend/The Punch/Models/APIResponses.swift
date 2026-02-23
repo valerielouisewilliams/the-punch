@@ -136,8 +136,19 @@ struct LikeStatusResponse: Codable {
 //    let following: Bool
 //}
 
-// Generic Responses
+// Notification Responses
+struct InboxResponse: Decodable {
+    let success: Bool
+    let data: [NotificationItem]
+    let count: Int
+}
 
+struct UnreadCountResponse: Decodable {
+    let success: Bool
+    let unread: Int
+}
+
+// Generic Responses
 struct MessageResponse: Codable {
     let message: String
     let like: Like?
