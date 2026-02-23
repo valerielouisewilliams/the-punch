@@ -11,7 +11,7 @@ DerivedData/
 *.xcuserdatad/
 
 *.xcuserstate
-
+*.xcbkptlist
 
 # Node
 node_modules/
