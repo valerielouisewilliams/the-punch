@@ -79,6 +79,17 @@ struct PostCard: View {
                 .buttonStyle(.plain)
                 
                 Spacer()
+                
+                if !isOwnPost {
+                    Button {
+                        showReportSheet = true
+                    } label: {
+                        Image(systemName: "flag")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 Text(formatDate(post.createdAt))
                     .font(.caption)
@@ -91,15 +102,6 @@ struct PostCard: View {
                         Image(systemName: "trash")
                             .font(.caption.bold())
                     }
-                } else if !isOwnPost {
-                    Button {
-                        showReportSheet = true
-                    } label: {
-                        Image(systemName: "flag")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    .buttonStyle(.plain)
                 }
             }
             
