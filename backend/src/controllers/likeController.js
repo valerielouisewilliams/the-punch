@@ -44,18 +44,33 @@ const likeController = {
 
           const username = liker?.username || "Someone";
 
-          await pushService.sendToUser(post.user_id, {
-            notification: {
-              title: "New like ❤️",
-              body: `${username} liked your post`,
-            },
-            data: {
-              type: "LIKE",
-              postId: String(postId),
-              fromUserId: String(userId),
-            },
-          });
+          // await pushService.sendToUser(post.user_id, {
+          //   notification: {
+          //     title: "New like ❤️",
+          //     body: `${username} liked your post`,
+          //   },
+          //   data: {
+          //     type: "LIKE",
+          //     postId: String(postId),
+          //     fromUserId: String(userId),
+          //   },
+          // });
+
+          const pushResult = await pushService.sendToUser(post.user_id, {
+          notification: {
+            title: "New like ❤️",
+            body: `${username} liked your post`,
+          },
+          data: {
+            type: "LIKE",
+            postId: String(postId),
+            fromUserId: String(userId),
+          },
+        });
+
+        console.log("[PUSH RESULT]", pushResult);
         }
+        
       }
 
       return res.json({

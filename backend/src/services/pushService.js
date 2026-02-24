@@ -16,7 +16,11 @@ const pushService = {
     };
 
     const resp = await admin.messaging().sendEachForMulticast(multicastMessage);
-
+    console.log("FCM multicast:", {
+      successCount: resp.successCount,
+      failureCount: resp.failureCount,
+      codes: resp.responses.map(r => r.success ? "ok" : r.error?.code),
+    });
     // deactivate dead tokens
     const deadCodes = new Set([
       "messaging/registration-token-not-registered",
