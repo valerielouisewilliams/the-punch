@@ -24,10 +24,15 @@ class NotificationManager: NSObject,
     private let punchDayKey = "punchDay"
     
     private var pendingFCMToken: String?
-
     
     private override init() {
         super.init()
+
+        guard pushEnabled else {
+            print("Push-related delegates not configured for this build")
+            return
+        }
+
         UNUserNotificationCenter.current().delegate = self
         Messaging.messaging().delegate = self
     }
@@ -59,6 +64,11 @@ class NotificationManager: NSObject,
     
     // MARK: - Permission
     func requestPermission() {
+        guard pushEnabled else {
+            print("Push disabled for this build")
+            return
+        }
+
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .badge, .sound]
         ) { granted, error in
@@ -235,6 +245,20 @@ class NotificationManager: NSObject,
             }.resume()
         }
     }
+    
+    private var pushEnabled: Bool {
+        let value = Bundle.main.object(forInfoDictionaryKey: "ENABLE_PUSH")
+
+        if let boolValue = value as? Bool {
+            return boolValue
+        }
+
+        if let stringValue = value as? String {
+            return stringValue.uppercased() == "YES" || stringValue.lowercased() == "true"
+        }
+
+        return false
+    }
 
 }
 
@@ -242,3 +266,4 @@ class NotificationManager: NSObject,
 extension Notification.Name {
     static let punchTimeTriggered = Notification.Name("punchTimeTriggered")
 }
+
