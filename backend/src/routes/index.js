@@ -11,7 +11,7 @@ const followRoutes = require('./followRoutes');
 const feedRoutes = require('./feedRoutes')
 const mediaRoutes = require('./mediaRoutes');
 const notificationRoutes = require("./notificationRoutes");
-const notificationInboxRoutes = require('./routes/notificationInboxRoutes'); // adjust path to match your project
+const notificationInboxRoutes = require('./routes/notificationInboxRoutes');
 const spotifyRoutes = require('./spotifyRoutes');
 
 // Mount routes
