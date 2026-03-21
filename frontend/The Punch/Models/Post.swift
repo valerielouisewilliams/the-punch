@@ -20,6 +20,13 @@ struct Post: Codable, Identifiable, Equatable {
     var author: PostAuthor
     var stats: PostStats
     
+    // Spotify
+    let spotifyId: String?
+    let songTitle: String?
+    let songArtist: String?
+    let songImage: String?
+    let songUrl: String?
+    
     // Optional - only in detail views
     var comments: [Comment]?
 }

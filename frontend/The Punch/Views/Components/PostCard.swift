@@ -90,7 +90,7 @@ struct PostCard: View {
                     }
                     .buttonStyle(.plain)
                 }
-
+                
                 Text(formatDate(post.createdAt))
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -107,6 +107,67 @@ struct PostCard: View {
             
             // MARK: - Content
             LinkedText(text: post.text)
+            
+            // MARK: - Song
+            if let songTitle = post.songTitle,
+               let songArtist = post.songArtist {
+                
+                Button {
+                    if let urlString = post.songUrl,
+                       let url = URL(string: urlString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        
+                        // Album art (match small badge scale)
+                        if let imageUrl = post.songImage,
+                           let url = URL(string: imageUrl) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Color.white.opacity(0.08)
+                            }
+                            .frame(width: 16, height: 16)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        } else {
+                            Image(systemName: "music.note")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+
+                        // Text (same as feeling badge)
+                        HStack(spacing: 4) {
+                            Text(songTitle)
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.9))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+
+                            Text("•")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.5))
+
+                            Text(songArtist)
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                        .layoutPriority(1)
+
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 8)   // ⬅️ same as feeling
+                    .padding(.vertical, 4)     // ⬅️ same as feeling
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 6)
+            }
             
             // MARK: - Engagement Bar
             HStack(spacing: 24) {
@@ -136,26 +197,26 @@ struct PostCard: View {
                         .foregroundColor(.white.opacity(0.7))
                 }
                 Spacer()
-                
-                // FEELING BADGE (bottom-right corner)
-                if let emoji = post.feelingEmoji, let name = post.feelingName {
-                    HStack(spacing: 6) {
-                        Text("Feeling:")
-                            .font(.caption)
-                            .foregroundColor(.gray)
 
-                        Text(name.capitalized)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
+                // Song + Feeling badges (bottom-right)
+                HStack(spacing: 8) {
+                    if let emoji = post.feelingEmoji, let name = post.feelingName {
+                        HStack(spacing: 6) {
+                            Text("Feeling:")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            Text(name.capitalized)
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.9))
 
-                        Text(emoji)
-                            .font(.caption)
+                            Text(emoji)
+                                .font(.caption)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(Capsule())
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(Capsule())
-                    .frame(maxWidth: .infinity, alignment: .trailing)
                 }
 
             }
@@ -499,35 +560,35 @@ struct ReportSheetView: View {
     }
 }
 
-// MARK: - Preview Provider
-struct PostCard_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack {
-            PostCard(
-                post: Post(
-                    id: 1,
-                    text: "Just finished my workout! Feeling great 💪",
-                    feelingEmoji: "😊",
-                    feelingName: "happy",
-                    createdAt: "2025-01-15T10:30:00.000Z",
-                    updatedAt: "2025-01-15T10:30:00.000Z",
-                    author: PostAuthor(
-                        id: 1,
-                        username: "johndoe",
-                        displayName: "John Doe",
-                        avatarUrl: nil
-                    ),
-                    stats: PostStats(
-                        likeCount: 5,
-                        commentCount: 2,
-                        userHasLiked: false
-                    ),
-                    comments: nil
-                ),
-                context: .feed
-            )
-        }
-        .padding()
-        .background(Color.black)
-    }
-}
+//// MARK: - Preview Provider
+//struct PostCard_Previews: PreviewProvider {
+//    static var previews: some View {
+//        VStack {
+//            PostCard(
+//                post: Post(
+//                    id: 1,
+//                    text: "Just finished my workout! Feeling great 💪",
+//                    feelingEmoji: "😊",
+//                    feelingName: "happy",
+//                    createdAt: "2025-01-15T10:30:00.000Z",
+//                    updatedAt: "2025-01-15T10:30:00.000Z",
+//                    author: PostAuthor(
+//                        id: 1,
+//                        username: "johndoe",
+//                        displayName: "John Doe",
+//                        avatarUrl: nil
+//                    ),
+//                    stats: PostStats(
+//                        likeCount: 5,
+//                        commentCount: 2,
+//                        userHasLiked: false
+//                    ),
+//                    comments: nil
+//                ),
+//                context: .feed
+//            )
+//        }
+//        .padding()
+//        .background(Color.black)
+//    }
+//}
