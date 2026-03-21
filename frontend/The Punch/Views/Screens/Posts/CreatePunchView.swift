@@ -12,6 +12,10 @@ struct CreatePunchView: View {
     @State private var errorMessage: String?
     @State private var showEmojiPicker = false
     
+    // Spotify service variables
+    @State private var showingSpotifySearch = false
+    @State private var selectedTrack: SpotifyTrack?
+    
     // Keep your nice suggestions
     private let feelingSuggestions = ["Chill", "Happy", "Catty", "Focused", "Proud", "Curious", "Tired"]
     private let emojiSuggestions = ["😎","🥰","🤓","😴","⚡️","✨","🔥","🧠","☁️"]
@@ -165,6 +169,60 @@ struct CreatePunchView: View {
                         }
                         .presentationDetents([.large])
                     }
+                    
+                    // Spotify service
+                    Button {
+                        showingSpotifySearch = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "music.note")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.gray)
+                            Text(selectedTrack == nil ? "Add Song" : "Change Song")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.gray)
+
+                        }
+                    }
+                    .sheet(isPresented: $showingSpotifySearch) {
+                        SpotifySearchView { track in
+                            selectedTrack = track
+                        }
+                    }
+                    
+                    if let track = selectedTrack {
+                        HStack(spacing: 12) {
+                            AsyncImage(url: URL(string: track.album_image ?? "")) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Color.gray.opacity(0.2)
+                            }
+                            .frame(width: 50, height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(track.title)
+                                    .font(.headline)
+
+                                Text(track.artist)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            Button("Remove") {
+                                selectedTrack = nil
+                            }
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
 
                     
                     Spacer(minLength: 12)
@@ -237,7 +295,8 @@ struct CreatePunchView: View {
             let response = try await APIService.shared.createPost(
                 text: trimmed,
                 feelingEmoji: finalEmoji.isEmpty ? nil : finalEmoji,
-                feelingName: finalFeeling.isEmpty ? nil : finalFeeling
+                feelingName: finalFeeling.isEmpty ? nil : finalFeeling,
+                selectedTrack: selectedTrack
             )
 
             let created = response.data

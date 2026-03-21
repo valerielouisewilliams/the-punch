@@ -8,6 +8,13 @@ class Post {
     this.user_id = postData.user_id;
     this.text = postData.text;
     this.feeling_emoji = postData.feeling_emoji; // stored as unicode symbol
+
+    this.spotify_id = postData.spotify_id;
+    this.song_title = postData.song_title;
+    this.song_artist = postData.song_artist;
+    this.song_image = postData.song_image;
+    this.song_url = postData.song_url;
+
     this.created_at = postData.created_at;
     this.updated_at = postData.updated_at;
     this.is_deleted = postData.is_deleted;
@@ -39,18 +46,44 @@ class Post {
 
 
   // create a new post
-  static async create({ user_id, text, feeling_emoji, feeling_name }) {
-    // set up query
-    const query = `INSERT INTO posts (user_id, text, feeling_emoji, feeling_name) 
-       VALUES (?, ?, ?, ?)`;
+  static async create({
+    user_id,
+    text,
+    feeling_emoji,
+    feeling_name,
+    spotify_id,
+    song_title,
+    song_artist,
+    song_image,
+    song_url
+  }) {
+    const query = `
+      INSERT INTO posts (
+        user_id,
+        text,
+        feeling_emoji,
+        feeling_name,
+        spotify_id,
+        song_title,
+        song_artist,
+        song_image,
+        song_url
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-    // insert into database
-    const [result] = await pool.execute(
-      query,
-      [user_id, text, feeling_emoji, feeling_name]
-    );
+    const [result] = await pool.execute(query, [
+      user_id,
+      text,
+      feeling_emoji,
+      feeling_name,
+      spotify_id,
+      song_title,
+      song_artist,
+      song_image,
+      song_url
+    ]);
 
-    // return the new post
     return this.findById(result.insertId);
   }
 

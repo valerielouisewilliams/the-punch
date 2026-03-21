@@ -5,6 +5,8 @@
 //  Created by Valerie Williams on 11/24/25.
 //
 
+// NOTE: This service has been deprecated. 
+
 
 import UIKit
 

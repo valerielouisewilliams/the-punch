@@ -24,7 +24,13 @@ class PostFormatter {
         feelingName: post.feeling_name || post.feelingName || null,
         createdAt: post.created_at || post.createdAt,
         updatedAt: post.updated_at || post.updatedAt,
-        
+
+        spotifyId: post.spotify_id || null,
+        songTitle: post.song_title || null,
+        songArtist: post.song_artist || null,
+        songImage: post.song_image || null,
+        songUrl: post.song_url || null,
+
         author: {
           id: post.user_id || post.userId,
           username: post.username || post.author_username || 'unknown',
@@ -66,7 +72,13 @@ class PostFormatter {
       feelingName: post.feeling_name || null,
       createdAt: post.created_at,
       updatedAt: post.updated_at,
-      
+
+      spotifyId: post.spotify_id || post.spotifyId || null,
+      songTitle: post.song_title || post.songTitle || null,
+      songArtist: post.song_artist || post.songArtist || null,
+      songImage: post.song_image || post.songImage || null,
+      songUrl: post.song_url || post.songUrl || null,
+
       author: {
         id: post.user_id,
         username: post.username || userInfo.username || 'unknown',

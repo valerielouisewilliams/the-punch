@@ -621,7 +621,8 @@ extension APIService {
     func createPost(
         text: String,
         feelingEmoji: String?,
-        feelingName: String?
+        feelingName: String?,
+        selectedTrack: SpotifyTrack?
     ) async throws -> CreatePostResponse {
 
         let token = try await AuthManager.shared.firebaseIdToken()
@@ -632,6 +633,14 @@ extension APIService {
 
         if let feelingEmoji { body["feeling_emoji"] = feelingEmoji }
         if let feelingName  { body["feeling_name"]  = feelingName }
+        
+        if let track = selectedTrack {
+            body["spotify_id"] = track.spotify_id
+            body["song_title"] = track.title
+            body["song_artist"] = track.artist
+            body["song_image"] = track.album_image
+            body["song_url"] = track.spotify_url
+        }
 
         return try await makeRequest(
             endpoint: "/posts",
