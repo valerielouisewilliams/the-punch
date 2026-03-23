@@ -13,6 +13,7 @@ const mediaRoutes = require('./mediaRoutes');
 const notificationRoutes = require("./notificationRoutes");
 const notificationInboxRoutes = require('./notificationInboxRoutes');
 const spotifyRoutes = require('./spotifyRoutes');
+const punchRoutes = require('./punchRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -26,6 +27,7 @@ router.use('/media', mediaRoutes);
 router.use("/notifications", notificationRoutes);
 router.use('/inbox', notificationInboxRoutes);
 router.use('/spotify', spotifyRoutes);
+router.use('/punches', punchRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {
