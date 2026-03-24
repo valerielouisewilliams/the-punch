@@ -16,6 +16,7 @@ struct PostDetailView: View {
     @State private var newCommentText = ""
     @State private var isPostingComment = false
     @State private var errorMessage: String?
+    @State private var selectedAuthorId: Int?
     @StateObject private var authManager = AuthManager.shared
     @FocusState private var isCommentFieldFocused: Bool
     
@@ -48,7 +49,8 @@ struct PostDetailView: View {
                             ForEach(comments) { comment in
                                 CommentRow(
                                     comment: comment,
-                                    onDelete: { removeComment(comment) }
+                                    onDelete: { removeComment(comment) },
+                                    onAuthorTap: { selectedAuthorId = comment.user?.id ?? comment.userId }
                                 )
                                 .padding(.horizontal)
                             }
@@ -148,6 +150,14 @@ struct PostDetailView: View {
             else { return }
 
             comments.removeAll { $0.id == deletedId }
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { selectedAuthorId != nil },
+            set: { if !$0 { selectedAuthorId = nil } }
+        )) {
+            if let userId = selectedAuthorId {
+                UserProfileView(userId: userId)
+            }
         }
         .toolbar {
             ToolbarItem(placement: .principal) {

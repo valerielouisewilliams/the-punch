@@ -18,73 +18,27 @@ struct CommentRow: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Avatar
-            Group {
-                if let avatarUrl = comment.user?.avatarUrl,
-                   let url = URL(string: avatarUrl) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
-                        Circle()
-                            .fill(Color.gray.opacity(0.2))
-                    }
-                    .frame(width: 24, height: 24)  // 👈 match size
-                    .clipShape(Circle())
-                    
-                } else {
-                    Circle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 24, height: 24)
-                        .overlay(
-                            Text(comment.user?.displayNameOrUsername.prefix(1).uppercased() ?? "?")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                        )
-                }
-            }
+            authorAvatar
 
             VStack(alignment: .leading, spacing: 6) {
-                // Header
                 HStack(spacing: 4) {
-                    Text(comment.user?.displayNameOrUsername ?? "Unknown")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                    
-                    Text("@\(comment.user?.username ?? "unknown")")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
+                    authorButton
+
                     Text("•")
                         .font(.caption)
                         .foregroundColor(.gray)
-                    
+
                     Text(formatDate(comment.createdAt))
                         .font(.caption)
                         .foregroundColor(.gray)
-                    
+
                     Spacer()
-                    
-                    // Delete button for own comments
+
                     if comment.userId == authManager.currentUser?.id {
-                        Button(action: deleteComment) {
-                            if isDeleting {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
-                                    .scaleEffect(0.7)
-                            } else {
-                                Image(systemName: "trash")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                        .disabled(isDeleting)
+                        deleteButton
                     }
                 }
-                
-                // Comment text
+
                 Text(comment.text)
                     .font(.body)
                     .foregroundColor(.white)
@@ -92,6 +46,69 @@ struct CommentRow: View {
             }
         }
         .opacity(isDeleting ? 0.5 : 1.0)
+    }
+
+    private var authorAvatar: some View {
+        Group {
+            if let avatarUrl = comment.user?.avatarUrl,
+               let url = URL(string: avatarUrl) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Circle()
+                        .fill(Color.gray.opacity(0.2))
+                }
+                .frame(width: 24, height: 24)
+                .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Text(comment.user?.displayNameOrUsername.prefix(1).uppercased() ?? "?")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                    )
+            }
+        }
+        .onTapGesture {
+            onAuthorTap?()
+        }
+    }
+
+    private var authorButton: some View {
+        Button {
+            onAuthorTap?()
+        } label: {
+            HStack(spacing: 4) {
+                Text(comment.user?.displayNameOrUsername ?? "Unknown")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+
+                Text("@\(comment.user?.username ?? "unknown")")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var deleteButton: some View {
+        Button(action: deleteComment) {
+            if isDeleting {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                    .scaleEffect(0.7)
+            } else {
+                Image(systemName: "trash")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+        }
+        .disabled(isDeleting)
     }
     
     private func deleteComment() {
@@ -136,9 +153,4 @@ struct CommentRow: View {
         
         return dateString
     }
-    
 }
-
-    
-   
-
