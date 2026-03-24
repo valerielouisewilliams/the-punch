@@ -31,7 +31,7 @@ const reportPost = async (req, res) => {
     const mailOptions = {
       from: process.env.HQ_EMAIL,
       to: process.env.HQ_EMAIL,
-      subject: `🚩 New Report: ${reason}`,
+      subject: `New Report: ${reason}`,
       html: `
         <h2>New Post Report</h2>
         <table style="border-collapse: collapse; width: 100%;">
