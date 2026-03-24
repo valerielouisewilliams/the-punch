@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56C5B9FC2F7248BD00778270 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 56C5B9F92F7248BD00778270 /* FirebaseMessaging */; };
+		56C5B9FD2F7248BD00778270 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 56C5B9F72F7248BD00778270 /* FirebaseAuth */; };
 		56F154B62F4564C800927B49 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 56F154B52F4564C800927B49 /* FirebaseAuth */; };
 		56F154B82F4564C800927B49 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 56F154B72F4564C800927B49 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
@@ -32,11 +34,86 @@
 		568265952E8C29EA0059617D /* The Punch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "The Punch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265A22E8C29EB0059617D /* The PunchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		568265AC2E8C29EB0059617D /* The PunchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "The PunchUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		56C5BA032F7248BD00778270 /* ThePunch_Local.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThePunch_Local.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56C5BA052F7248BD00778270 /* The Punch copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "The Punch copy-Info.plist"; path = "/Users/valeriewilliams/Desktop/the-punch/frontend/The Punch copy-Info.plist"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		56C5BA042F7248BD00778270 /* Exceptions for "The Punch" folder in "ThePunch_Local" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.gitignore,
+				Assets.xcassets,
+				comment.mp3,
+				ContentView.swift,
+				follow.mp3,
+				"GoogleService-Info.plist",
+				like.mp3,
+				Managers/AuthManager.swift,
+				Managers/NotificationManager.swift,
+				Managers/NotificationNames.swift,
+				Managers/SoundManager.swift,
+				Models/APIResponses.swift,
+				Models/Comment.swift,
+				Models/Like.swift,
+				Models/NotificationItem.swift,
+				Models/Post.swift,
+				Models/Spotify.swift,
+				Models/User.swift,
+				punch.mp3,
+				refresh.mp3,
+				Services/APIService.swift,
+				Services/CloudinaryUploader.swift,
+				Services/HidesFloatingButton.swift,
+				Services/PunchState.swift,
+				Services/S3AvatarUploader.swift,
+				Services/SpotifyAPIService.swift,
+				Services/UIState.swift,
+				The_PunchApp.swift,
+				Utilities/UserLookup.swift,
+				ViewModels/NotificationsViewModel.swift,
+				ViewModels/PunchButtonViewModel.swift,
+				ViewModels/SpotifySearchViewModel.swift,
+				Views/Components/AvatarView.swift,
+				Views/Components/BellButton.swift,
+				Views/Components/CommentRow.swift,
+				Views/Components/FollowButton.swift,
+				Views/Components/MainTabView.swift,
+				Views/Components/OrangeButton.swift,
+				Views/Components/PostCard.swift,
+				Views/Components/ProfileHeaderView.swift,
+				Views/Components/PunchButton.swift,
+				Views/Components/RoundedTextField.swift,
+				Views/Components/SearchBar.swift,
+				Views/Components/StatView.swift,
+				Views/Components/TimestampStyle.swift,
+				Views/Components/UserRow.swift,
+				Views/Screens/Aesthetic/SplashScreenView.swift,
+				Views/Screens/Auth/CreateAccountView.swift,
+				Views/Screens/Auth/LoginView.swift,
+				Views/Screens/Notifications/NotificationsView.swift,
+				Views/Screens/Posts/CreatePunchView.swift,
+				Views/Screens/Posts/FeedView.swift,
+				Views/Screens/Posts/PostDetailView.swift,
+				Views/Screens/Posts/SpotifySearchView.swift,
+				Views/Screens/Profiles/EditProfileView.swift,
+				Views/Screens/Profiles/FollowLists/FollowersListView.swift,
+				Views/Screens/Profiles/FollowLists/FollowingListView.swift,
+				Views/Screens/Profiles/UserProfileView.swift,
+				Views/Screens/Search/SearchView.swift,
+				Views/Screens/Utility/FAQView.swift,
+				Views/Screens/Utility/SettingsView.swift,
+			);
+			target = 56C5B9F62F7248BD00778270 /* ThePunch_Local */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		568265972E8C29EA0059617D /* The Punch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				56C5BA042F7248BD00778270 /* Exceptions for "The Punch" folder in "ThePunch_Local" target */,
+			);
 			path = "The Punch";
 			sourceTree = "<group>";
 		};
@@ -76,6 +153,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		56C5B9FB2F7248BD00778270 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56C5B9FC2F7248BD00778270 /* FirebaseMessaging in Frameworks */,
+				56C5B9FD2F7248BD00778270 /* FirebaseAuth in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -85,6 +171,7 @@
 				568265972E8C29EA0059617D /* The Punch */,
 				568265A52E8C29EB0059617D /* The PunchTests */,
 				568265AF2E8C29EB0059617D /* The PunchUITests */,
+				56C5BA052F7248BD00778270 /* The Punch copy-Info.plist */,
 				568265962E8C29EA0059617D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -95,6 +182,7 @@
 				568265952E8C29EA0059617D /* The Punch.app */,
 				568265A22E8C29EB0059617D /* The PunchTests.xctest */,
 				568265AC2E8C29EB0059617D /* The PunchUITests.xctest */,
+				56C5BA032F7248BD00778270 /* ThePunch_Local.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -172,6 +260,30 @@
 			productReference = 568265AC2E8C29EB0059617D /* The PunchUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		56C5B9F62F7248BD00778270 /* ThePunch_Local */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56C5B9FF2F7248BD00778270 /* Build configuration list for PBXNativeTarget "ThePunch_Local" */;
+			buildPhases = (
+				56C5B9FA2F7248BD00778270 /* Sources */,
+				56C5B9FB2F7248BD00778270 /* Frameworks */,
+				56C5B9FE2F7248BD00778270 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				568265972E8C29EA0059617D /* The Punch */,
+			);
+			name = ThePunch_Local;
+			packageProductDependencies = (
+				56C5B9F72F7248BD00778270 /* FirebaseAuth */,
+				56C5B9F92F7248BD00778270 /* FirebaseMessaging */,
+			);
+			productName = "The Punch";
+			productReference = 56C5BA032F7248BD00778270 /* ThePunch_Local.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -215,6 +327,7 @@
 				568265942E8C29EA0059617D /* The Punch */,
 				568265A12E8C29EB0059617D /* The PunchTests */,
 				568265AB2E8C29EB0059617D /* The PunchUITests */,
+				56C5B9F62F7248BD00778270 /* ThePunch_Local */,
 			);
 		};
 /* End PBXProject section */
@@ -241,6 +354,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		56C5B9FE2F7248BD00778270 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -259,6 +379,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		568265A82E8C29EB0059617D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56C5B9FA2F7248BD00778270 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -661,6 +788,96 @@
 			};
 			name = Release;
 		};
+		56C5BA002F7248BD00778270 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "The Punch copy-Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sydneypatel.thepunch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		56C5BA012F7248BD00778270 /* LocalDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "The Punch copy-Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sydneypatel.thepunch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = LocalDebug;
+		};
+		56C5BA022F7248BD00778270 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "The Punch copy-Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sydneypatel.thepunch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -704,9 +921,27 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		56C5B9FF2F7248BD00778270 /* Build configuration list for PBXNativeTarget "ThePunch_Local" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56C5BA002F7248BD00778270 /* Debug */,
+				56C5BA012F7248BD00778270 /* LocalDebug */,
+				56C5BA022F7248BD00778270 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		56C5B9F82F7248BD00778270 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.9.0;
+			};
+		};
 		56F154B42F4564C800927B49 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -718,6 +953,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		56C5B9F72F7248BD00778270 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56C5B9F82F7248BD00778270 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		56C5B9F92F7248BD00778270 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56C5B9F82F7248BD00778270 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
 		56F154B52F4564C800927B49 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 56F154B42F4564C800927B49 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

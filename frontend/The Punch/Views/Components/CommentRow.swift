@@ -11,6 +11,7 @@ import Foundation
 struct CommentRow: View {
     let comment: Comment
     let onDelete: () -> Void
+    var onAuthorTap: (() -> Void)? = nil
 
     @State private var isDeleting = false
     @ObservedObject private var authManager = AuthManager.shared
