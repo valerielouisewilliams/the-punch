@@ -19,7 +19,9 @@ struct The_PunchApp: App {
     @StateObject var punchState = PunchState()
 
     init() {
-        FirebaseApp.configure()
+        // FirebaseApp.configure()
+        configureFirebase() // For local dev purpose
+        
 
         // Keep permission request (needed for remote push too)
         NotificationManager.shared.requestPermission()
@@ -54,3 +56,24 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
+private func configureFirebase() {
+    let bundleID = Bundle.main.bundleIdentifier ?? ""
+
+    let plistName: String
+    switch bundleID {
+    case "com.sydneypatel.thepunch":
+        plistName = "GoogleService-Info-Local"
+    default:
+        plistName = "GoogleService-Info"
+    }
+
+    guard let filePath = Bundle.main.path(forResource: plistName, ofType: "plist"),
+          let options = FirebaseOptions(contentsOfFile: filePath) else {
+        fatalError("Could not load Firebase plist: \(plistName)")
+    }
+
+    print("Bundle ID:", bundleID)
+    print("Using plist:", plistName)
+
+    FirebaseApp.configure(options: options)
+}

@@ -10,6 +10,7 @@ struct FeedView: View {
     @State private var includeOwnPosts = true
     @StateObject private var notifsVM = NotificationsViewModel()
     @State private var showNotifs = false
+    @State private var selectedAuthorId: Int?
 
     @StateObject private var authManager = AuthManager.shared
 
@@ -49,8 +50,13 @@ struct FeedView: View {
                                     NavigationLink {
                                         PostDetailView(post: $posts[index])
                                     } label: {
-                                        PostCard(post: posts[index])
-                                            .padding(.horizontal, 12)
+                                        PostCard(
+                                            post: posts[index],
+                                            onAuthorTap: {
+                                                selectedAuthorId = posts[index].author.id
+                                            }
+                                        )
+                                        .padding(.horizontal, 12)
                                     }
                                     .buttonStyle(.plain)
 
@@ -108,6 +114,14 @@ struct FeedView: View {
                 }
             }
             .presentationDetents([.large])
+            .navigationDestination(isPresented: Binding(
+                get: { selectedAuthorId != nil },
+                set: { if !$0 { selectedAuthorId = nil } }
+            )) {
+                if let userId = selectedAuthorId {
+                    UserProfileView(userId: userId)
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .postDidUpdate)) { notif in
             guard
