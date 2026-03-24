@@ -16,21 +16,20 @@ struct CreateAccountView: View {
     
     // Connect to AuthManager to handle authentication
     @StateObject private var authManager = AuthManager.shared
-    
-    // Form fields - SwiftUI watches these for changes
+    @StateObject private var googleSignIn = GoogleSignInHandler()
+
     @State private var username = ""
     @State private var email = ""
     @State private var password = ""
     @State private var displayName = ""  // Optional: user's display name
     @State private var acceptedTerms = false
-    
-    // UI state
-    @State private var isLoading = false        // Shows/hides loading spinner
-    @State private var errorMessage = ""        // Stores error to show user
-    @State private var showError = false        // Controls error alert visibility
-    @State private var navigateToLogin = false  // For "Already have account" link
-    
-    // Legal sheet state
+
+    @State private var isLoading = false
+    @State private var isGoogleLoading = false
+    @State private var errorMessage = ""
+    @State private var showError = false
+    @State private var navigateToLogin = false
+
     @State private var showLegalSheet = false
     @State private var legalPage: LegalSheetView.Page = .terms
     
@@ -40,129 +39,146 @@ struct CreateAccountView: View {
         NavigationStack {
             ZStack {
                 Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
-                
-                VStack(spacing: 22) {
-                    Spacer()
-                    
-                    // Logo
-                    Image("ThePunchLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 160, height: 160)
-                    
-                    Text("ThePunch")
-                        .font(.system(size: 34, weight: .bold))
-                        .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
-                    
-                    // Title
-                    Text("Create Account")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.top, 16)
-                    
-                    // Input Fields
-                    VStack(spacing: 16) {
-                        // Username field
-                        RoundedTextField(placeholder: "Username", text: $username)
-                            .autocapitalization(.none)  // Don't capitalize username
-                        
-                        // Display Name (optional - defaults to username if empty)
-                        RoundedTextField(placeholder: "Display Name (optional)", text: $displayName)
-                        
-                        // Email field
-                        RoundedTextField(placeholder: "Email", text: $email)
-                            .autocapitalization(.none)
-                            .keyboardType(.emailAddress)  // Show email keyboard
-                        
-                        // Password field
-                        RoundedSecureField(placeholder: "Password", text: $password)
-                    }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 10)
 
-                    // Terms toggle with tappable links
-                    HStack(alignment: .top, spacing: 8) {
-                        Button(action: { acceptedTerms.toggle() }) {
-                            Image(systemName: acceptedTerms ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(acceptedTerms ? .orange : .gray)
-                        }
+                ScrollView {
+                    VStack(spacing: 22) {
 
-                        HStack(spacing: 0) {
-                            Text("I accept the ")
-                                .foregroundColor(.white)
-                            Button("Terms & Conditions") {
-                                legalPage = .terms
-                                showLegalSheet = true
-                            }
+                        Image("ThePunchLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .padding(.top, 40)
+
+                        Text("ThePunch")
+                            .font(.system(size: 34, weight: .bold))
                             .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
+
+                        Text("Create Account")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.top, 8)
+
+                        // Input Fields
+                        VStack(spacing: 16) {
+                            RoundedTextField(placeholder: "Username", text: $username)
+                                .autocapitalization(.none)
+                            RoundedTextField(placeholder: "Display Name (optional)", text: $displayName)
+                            RoundedTextField(placeholder: "Email", text: $email)
+                                .autocapitalization(.none)
+                                .keyboardType(.emailAddress)
+                            RoundedSecureField(placeholder: "Password", text: $password)
                         }
-                        .font(.system(size: 14, weight: .medium))
-                    }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 8)
-                    
-                    // Create Account Button or Loading Spinner
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                            .padding(.top, 10)
-                    } else {
-                        OrangeButton(title: "Create Account") {
-                            // Task creates async context so we can use 'await'
-                            Task {
-                                await register()
+                        .padding(.horizontal, 40)
+                        .padding(.top, 10)
+
+                        // Terms toggle
+                        HStack(alignment: .top, spacing: 8) {
+                            Button(action: { acceptedTerms.toggle() }) {
+                                Image(systemName: acceptedTerms ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(acceptedTerms ? .orange : .gray)
                             }
+                            HStack(spacing: 0) {
+                                Text("I accept the ")
+                                    .foregroundColor(.white)
+                                Button("Terms & Conditions") {
+                                    legalPage = .terms
+                                    showLegalSheet = true
+                                }
+                                .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
+                            }
+                            .font(.system(size: 14, weight: .medium))
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.top, 8)
+
+                        // Create Account button
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(1.5)
+                                .padding(.top, 10)
+                        } else {
+                            OrangeButton(title: "Create Account") {
+                                Task { await register() }
+                            }
+                            .padding(.horizontal, 50)
+                            .padding(.top, 10)
+                            .disabled(!isFormValid)
+                            .opacity(!isFormValid ? 0.6 : 1.0)
+                        }
+
+                        // Validation hints
+                        if !isFormValid && (!username.isEmpty || !email.isEmpty || !password.isEmpty) {
+                            VStack(spacing: 4) {
+                                if username.isEmpty { validationText("Username required") }
+                                if email.isEmpty { validationText("Email required") }
+                                if password.isEmpty { validationText("Password required") }
+                                else if password.count < 6 { validationText("Password must be at least 6 characters") }
+                                if !acceptedTerms { validationText("Must accept terms & conditions") }
+                            }
+                            .font(.caption)
+                        }
+
+                        // Divider
+                        HStack {
+                            Rectangle().frame(height: 1).foregroundColor(.white.opacity(0.2))
+                            Text("or").foregroundColor(.white.opacity(0.5)).font(.footnote)
+                            Rectangle().frame(height: 1).foregroundColor(.white.opacity(0.2))
                         }
                         .padding(.horizontal, 50)
-                        .padding(.top, 10)
-                        // Disable button if validation fails
-                        .disabled(!isFormValid)
-                        .opacity(!isFormValid ? 0.6 : 1.0)
-                    }
-                    
-                    // Validation hints (show what's missing)
-                    if !isFormValid && (!username.isEmpty || !email.isEmpty || !password.isEmpty) {
-                        VStack(spacing: 4) {
-                            if username.isEmpty {
-                                validationText("Username required")
+
+                        // Sign up with Google
+                        if isGoogleLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(1.5)
+                        } else {
+                            Button {
+                                Task {
+                                    isGoogleLoading = true
+                                    defer { isGoogleLoading = false }
+                                    do {
+                                        try await googleSignIn.signIn()
+                                    } catch {
+                                        errorMessage = error.localizedDescription
+                                        showError = true
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image("google_logo")
+                                        .resizable()
+                                        .frame(width: 20, height: 20)
+                                    Text("Sign up with Google")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.black.opacity(0.75))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(25)
                             }
-                            if email.isEmpty {
-                                validationText("Email required")
-                            }
-                            if password.isEmpty {
-                                validationText("Password required")
-                            } else if password.count < 6 {
-                                validationText("Password must be at least 6 characters")
-                            }
-                            if !acceptedTerms {
-                                validationText("Must accept terms & conditions")
-                            }
+                            .padding(.horizontal, 50)
                         }
-                        .font(.caption)
-                    }
-                    
-                    Spacer()
-                    
-                    // Already have an account?
-                    HStack(spacing: 4) {
-                        Text("Already have an account?")
-                            .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .medium))
-                        
-                        NavigationLink(destination: LoginView(), isActive: $navigateToLogin) {
-                            EmptyView()
+
+                        // Already have an account?
+                        HStack(spacing: 4) {
+                            Text("Already have an account?")
+                                .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .medium))
+
+                            NavigationLink(destination: LoginView(), isActive: $navigateToLogin) {
+                                EmptyView()
+                            }
+
+                            Button("Log In") { navigateToLogin = true }
+                                .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
+                                .font(.system(size: 14, weight: .bold))
                         }
-                        
-                        Button("Log In") {
-                            navigateToLogin = true
-                        }
-                        .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
-                        .font(.system(size: 14, weight: .bold))
-                    }
-                    .padding(.bottom, 30)
-                }
-                .padding(.horizontal)
+                        .padding(.bottom, 30)
+
+                    } // end VStack
+                } // end ScrollView
             }
             // Show error alert when registration fails
             .alert("Registration Failed", isPresented: $showError) {

@@ -11,10 +11,12 @@ import FirebaseAuth
 struct LoginView: View {
     // Single source of truth for auth state
     @StateObject private var authManager = AuthManager.shared
-    
+    @StateObject private var googleSignIn = GoogleSignInHandler()
+
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
+    @State private var isGoogleLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
     
@@ -34,7 +36,8 @@ struct LoginView: View {
                     Text("ThePunch")
                         .font(.system(size: 38, weight: .bold))
                         .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
-                    
+
+                    // Email / Password
                     VStack(spacing: 18) {
                         TextField("", text: $email, prompt: Text("Email").foregroundColor(.white.opacity(0.6)))
                             .padding()
@@ -55,7 +58,8 @@ struct LoginView: View {
                             .foregroundColor(.white)
                     }
                     .padding(.horizontal, 50)
-                    
+
+                    // Log In button
                     if isLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -68,7 +72,49 @@ struct LoginView: View {
                         .disabled(email.isEmpty || password.isEmpty)
                         .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1.0)
                     }
-                    
+
+                    // Divider
+                    HStack {
+                        Rectangle().frame(height: 1).foregroundColor(.white.opacity(0.2))
+                        Text("or").foregroundColor(.white.opacity(0.5)).font(.footnote)
+                        Rectangle().frame(height: 1).foregroundColor(.white.opacity(0.2))
+                    }
+                    .padding(.horizontal, 50)
+
+                    // Sign in with Google
+                    if isGoogleLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+                    } else {
+                        Button {
+                            Task {
+                                isGoogleLoading = true
+                                defer { isGoogleLoading = false }
+                                do {
+                                    try await googleSignIn.signIn()
+                                } catch {
+                                    errorMessage = error.localizedDescription
+                                    showError = true
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image("google_logo")
+                                    .resizable()
+                                    .frame(width: 20, height: 20)
+                                Text("Sign in with Google")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.black.opacity(0.75))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(25)
+                        }
+                        .padding(.horizontal, 50)
+                    }
+
                     NavigationLink("Don't have an account? Sign Up") {
                         CreateAccountView()
                     }

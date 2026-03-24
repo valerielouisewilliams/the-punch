@@ -9,6 +9,7 @@ import SwiftUI
 import FirebaseCore
 import UIKit
 import FirebaseMessaging
+import GoogleSignIn
 
 @main
 struct The_PunchApp: App {
@@ -19,11 +20,8 @@ struct The_PunchApp: App {
     @StateObject var punchState = PunchState()
 
     init() {
-        // FirebaseApp.configure()
-        configureFirebase() // For local dev purpose
-        
-
-        // Keep permission request (needed for remote push too)
+        configureFirebase()
+        configureGoogleSignIn()
         NotificationManager.shared.requestPermission()
     
     }
@@ -31,9 +29,14 @@ struct The_PunchApp: App {
     var body: some Scene {
         WindowGroup {
             if authManager.isAuthenticated {
-                MainTabView()
-                    .environmentObject(uiState)
-                    .environmentObject(authManager)
+                if authManager.currentUser?.username.hasPrefix("user_") == true {
+                    UsernameSetupView()
+                        .environmentObject(authManager)
+                } else {
+                    MainTabView()
+                        .environmentObject(uiState)
+                        .environmentObject(authManager)
+                }
             } else {
                 LoginView()
             }
@@ -53,6 +56,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("Failed to register for remote notifications:", error.localizedDescription)
+    }
+
+    // Required for Google Sign-In to handle the redirect URL
+    func application(_ app: UIApplication,
+                     open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        return GIDSignIn.sharedInstance.handle(url)
     }
 }
 
@@ -76,4 +86,11 @@ private func configureFirebase() {
     print("Using plist:", plistName)
 
     FirebaseApp.configure(options: options)
+}
+
+private func configureGoogleSignIn() {
+    guard let clientID = FirebaseApp.app()?.options.clientID else {
+        fatalError("Could not find Firebase clientID")
+    }
+    GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
 }
