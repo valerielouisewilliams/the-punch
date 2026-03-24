@@ -8,6 +8,9 @@ struct SettingsView: View {
     var onLoggedOut: (() -> Void)? = nil
     var onProfileUpdated: ((User) -> Void)? = nil
 
+    @State private var showLegalSheet = false
+    @State private var legalPage: LegalSheetView.Page = .terms
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -47,6 +50,31 @@ struct SettingsView: View {
                         Text("Account")
                     }
 
+                    // Legal Section
+                    Section {
+                        Button {
+                            legalPage = .terms
+                            showLegalSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "doc.text")
+                                Text("Terms & Conditions")
+                            }
+                        }
+
+                        Button {
+                            legalPage = .privacy
+                            showLegalSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "lock.shield")
+                                Text("Privacy Policy")
+                            }
+                        }
+                    } header: {
+                        Text("Legal")
+                    }
+
                     Section {
                         Button(role: .destructive) {
                             Task { await handleLogout() }
@@ -70,6 +98,9 @@ struct SettingsView: View {
                     Button("Done") { dismiss() }
                         .foregroundColor(.white)
                 }
+            }
+            .sheet(isPresented: $showLegalSheet) {
+                LegalSheetView(initialPage: legalPage)
             }
         }
     }

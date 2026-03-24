@@ -30,6 +30,10 @@ struct CreateAccountView: View {
     @State private var showError = false        // Controls error alert visibility
     @State private var navigateToLogin = false  // For "Already have account" link
     
+    // Legal sheet state
+    @State private var showLegalSheet = false
+    @State private var legalPage: LegalSheetView.Page = .terms
+    
     // Body (The UI)
     
     var body: some View {
@@ -75,19 +79,26 @@ struct CreateAccountView: View {
                     }
                     .padding(.horizontal, 40)
                     .padding(.top, 10)
-                    
-                    // Terms/Conditions Toggle
-                    HStack {
-                        Button(action: {
-                            acceptedTerms.toggle()
-                        }) {
+
+                    // Terms toggle with tappable links
+                    HStack(alignment: .top, spacing: 8) {
+                        Button(action: { acceptedTerms.toggle() }) {
                             Image(systemName: acceptedTerms ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(acceptedTerms ? .orange : .gray)
                         }
-                        Text("I accept the terms & privacy policy")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white)
+
+                        HStack(spacing: 0) {
+                            Text("I accept the ")
+                                .foregroundColor(.white)
+                            Button("Terms & Conditions") {
+                                legalPage = .terms
+                                showLegalSheet = true
+                            }
+                            .foregroundColor(Color(red: 0.95, green: 0.60, blue: 0.20))
+                        }
+                        .font(.system(size: 14, weight: .medium))
                     }
+                    .padding(.horizontal, 40)
                     .padding(.top, 8)
                     
                     // Create Account Button or Loading Spinner
@@ -158,6 +169,9 @@ struct CreateAccountView: View {
                 Button("OK") { }
             } message: {
                 Text(errorMessage)
+            }
+            .sheet(isPresented: $showLegalSheet) {
+                LegalSheetView(initialPage: legalPage)
             }
         }
     }

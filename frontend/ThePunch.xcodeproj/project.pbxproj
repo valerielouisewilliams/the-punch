@@ -102,6 +102,7 @@
 				Views/Screens/Profiles/UserProfileView.swift,
 				Views/Screens/Search/SearchView.swift,
 				Views/Screens/Utility/FAQView.swift,
+				Views/Screens/Utility/LegalSheetView.swift,
 				Views/Screens/Utility/SettingsView.swift,
 			);
 			target = 56C5B9F62F7248BD00778270 /* ThePunch_Local */;
@@ -481,7 +482,7 @@
 				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The-Punch-Info.plist";
@@ -495,7 +496,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.valeriewilliams.thepunch;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sydneypatel.thepunch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -668,7 +669,7 @@
 				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The-Punch-Info.plist";
@@ -682,7 +683,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.valeriewilliams.thepunch;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sydneypatel.thepunch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -698,7 +699,7 @@
 				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The-Punch-Info.plist";
@@ -712,7 +713,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.valeriewilliams.thepunch;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sydneypatel.thepunch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -796,7 +797,7 @@
 				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The Punch copy-Info.plist";
@@ -826,7 +827,7 @@
 				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The Punch copy-Info.plist";
@@ -856,7 +857,7 @@
 				CODE_SIGN_ENTITLEMENTS = "The Punch/The Punch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NJU23KJ3RY;
+				DEVELOPMENT_TEAM = DNS875PGA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "The Punch copy-Info.plist";
