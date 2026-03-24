@@ -744,6 +744,25 @@ extension APIService {
             responseType: SimpleResponse.self
         )
     }
+    
+    func reportPost(postId: Int, reason: String, token: String) async throws {
+        struct ReportBody: Codable {
+            let post_id: Int
+            let reason: String
+        }
+
+        let url = URL(string: "\(baseURL)/reports")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(ReportBody(post_id: postId, reason: reason))
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw APIError.httpError((response as? HTTPURLResponse)?.statusCode ?? 0)
+        }
+    }
 }
 
 enum PunchError: LocalizedError {
