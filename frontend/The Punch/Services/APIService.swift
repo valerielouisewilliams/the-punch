@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 
 class APIService {
     static let shared = APIService()
@@ -742,5 +743,60 @@ extension APIService {
             token: token,
             responseType: SimpleResponse.self
         )
+    }
+}
+
+enum PunchError: LocalizedError {
+    case invalidURL
+    case missingToken
+    case serverError(String)
+    case invalidResponse
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL."
+        case .missingToken:
+            return "Missing auth token."
+        case .serverError(let message):
+            return message
+        case .invalidResponse:
+            return "Invalid server response."
+        }
+    }
+}
+
+final class PunchService {
+    static let shared = PunchService()
+    
+    private init() {}
+    
+    private let baseURL = "http://3.130.171.129:3000"
+    
+    func sendPunch(to userId: Int) async throws {
+        guard let url = URL(string: "\(baseURL)/api/punches/user/\(userId)") else {
+            throw PunchError.invalidURL
+        }
+        
+        guard let currentUser = Auth.auth().currentUser else {
+            throw PunchError.missingToken
+        }
+        
+        let token = try await currentUser.getIDToken()
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (_, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw PunchError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw PunchError.serverError("Failed to send punch. Status code: \(httpResponse.statusCode)")
+        }
     }
 }

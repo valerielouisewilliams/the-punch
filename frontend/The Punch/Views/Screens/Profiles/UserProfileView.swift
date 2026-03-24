@@ -54,8 +54,16 @@ struct UserProfileView: View {
                         // ACTION ROW under header:
                         // Show Follow if it's someone else; otherwise show Settings (i.e. we're looking at our own profile)
                         if let me = authManager.currentUser, me.id != user.id {
-                            FollowButton(viewedUserId: user.id)
-                                .padding(.horizontal)
+                            HStack {
+                                FollowButton(viewedUserId: user.id)
+                                    .padding(.horizontal)
+                                
+                                PunchButton(
+                                    targetUserId: user.id,
+                                    isCurrentUser: false
+                                )
+
+                            }
                         } else {
                             Button {
                                 showSettings = true
