@@ -559,36 +559,3 @@ struct ReportSheetView: View {
         
     }
 }
-
-//// MARK: - Preview Provider
-//struct PostCard_Previews: PreviewProvider {
-//    static var previews: some View {
-//        VStack {
-//            PostCard(
-//                post: Post(
-//                    id: 1,
-//                    text: "Just finished my workout! Feeling great 💪",
-//                    feelingEmoji: "😊",
-//                    feelingName: "happy",
-//                    createdAt: "2025-01-15T10:30:00.000Z",
-//                    updatedAt: "2025-01-15T10:30:00.000Z",
-//                    author: PostAuthor(
-//                        id: 1,
-//                        username: "johndoe",
-//                        displayName: "John Doe",
-//                        avatarUrl: nil
-//                    ),
-//                    stats: PostStats(
-//                        likeCount: 5,
-//                        commentCount: 2,
-//                        userHasLiked: false
-//                    ),
-//                    comments: nil
-//                ),
-//                context: .feed
-//            )
-//        }
-//        .padding()
-//        .background(Color.black)
-//    }
-//}
