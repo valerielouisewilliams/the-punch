@@ -114,6 +114,27 @@ class User {
     return new User(rows[0]);
   }
 
+  static async findActiveByUsernames(usernames = []) {
+    const uniqueUsernames = [...new Set(
+      usernames
+        .map((u) => String(u || '').trim())
+        .filter(Boolean)
+    )];
+
+    if (uniqueUsernames.length === 0) return [];
+
+    const placeholders = uniqueUsernames.map(() => '?').join(', ');
+    const query = `
+      SELECT id, username
+      FROM users
+      WHERE username IN (${placeholders})
+        AND is_active = true
+    `;
+
+    const [rows] = await pool.execute(query, uniqueUsernames);
+    return rows;
+  }
+
 static async getUserFeed(
   currentUserId,
   days,          // e.g., req.query.days

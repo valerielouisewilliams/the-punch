@@ -3,6 +3,8 @@ const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const Like = require('../models/Like');
 const PostFormatter = require('../utils/postFormatter');
+const User = require('../models/User');
+const mentionService = require('../services/mentionService');
 
 const postController = {
   // Create a new post
@@ -24,9 +26,20 @@ const postController = {
         return res.status(400).json({ error: 'Post text is required' });
       }
 
+      const trimmedText = text.trim();
+      const { mentionedUsers, invalidUsernames } = await mentionService.resolveMentionsFromText(trimmedText);
+
+      if (invalidUsernames.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Post contains invalid @mentions',
+          invalidUsernames
+        });
+      }
+
       const post = await Post.create({
         user_id,
-        text: text.trim(),
+        text: trimmedText,
         feeling_emoji: feelingEmoji,
         feeling_name: feelingName,
         spotify_id: spotifyId,
@@ -35,6 +48,18 @@ const postController = {
         song_image: songImage,
         song_url: songUrl
       });
+
+      if (mentionedUsers.length > 0) {
+        const actor = await User.findById(user_id);
+        await mentionService.notifyMentionedUsers({
+          mentionedUsers,
+          actorUserId: user_id,
+          actorUsername: actor?.username || 'Someone',
+          entityType: 'post',
+          entityId: post.id,
+          mentionSource: 'post',
+        });
+      }
 
       const formattedPost = await PostFormatter.formatPost(post, user_id);
 
