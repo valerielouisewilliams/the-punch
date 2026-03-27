@@ -17,7 +17,10 @@ struct PostDetailView: View {
     @State private var isPostingComment = false
     @State private var errorMessage: String?
     @State private var selectedAuthorId: Int?
+    @State private var mentionQueryTask: Task<Void, Never>? = nil
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var mentionAutocomplete = MentionAutocompleteViewModel()
+    @StateObject private var userLookup = UserLookup.shared
     @FocusState private var isCommentFieldFocused: Bool
     
     var body: some View {
@@ -50,7 +53,10 @@ struct PostDetailView: View {
                                 CommentRow(
                                     comment: comment,
                                     onDelete: { removeComment(comment) },
-                                    onAuthorTap: { selectedAuthorId = comment.user?.id ?? comment.userId }
+                                    onAuthorTap: { selectedAuthorId = comment.user?.id ?? comment.userId },
+                                    onMentionTap: { username in
+                                        openMentionProfile(username: username)
+                                    }
                                 )
                                 .padding(.horizontal)
                             }
@@ -98,6 +104,17 @@ struct PostDetailView: View {
                             .foregroundColor(.white)
                             .focused($isCommentFieldFocused)
                             .lineLimit(1...4)
+                            .onChange(of: newCommentText) { value in
+                                mentionQueryTask?.cancel()
+                                mentionQueryTask = Task {
+                                    try? await Task.sleep(nanoseconds: 180_000_000)
+                                    guard !Task.isCancelled else { return }
+                                    await mentionAutocomplete.refreshSuggestions(
+                                        for: value,
+                                        currentUserId: authManager.currentUser?.id
+                                    )
+                                }
+                            }
                         
                         Button(action: postComment) {
                             if isPostingComment {
@@ -114,6 +131,13 @@ struct PostDetailView: View {
                     }
                     .padding()
                     .background(Color(red: 0.15, green: 0.13, blue: 0.13))
+
+                    if mentionAutocomplete.isVisible {
+                        mentionSuggestionsList
+                            .padding(.horizontal, 12)
+                            .padding(.bottom, 10)
+                            .background(Color(red: 0.15, green: 0.13, blue: 0.13))
+                    }
                 }
             }
         }
@@ -258,6 +282,7 @@ struct PostDetailView: View {
 
                     comments.insert(newComment, at: 0)
                     newCommentText = ""
+                    mentionAutocomplete.hide()
                     isCommentFieldFocused = false
                     isPostingComment = false
 
@@ -294,5 +319,43 @@ struct PostDetailView: View {
             ]
         )
 
+    }
+
+    private var mentionSuggestionsList: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(mentionAutocomplete.suggestions, id: \.id) { suggestion in
+                    Button {
+                        newCommentText = MentionTextHelper.applyMentionCompletion(
+                            in: newCommentText,
+                            username: suggestion.username
+                        )
+                        mentionAutocomplete.hide()
+                        isCommentFieldFocused = true
+                    } label: {
+                        Text("@\(suggestion.username)")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.12))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func openMentionProfile(username: String) {
+        Task {
+            if let userId = await userLookup.loadUserId(for: username) {
+                await MainActor.run {
+                    selectedAuthorId = userId
+                }
+            }
+        }
     }
 }

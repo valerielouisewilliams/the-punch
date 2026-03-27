@@ -19,18 +19,18 @@ const {
 router.get('/search', require('../controllers/userController').searchUsers);
 
 /**
- * @route   GET /api/users/:id
- * @desc    Get user profile by ID
- * @access  Public
- */
-router.get('/:id', getUserById);
-
-/**
  * @route   GET /api/users/username/:username
  * @desc    Get user profile by username
  * @access  Public
  */
 router.get('/username/:username', getUserByUsername);
+
+/**
+ * @route   GET /api/users/:id
+ * @desc    Get user profile by ID
+ * @access  Public
+ */
+router.get('/:id', getUserById);
 
 /**
  * @route   GET /api/users/:id/followers

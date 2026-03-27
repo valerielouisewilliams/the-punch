@@ -12,6 +12,7 @@ struct CommentRow: View {
     let comment: Comment
     let onDelete: () -> Void
     var onAuthorTap: (() -> Void)? = nil
+    var onMentionTap: ((String) -> Void)? = nil
 
     @State private var isDeleting = false
     @ObservedObject private var authManager = AuthManager.shared
@@ -38,8 +39,7 @@ struct CommentRow: View {
                         deleteButton
                     }
                 }
-
-                LinkedText(text: comment.text, font: .body)
+                LinkedText(text: comment.text, font: .body, onMentionTap: onMentionTap)
             }
         }
         .opacity(isDeleting ? 0.5 : 1.0)

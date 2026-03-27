@@ -20,6 +20,8 @@ struct PostCard: View {
     @State private var showReportConfirmation = false
     
     @State private var isHidden = false
+    @State private var selectedMentionUserId: Int?
+    @StateObject private var userLookup = UserLookup.shared
     
     enum PostContext {
         case feed
@@ -106,7 +108,12 @@ struct PostCard: View {
             }
             
             // MARK: - Content
-            LinkedText(text: post.text)
+            LinkedText(
+                text: post.text,
+                onMentionTap: { username in
+                    openMentionProfile(username: username)
+                }
+            )
             
             // MARK: - Song
             if let songTitle = post.songTitle,
@@ -234,7 +241,12 @@ struct PostCard: View {
                         .padding(.vertical, 8)
                 } else {
                     ForEach(comments.prefix(3)) { comment in
-                        CommentView(comment: comment)
+                        CommentView(
+                            comment: comment,
+                            onMentionTap: { username in
+                                openMentionProfile(username: username)
+                            }
+                        )
                             .padding(.vertical, 4)
                     }
                     
@@ -260,6 +272,14 @@ struct PostCard: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("This Punch has been reported to our moderators. We review all reports and take action when our community guidelines are violated. Thank you for protecting our community!")
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { selectedMentionUserId != nil },
+            set: { if !$0 { selectedMentionUserId = nil } }
+        )) {
+            if let userId = selectedMentionUserId {
+                UserProfileView(userId: userId)
+            }
         }
     }
         
@@ -337,6 +357,15 @@ struct PostCard: View {
         }
     }
 
+    private func openMentionProfile(username: String) {
+        Task {
+            let resolvedId = await userLookup.loadUserId(for: username)
+            await MainActor.run {
+                selectedMentionUserId = resolvedId
+            }
+        }
+    }
+
     
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()
@@ -372,6 +401,7 @@ struct PostCard: View {
 // MARK: - Comment View
 struct CommentView: View {
     let comment: Comment
+    var onMentionTap: ((String) -> Void)? = nil
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -409,7 +439,11 @@ struct CommentView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                 
-                LinkedText(text: comment.text, font: .caption)
+                LinkedText(
+                    text: comment.text,
+                    font: .caption,
+                    onMentionTap: onMentionTap
+                )
             }
             
             Spacer()
@@ -421,6 +455,7 @@ struct CommentView: View {
 struct LinkedText: View {
     let text: String
     var font: Font = .body
+    var onMentionTap: ((String) -> Void)? = nil
     @State private var urlToOpen: URL? = nil
     @State private var showConfirmation = false
 
@@ -429,6 +464,15 @@ struct LinkedText: View {
             .font(font)
             .fixedSize(horizontal: false, vertical: true)
             .environment(\.openURL, OpenURLAction { url in
+                if url.scheme == "mention" {
+                    let usernameFromHost = url.host ?? ""
+                    let usernameFromPath = url.path.replacingOccurrences(of: "/", with: "")
+                    let username = usernameFromHost.isEmpty ? usernameFromPath : usernameFromHost
+                    if !username.isEmpty {
+                        onMentionTap?(username)
+                    }
+                    return .handled
+                }
                 urlToOpen = url
                 showConfirmation = true
                 return .handled
@@ -477,7 +521,9 @@ struct LinkedText: View {
                 let fullRange = NSRange(location: usernameRange.location - 1, length: usernameRange.length + 1)
                 guard let range = Range(fullRange, in: text) else { continue }
                 let attrRange = AttributedString.Index(range.lowerBound, within: attributed)!..<AttributedString.Index(range.upperBound, within: attributed)!
+                let username = nsText.substring(with: usernameRange)
                 attributed[attrRange].foregroundColor = Color(red: 0.95, green: 0.60, blue: 0.20)
+                attributed[attrRange].link = URL(string: "mention://\(username)")
             }
         }
         return attributed
