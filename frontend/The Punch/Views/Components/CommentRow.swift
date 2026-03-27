@@ -39,7 +39,6 @@ struct CommentRow: View {
                         deleteButton
                     }
                 }
-
                 LinkedText(text: comment.text, font: .body, onMentionTap: onMentionTap)
             }
         }
