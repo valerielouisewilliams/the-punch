@@ -89,6 +89,8 @@ final class NotificationsViewModel: ObservableObject {
             return "\(name) liked your post"
         case "comment":
             return "\(name) commented on your post"
+        case "mention":
+            return "\(name) mentioned you"
         default:
             return n.message ?? "Notification"
         }

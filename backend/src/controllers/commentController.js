@@ -3,6 +3,7 @@ const Post = require('../models/Post');
 const pushService = require('../services/pushService');
 const { pool } = require('../config/database');
 const Notification = require('../models/Notification');
+const mentionService = require('../services/mentionService');
 
 const commentController = {
   // Create a comment on a post
@@ -15,6 +16,14 @@ const commentController = {
 
       if (!text) {
         return res.status(400).json({ error: 'Comment text is required' });
+      }
+
+      const { mentionedUsers, invalidUsernames } = await mentionService.resolveMentionsFromText(text);
+      if (invalidUsernames.length > 0) {
+        return res.status(400).json({
+          error: 'Comment contains invalid @mentions',
+          invalidUsernames
+        });
       }
 
       // Check if post exists (you already do this)
@@ -67,6 +76,22 @@ const commentController = {
             commentId: String(comment?.id ?? ""),
             fromUserId: String(userId),
           },
+        });
+      }
+
+      if (mentionedUsers.length > 0) {
+        const [[commenter]] = await pool.execute(
+          `SELECT username FROM users WHERE id = ? LIMIT 1`,
+          [userId]
+        );
+
+        await mentionService.notifyMentionedUsers({
+          mentionedUsers,
+          actorUserId: userId,
+          actorUsername: commenter?.username || 'Someone',
+          entityType: 'post',
+          entityId: Number(postId),
+          mentionSource: 'comment',
         });
       }
       // -------------------------------------------------------

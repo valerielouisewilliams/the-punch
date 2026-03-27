@@ -20,6 +20,8 @@ struct PostCard: View {
     @State private var showReportConfirmation = false
     
     @State private var isHidden = false
+    @State private var selectedMentionUserId: Int?
+    @StateObject private var userLookup = UserLookup.shared
     
     enum PostContext {
         case feed
@@ -106,7 +108,12 @@ struct PostCard: View {
             }
             
             // MARK: - Content
-            LinkedText(text: post.text)
+            LinkedText(
+                text: post.text,
+                onMentionTap: { username in
+                    openMentionProfile(username: username)
+                }
+            )
             
             // MARK: - Song
             if let songTitle = post.songTitle,
@@ -234,7 +241,12 @@ struct PostCard: View {
                         .padding(.vertical, 8)
                 } else {
                     ForEach(comments.prefix(3)) { comment in
-                        CommentView(comment: comment)
+                        CommentView(
+                            comment: comment,
+                            onMentionTap: { username in
+                                openMentionProfile(username: username)
+                            }
+                        )
                             .padding(.vertical, 4)
                     }
                     
@@ -260,6 +272,14 @@ struct PostCard: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("This Punch has been reported to our moderators. We review all reports and take action when our community guidelines are violated. Thank you for protecting our community!")
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { selectedMentionUserId != nil },
+            set: { if !$0 { selectedMentionUserId = nil } }
+        )) {
+            if let userId = selectedMentionUserId {
+                UserProfileView(userId: userId)
+            }
         }
     }
         
@@ -337,6 +357,15 @@ struct PostCard: View {
         }
     }
 
+    private func openMentionProfile(username: String) {
+        Task {
+            let resolvedId = await userLookup.loadUserId(for: username)
+            await MainActor.run {
+                selectedMentionUserId = resolvedId
+            }
+        }
+    }
+
     
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()
@@ -372,6 +401,7 @@ struct PostCard: View {
 // MARK: - Comment View
 struct CommentView: View {
     let comment: Comment
+    var onMentionTap: ((String) -> Void)? = nil
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -409,9 +439,11 @@ struct CommentView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                 
-                Text(comment.text)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.9))
+                LinkedText(
+                    text: comment.text,
+                    font: .caption,
+                    onMentionTap: onMentionTap
+                )
             }
             
             Spacer()
@@ -422,48 +454,47 @@ struct CommentView: View {
 // MARK: - Linked Text View
 struct LinkedText: View {
     let text: String
+    var font: Font = .body
+    var onMentionTap: ((String) -> Void)? = nil
     @State private var urlToOpen: URL? = nil
     @State private var showConfirmation = false
 
     var body: some View {
-        // detect URLs in the text
-        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-        let matches = detector?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? []
-        
-        if matches.isEmpty {
-            // render plain text
-            Text(text)
-                .font(.body)
-                .foregroundColor(.white)
-                .fixedSize(horizontal: false, vertical: true)
-        } else {
-            // build attributed string with links highlighted
-            Text(attributedString)
-                .font(.body)
-                .fixedSize(horizontal: false, vertical: true)
-                .environment(\.openURL, OpenURLAction { url in
-                    urlToOpen = url
-                    showConfirmation = true
-                    return .handled
-                })
-                .alert(
-                    "Leaving The Punch",
-                    isPresented: $showConfirmation)
-                {
-                    Button("Continue") {
-                        if let url = urlToOpen {
-                            UIApplication.shared.open(url)
-                        }
+        Text(attributedString)
+            .font(font)
+            .fixedSize(horizontal: false, vertical: true)
+            .environment(\.openURL, OpenURLAction { url in
+                if url.scheme == "mention" {
+                    let usernameFromHost = url.host ?? ""
+                    let usernameFromPath = url.path.replacingOccurrences(of: "/", with: "")
+                    let username = usernameFromHost.isEmpty ? usernameFromPath : usernameFromHost
+                    if !username.isEmpty {
+                        onMentionTap?(username)
                     }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    Text("You are about to navigate away from The Punch. Do you want to continue?")
+                    return .handled
                 }
-        }
+                urlToOpen = url
+                showConfirmation = true
+                return .handled
+            })
+            .alert(
+                "Leaving The Punch",
+                isPresented: $showConfirmation)
+            {
+                Button("Continue") {
+                    if let url = urlToOpen {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("You are about to navigate away from The Punch. Do you want to continue?")
+            }
     }
     
     private var attributedString: AttributedString {
         var attributed = AttributedString(text)
+        attributed.foregroundColor = .white
         let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
         let nsText = text as NSString
         let matches = detector?.matches(in: text, range: NSRange(location: 0, length: nsText.length)) ?? []
@@ -475,6 +506,25 @@ struct LinkedText: View {
             attributed[attrRange].foregroundColor = Color(red: 0.95, green: 0.60, blue: 0.20) // orange
             attributed[attrRange].underlineStyle = .single
             attributed[attrRange].link = url
+        }
+
+        if let mentionRegex = try? NSRegularExpression(pattern: "(^|[^A-Za-z0-9_])@([A-Za-z0-9_]+)") {
+            let nsText = text as NSString
+            let mentionMatches = mentionRegex.matches(
+                in: text,
+                range: NSRange(location: 0, length: nsText.length)
+            )
+
+            for match in mentionMatches {
+                guard match.numberOfRanges >= 3 else { continue }
+                let usernameRange = match.range(at: 2)
+                let fullRange = NSRange(location: usernameRange.location - 1, length: usernameRange.length + 1)
+                guard let range = Range(fullRange, in: text) else { continue }
+                let attrRange = AttributedString.Index(range.lowerBound, within: attributed)!..<AttributedString.Index(range.upperBound, within: attributed)!
+                let username = nsText.substring(with: usernameRange)
+                attributed[attrRange].foregroundColor = Color(red: 0.95, green: 0.60, blue: 0.20)
+                attributed[attrRange].link = URL(string: "mention://\(username)")
+            }
         }
         return attributed
     }
