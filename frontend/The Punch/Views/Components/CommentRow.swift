@@ -39,10 +39,7 @@ struct CommentRow: View {
                     }
                 }
 
-                Text(comment.text)
-                    .font(.body)
-                    .foregroundColor(.white)
-                    .fixedSize(horizontal: false, vertical: true)
+                LinkedText(text: comment.text, font: .body)
             }
         }
         .opacity(isDeleting ? 0.5 : 1.0)
