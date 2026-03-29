@@ -17,14 +17,6 @@ struct SettingsView: View {
                 Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
 
                 List {
-                    Section {
-                        Button("Test Punch in 5s") {
-                            print("Testing Punch Notif")
-                            NotificationManager.shared.scheduleTestNotification(seconds: 5)
-                        }
-                    } header : {
-                        Text("Admin Only")
-                    }
 
                     Section {
                         if let user = auth.currentUser {
