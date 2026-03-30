@@ -11,6 +11,9 @@ struct CreatePunchView: View {
     @State private var isPosting = false
     @State private var errorMessage: String?
     @State private var showEmojiPicker = false
+    @State private var mentionQueryTask: Task<Void, Never>? = nil
+    @StateObject private var mentionAutocomplete = MentionAutocompleteViewModel()
+    @StateObject private var authManager = AuthManager.shared
     
     // Spotify service variables
     @State private var showingSpotifySearch = false
@@ -58,7 +61,21 @@ struct CreatePunchView: View {
                                     if content.count > maxChars {
                                         content = String(content.prefix(maxChars))
                                     }
+
+                                    mentionQueryTask?.cancel()
+                                    mentionQueryTask = Task {
+                                        try? await Task.sleep(nanoseconds: 180_000_000)
+                                        guard !Task.isCancelled else { return }
+                                        await mentionAutocomplete.refreshSuggestions(
+                                            for: content,
+                                            currentUserId: authManager.currentUser?.id
+                                        )
+                                    }
                                 }
+                        }
+
+                        if mentionAutocomplete.isVisible {
+                            mentionSuggestionsList
                         }
                         
                         HStack {
@@ -307,6 +324,7 @@ struct CreatePunchView: View {
                     object: nil,
                     userInfo: ["post": created]
                 )
+                mentionAutocomplete.hide()
                 dismiss()
             }
         } catch {
@@ -314,6 +332,32 @@ struct CreatePunchView: View {
                 errorMessage = error.localizedDescription.isEmpty
                     ? "Failed to create post. Please try again."
                     : error.localizedDescription
+            }
+        }
+    }
+
+    private var mentionSuggestionsList: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(mentionAutocomplete.suggestions, id: \.id) { suggestion in
+                    Button {
+                        content = MentionTextHelper.applyMentionCompletion(
+                            in: content,
+                            username: suggestion.username
+                        )
+                        mentionAutocomplete.hide()
+                    } label: {
+                        Text("@\(suggestion.username)")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule().fill(Color.white.opacity(0.12))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }
@@ -368,5 +412,4 @@ struct EmojiPicker: View {
         }
     }
 }
-
 
