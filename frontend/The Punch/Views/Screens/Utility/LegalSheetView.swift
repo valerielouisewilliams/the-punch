@@ -303,7 +303,7 @@ private struct PrivacyContent: View {
 
             sectionHeader("8. DMCA and Copyright Agent")
             bodyText("The Punch respects the intellectual property rights of others. If you believe that content on the App infringes your copyright, please send a DMCA takedown notice to our designated Copyright Agent at:")
-            bodyText("Copyright Agent — The Punch\nEmail: dmca@thepunch.app [UPDATE WITH ACTUAL DMCA EMAIL]\nMailing Address: [YOUR REGISTERED ADDRESS]")
+            bodyText("Copyright Agent: Sydney Patel\nThe Punch\n15 Hastings Road, Weston, MA 02493\nEmail: thepunchhq@gmail.com\nDMCA Registration Number: DMCA-1071002")
             bodyText("Your DMCA notice must include: (1) a description of the copyrighted work; (2) a description of where the infringing material is located on the App; (3) your contact information; (4) a statement of good faith belief that the use is not authorized; (5) a statement of accuracy under penalty of perjury; and (6) your physical or electronic signature.")
 
             sectionHeader("9. Changes to This Privacy Policy")
