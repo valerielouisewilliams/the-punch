@@ -73,8 +73,7 @@ const generateToken = (userId) => {
 // register new user
 const register = async (req, res) => {
   try {
-    const { username, email, password, display_name } = req.body;
-    
+    const { username, email, password, display_name, phone_number } = req.body;    
     // Basic validation
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -92,12 +91,23 @@ const register = async (req, res) => {
       });
     }
 
+    if (phone_number) {
+        const existingPhoneUser = await User.findByPhoneNumber(phone_number);
+        if (existingPhoneUser) {
+          return res.status(409).json({
+            success: false,
+            message: 'User with this phone number already exists'
+          });
+        }
+    }
+
     // create new user
     const user = await User.create({
       username,
       email,
       password,
-      display_name
+      display_name,
+      phone_number
     });
 
     // generate token

@@ -1,6 +1,25 @@
 // defines how to work with users in the database
 const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+// Helper Functions
+const normalizePhoneNumber = (phone) => {
+  if (!phone) return null;
+
+  const digits = phone.replace(/\D/g, '');
+
+  // Simple US-only normalization for now
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+
+  return null;
+};
+
+const hashValue = (value) => {
+  if (!value) return null;
+  return crypto.createHash('sha256').update(value).digest('hex');
+};
 
 class User {
   constructor(userData) {
@@ -13,6 +32,9 @@ class User {
     this.bio = userData.bio;
     this.created_at = userData.created_at;
     this.avatar_url = userData.avatar_url;
+    this.phone_number = userData.phone_number;
+    this.phone_number_hash = userData.phone_number_hash;
+    this.discoverable_by_phone = userData.discoverable_by_phone;
   }
 
   // create a new user
@@ -244,6 +266,7 @@ static async getUserFeed(
 async getFeed(limit = 20, offset = 0, daysBack = 2) {
   return User.getUserFeed(this.id, limit, offset, daysBack);
 }
+
 
 // BONUS: Get feed including user's own posts
 static async getUserFeedWithOwnPosts(userId, limit = 20, offset = 0, daysBack = 2) {
