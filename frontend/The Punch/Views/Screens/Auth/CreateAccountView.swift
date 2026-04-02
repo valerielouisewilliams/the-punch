@@ -22,6 +22,8 @@ struct CreateAccountView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var displayName = ""  // Optional: user's display name
+    @State private var phoneNumber = ""
+    @State private var discoverableByPhone = true
     @State private var acceptedTerms = false
 
     @State private var isLoading = false
@@ -67,6 +69,12 @@ struct CreateAccountView: View {
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
                             RoundedSecureField(placeholder: "Password", text: $password)
+                            RoundedTextField(placeholder: "Phone Number (optional)", text: $phoneNumber)
+                                .keyboardType(.phonePad)
+                            
+                            Toggle("Allow friend suggestions by phone number", isOn: $discoverableByPhone)
+                                .toggleStyle(SwitchToggleStyle(tint: .orange))
+                                .foregroundColor(.white.opacity(0.9))
                         }
                         .padding(.horizontal, 40)
                         .padding(.top, 10)
@@ -251,7 +259,9 @@ struct CreateAccountView: View {
             try await APIService.shared.completeProfile(
                 firebaseToken: token,
                 username: username.trimmingCharacters(in: .whitespaces),
-                displayName: displayName.isEmpty ? username : displayName
+                displayName: displayName.isEmpty ? username : displayName,
+                phoneNumber: phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines),
+                discoverableByPhone: discoverableByPhone
             )
             
             // then pull /me (or have completeProfile return the user)

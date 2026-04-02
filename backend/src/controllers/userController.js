@@ -229,6 +229,40 @@ const searchUsers = async (req, res) => {
   }
 };
 
+const getSuggestedUsersByContacts = async (req, res) => {
+  try {
+    const currentUserId = req.user?.id;
+    if (!currentUserId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+
+    const phoneNumbers = Array.isArray(req.body?.phone_numbers) ? req.body.phone_numbers : [];
+    if (phoneNumbers.length === 0) {
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const rows = await User.findSuggestedByPhoneNumbers(currentUserId, phoneNumbers);
+
+    return res.json({
+      success: true,
+      count: rows.length,
+      data: rows.map((u) => ({
+        id: u.id,
+        username: u.username,
+        displayName: u.display_name,
+        bio: u.bio,
+        avatarUrl: u.avatar_url
+      }))
+    });
+  } catch (error) {
+    console.error("Suggested users by contacts error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not get contact suggestions"
+    });
+  }
+};
+
 const updateMyAvatar = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -260,5 +294,6 @@ module.exports = {
   getFollowing,
   updateUserProfile,
   searchUsers,
-  updateMyAvatar
+  updateMyAvatar,
+  getSuggestedUsersByContacts
 };
