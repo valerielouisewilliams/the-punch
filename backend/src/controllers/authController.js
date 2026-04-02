@@ -43,6 +43,9 @@ const completeProfile = async (req, res) => {
     if (!username) {
       return res.status(400).json({ success: false, message: "username is required" });
     }
+    if (!phone_number || !String(phone_number).trim()) {
+      return res.status(400).json({ success: false, message: "phone_number is required" });
+    }
 
     if (phone_number) {
       const existingPhoneUser = await User.findByPhoneNumber(phone_number);
@@ -93,10 +96,10 @@ const register = async (req, res) => {
   try {
     const { username, email, password, display_name, phone_number, discoverable_by_phone } = req.body;
     // Basic validation
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !phone_number || !String(phone_number).trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide username, email and password'
+        message: 'Please provide username, email, password, and phone number'
       });
     }
 
