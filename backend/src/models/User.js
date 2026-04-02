@@ -44,7 +44,6 @@ class User {
     const password_hash = await bcrypt.hash(password, saltRounds);
 
     const normalizedPhoneNumber = normalizePhoneNumber(phone_number);
-
     if (phone_number && !normalizedPhoneNumber) {
       throw new Error('Invalid phone number format');
     }
@@ -113,7 +112,6 @@ class User {
     values.push(firebaseUid);
 
     await pool.execute(query, values);
-    
     return this.findByFirebaseUid(firebaseUid)
   }
 
@@ -460,6 +458,10 @@ static async updateAvatarUrl(id, avatar_url) {
 }
 
   getPublicProfile() {
+    const discoverableByPhone = (this.discoverable_by_phone === undefined || this.discoverable_by_phone === null)
+      ? null
+      : Boolean(this.discoverable_by_phone);
+
     return {
       id: this.id,
       username: this.username,
