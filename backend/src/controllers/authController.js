@@ -237,4 +237,44 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+const updateAccountInformation = async (req, res) => {
+  try {
+    const { phone_number } = req.body;
+    const userId = req.user.id;
+
+    if (phone_number) {
+      const existingPhoneUser = await User.findByPhoneNumber(phone_number);
+      if (existingPhoneUser && existingPhoneUser.id !== userId) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this phone number already exists'
+        });
+      }
+    }
+
+    const updatedUser = await User.updateAccountInformation(userId, {
+      phone_number
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updatedUser.getPublicProfile()
+    });
+  } catch (error) {
+    console.error('Update account information error:', error);
+
+    if (error?.message === 'Invalid phone number format') {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Could not update account information'
+    });
+  }
+};
+
 module.exports = { register, login, getCurrentUser, session, completeProfile };

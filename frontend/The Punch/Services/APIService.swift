@@ -808,6 +808,40 @@ enum PunchError: LocalizedError {
     }
 }
 
+extension APIService {
+    func updateAccountInformation(phoneNumber: String?) async throws -> User {
+        guard let url = URL(string: "\(baseURL)/auth/me/account-info") else {
+            throw URLError(.badURL)
+        }
+
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let body = UpdateAccountInformationRequest(phoneNumber: phoneNumber)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        guard 200..<300 ~= httpResponse.statusCode else {
+            let serverMessage = String(data: data, encoding: .utf8) ?? "Failed to update account information"
+            throw NSError(domain: "", code: httpResponse.statusCode, userInfo: [
+                NSLocalizedDescriptionKey: serverMessage
+            ])
+        }
+
+        let decoded = try JSONDecoder().decode(UserResponse.self, from: data)
+        return decoded.data
+    }
+}
+
 final class PunchService {
     static let shared = PunchService()
     

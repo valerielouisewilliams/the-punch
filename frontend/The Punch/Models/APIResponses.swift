@@ -159,3 +159,4 @@ struct SimpleResponse: Codable {
     let message: String?
     let error: String?
 }
+

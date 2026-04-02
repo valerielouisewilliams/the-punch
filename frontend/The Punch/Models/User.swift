@@ -76,3 +76,7 @@ struct UserProfile: Codable, Identifiable {
 
 extension User: UserDisplayable {}
 extension UserProfile: UserDisplayable {}
+
+struct UpdateAccountInformationRequest: Encodable {
+    let phoneNumber: String?
+}

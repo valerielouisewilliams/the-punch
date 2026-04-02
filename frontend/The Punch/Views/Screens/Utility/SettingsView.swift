@@ -4,7 +4,6 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var auth: AuthManager
 
-    /// Called after a successful logout so the parent can clear state or route to login.
     var onLoggedOut: (() -> Void)? = nil
     var onProfileUpdated: ((User) -> Void)? = nil
 
@@ -14,70 +13,99 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.12, green: 0.10, blue: 0.10).ignoresSafeArea()
+                Color(red: 0.12, green: 0.10, blue: 0.10)
+                    .ignoresSafeArea()
 
                 List {
-
-                    Section {
+                    // Profile
+                    Section("Profile") {
                         if let user = auth.currentUser {
                             NavigationLink {
                                 EditProfileView(user: user, onProfileUpdated: onProfileUpdated)
                             } label: {
+                                Label("Edit Profile", systemImage: "pencil")
+                            }
+                        }
+                    }
+
+                    // Account Information
+                    Section("Account Information") {
+                        if let user = auth.currentUser {
+                            NavigationLink {
+                                AccountInformationView(
+                                    user: user,
+                                    onUserUpdated: { updatedUser in
+                                        auth.currentUser = updatedUser
+                                        onProfileUpdated?(updatedUser)
+                                    }
+                                )
+                            } label: {
                                 HStack {
-                                    Image(systemName: "pencil")
-                                    Text("Edit Profile")
+                                    Image(systemName: "person.text.rectangle")
+                                    Text("Account Information")
                                 }
                             }
                         }
+                    }
 
+                    // Privacy
+                    Section("Privacy") {
+                        if let user = auth.currentUser {
+                            NavigationLink {
+                                //PrivacySettingsView(user: user)
+                            } label: {
+                                HStack {
+                                    Label("Phone Visibility", systemImage: "lock")
+                                    Spacer()
+                                    Text((user.discoverableByPhone ?? false) ? "On" : "Off")
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+
+                    // Notifications
+                    Section("Notifications") {
+                        NavigationLink {
+                            //NotificationSettingsView()
+                        } label: {
+                            Label("Notification Preferences", systemImage: "bell")
+                        }
+                    }
+
+                    // Support
+                    Section("Support") {
                         NavigationLink {
                             FAQView()
                         } label: {
-                            HStack {
-                                Image(systemName: "questionmark.circle")
-                                Text("FAQ")
-                            }
+                            Label("FAQ", systemImage: "questionmark.circle")
                         }
-                    } header: {
-                        Text("Account")
                     }
 
-                    // Legal Section
-                    Section {
+                    // Legal
+                    Section("Legal") {
                         Button {
                             legalPage = .terms
                             showLegalSheet = true
                         } label: {
-                            HStack {
-                                Image(systemName: "doc.text")
-                                Text("Terms & Conditions")
-                            }
+                            Label("Terms & Conditions", systemImage: "doc.text")
                         }
 
                         Button {
                             legalPage = .privacy
                             showLegalSheet = true
                         } label: {
-                            HStack {
-                                Image(systemName: "lock.shield")
-                                Text("Privacy Policy")
-                            }
+                            Label("Privacy Policy", systemImage: "lock.shield")
                         }
-                    } header: {
-                        Text("Legal")
                     }
 
-                    Section {
+                    // Danger Zone
+                    Section("Danger Zone") {
                         Button(role: .destructive) {
                             Task { await handleLogout() }
                         } label: {
-                            HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text("Log Out")
-                            }
+                            Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
                         }
-                    } header: {
-                        Text("Danger Zone")
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -98,16 +126,8 @@ struct SettingsView: View {
     }
 
     private func handleLogout() async {
-        await MainActor.run { } // keep on main for UI updates after
-        do {
-            auth.logout()
-            onLoggedOut?()
-            dismiss()
-        } catch {
-            auth.logout()
-            onLoggedOut?()
-            dismiss()
-        }
+        auth.logout()
+        onLoggedOut?()
+        dismiss()
     }
 }
-

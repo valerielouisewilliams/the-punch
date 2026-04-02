@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getCurrentUser, session, completeProfile } = require('../controllers/authController');
+const { register, login, getCurrentUser, session, completeProfile, updateAccountInformation } = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 // new routes for Firebase testing
 router.post('/session', session);
 router.post('/complete-profile', completeProfile);
 router.get('/me', authenticateToken, getCurrentUser);
+router.patch('/me/account-info', authenticateToken, updateAccountInformation);
 
 /**
  * @route   POST /api/auth/register
