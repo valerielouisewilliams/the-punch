@@ -191,7 +191,7 @@ struct PostCard: View {
                             .foregroundColor(.gray)
                     }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .disabled(likeInFlight)
                 .opacity(likeInFlight ? 0.6 : 1.0)
                 
