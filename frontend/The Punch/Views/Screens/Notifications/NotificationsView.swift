@@ -108,7 +108,9 @@ struct NotificationsView: View {
         case .post(let postId):
             do {
                 let response = try await APIService.shared.getPost(id: postId)
-                selectedPost = response.data
+                var post = response.data
+                post.comments = nil
+                selectedPost = post
             } catch {
                 vm.errorMessage = "Could not open this post right now"
             }

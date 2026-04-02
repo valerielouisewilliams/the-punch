@@ -43,8 +43,8 @@ const punchController = {
         recipient_user_id: receiverId,
         actor_user_id: senderIdNum,
         type: 'punch',
-        entity_type: 'user',
-        entity_id: senderIdNum,
+        entity_type: null,
+        entity_id: null,
         message: null
         });
 
