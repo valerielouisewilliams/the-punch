@@ -39,9 +39,19 @@ const completeProfile = async (req, res) => {
 
     const decoded = await admin.auth().verifyIdToken(token);
 
-    const { username, display_name } = req.body;
+    const { username, display_name, phone_number, discoverable_by_phone } = req.body;
     if (!username) {
       return res.status(400).json({ success: false, message: "username is required" });
+    }
+
+    if (phone_number) {
+      const existingPhoneUser = await User.findByPhoneNumber(phone_number);
+      if (existingPhoneUser && existingPhoneUser.firebase_uid !== decoded.uid) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this phone number already exists'
+        });
+      }
     }
 
     // Ensure a user row exists
@@ -52,6 +62,8 @@ const completeProfile = async (req, res) => {
     const updated = await User.updateProfileByFirebaseUid(decoded.uid, {
       username,
       display_name: display_name || username,
+      phone_number,
+      discoverable_by_phone
     });
 
     return res.status(200).json({ success: true, data: updated.getPublicProfile() });
@@ -73,7 +85,7 @@ const generateToken = (userId) => {
 // register new user
 const register = async (req, res) => {
   try {
-    const { username, email, password, display_name, phone_number } = req.body;    
+    const { username, email, password, display_name, phone_number, discoverable_by_phone } = req.body;
     // Basic validation
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -107,7 +119,8 @@ const register = async (req, res) => {
       email,
       password,
       display_name,
-      phone_number
+      phone_number,
+      discoverable_by_phone
     });
 
     // generate token
