@@ -62,4 +62,8 @@ struct AccountInformationView: View {
         .navigationTitle("Account Information")
         .navigationBarTitleDisplayMode(.inline)
     }
+
+    private func normalizedPhone(_ value: String) -> String {
+        value.filter(\.isNumber)
+    }
 }
