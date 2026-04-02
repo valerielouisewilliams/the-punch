@@ -452,6 +452,61 @@ class User {
     return this.findByIdWithStats(id);
   }
 
+  static async deleteAccount(id) {
+    const connection = await pool.getConnection();
+    const deletedAtTag = Date.now();
+
+    try {
+      await connection.beginTransaction();
+
+      await connection.execute(
+        'UPDATE posts SET is_deleted = 1, updated_at = NOW() WHERE user_id = ?',
+        [id]
+      );
+
+      await connection.execute(
+        'UPDATE comments SET is_deleted = 1, updated_at = NOW() WHERE user_id = ?',
+        [id]
+      );
+
+      await connection.execute('DELETE FROM likes WHERE user_id = ?', [id]);
+      await connection.execute(
+        'DELETE FROM follows WHERE follower_id = ? OR following_id = ?',
+        [id, id]
+      );
+      await connection.execute(
+        'DELETE FROM notifications WHERE recipient_user_id = ? OR actor_user_id = ?',
+        [id, id]
+      );
+      await connection.execute('DELETE FROM device_tokens WHERE user_id = ?', [id]);
+
+      await connection.execute(
+        `
+        UPDATE users
+        SET
+          is_active = 0,
+          email = ?,
+          username = ?,
+          display_name = 'Deleted User',
+          bio = NULL,
+          avatar_url = NULL,
+          phone_number = NULL,
+          phone_number_hash = NULL,
+          discoverable_by_phone = 0
+        WHERE id = ?
+        `,
+        [`deleted_${id}_${deletedAtTag}@deleted.local`, `deleted_user_${id}_${deletedAtTag}`, id]
+      );
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   getPublicProfile() {
     const discoverableByPhone =
       this.discoverable_by_phone === undefined || this.discoverable_by_phone === null

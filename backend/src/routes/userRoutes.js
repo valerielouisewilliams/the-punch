@@ -9,7 +9,8 @@ const {
   getFollowers,
   getFollowing,
   updateMyAvatar,
-  getSuggestedUsersByContacts
+  getSuggestedUsersByContacts,
+  deleteMyAccount
 } = require('../controllers/userController');
 
 /**
@@ -67,5 +68,12 @@ router.patch("/me/avatar", authenticateToken, updateMyAvatar);
  * @access Private
  */
 router.put('/me', authenticateToken, updateUserProfile);
+
+/**
+ * @route DELETE /api/users/me
+ * @desc Delete current user's account
+ * @access Private
+ */
+router.delete('/me', authenticateToken, deleteMyAccount);
 
 module.exports = router;
