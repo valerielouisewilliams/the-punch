@@ -8,6 +8,7 @@ class Post {
     this.user_id = postData.user_id;
     this.text = postData.text;
     this.feeling_emoji = postData.feeling_emoji; // stored as unicode symbol
+    this.feeling_name = postData.feeling_name;
 
     this.spotify_id = postData.spotify_id;
     this.song_title = postData.song_title;
