@@ -121,8 +121,16 @@ struct AccountInformationView: View {
 
     private func saveChanges() async {
         let trimmedPhone = phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+        let originalPhone = (user.phoneNumber ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasPhoneChanged = normalizedPhone(trimmedPhone) != normalizedPhone(originalPhone)
 
         errorMessage = nil
+
+        if !hasPhoneChanged {
+            dismiss()
+            return
+        }
+
         isSaving = true
         defer { isSaving = false }
 
@@ -137,5 +145,9 @@ struct AccountInformationView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func normalizedPhone(_ value: String) -> String {
+        value.filter(\.isNumber)
     }
 }
