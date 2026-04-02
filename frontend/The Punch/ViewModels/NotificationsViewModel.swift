@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum NotificationNavigationTarget {
+    case post(postId: Int)
+    case profile(userId: Int)
+}
+
 @MainActor
 final class NotificationsViewModel: ObservableObject {
     @Published var items: [NotificationItem] = []
@@ -91,8 +96,30 @@ final class NotificationsViewModel: ObservableObject {
             return "\(name) commented on your post"
         case "mention":
             return "\(name) mentioned you"
+        case "punch":
+            return "\(name) punched you 👊"
         default:
             return n.message ?? "Notification"
         }
+    }
+
+    func navigationTarget(for n: NotificationItem) -> NotificationNavigationTarget? {
+        let type = n.type.lowercased()
+
+        if type == "punch", let actorId = n.actorUserId {
+            return .profile(userId: actorId)
+        }
+
+        if let entityType = n.entityType?.lowercased(), let entityId = n.entityId {
+            if entityType == "post" {
+                return .post(postId: entityId)
+            }
+
+            if entityType == "user" {
+                return .profile(userId: entityId)
+            }
+        }
+
+        return nil
     }
 }
