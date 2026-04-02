@@ -467,7 +467,7 @@ static async updateAvatarUrl(id, avatar_url) {
       username: this.username,
       display_name: this.display_name,
       phone_number: this.phone_number,
-      discoverable_by_phone: discoverableByPhone,
+      discoverable_by_phone: this.discoverable_by_phone,
       bio: this.bio,
       created_at: this.created_at,
       follower_count: this.follower_count ?? 0,
