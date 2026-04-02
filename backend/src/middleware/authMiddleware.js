@@ -10,6 +10,13 @@ async function authenticateToken(req, res, next) {
 
     const decoded = await admin.auth().verifyIdToken(token);
 
+    if (decoded.firebase?.sign_in_provider === "password" && !decoded.email_verified) {
+      return res.status(403).json({
+        success: false,
+        message: "Email verification required"
+      });
+    }
+
     // decoded.uid is the Firebase UID
     const dbUser = await User.findByFirebaseUid(decoded.uid);
     if (!dbUser) {

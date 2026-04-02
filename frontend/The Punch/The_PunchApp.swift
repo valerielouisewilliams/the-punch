@@ -29,7 +29,9 @@ struct The_PunchApp: App {
     var body: some Scene {
         WindowGroup {
             if authManager.isAuthenticated {
-                if authManager.currentUser?.username.hasPrefix("user_") == true {
+                if authManager.requiresEmailVerification && !authManager.isEmailVerified {
+                    EmailVerificationView()
+                } else if authManager.currentUser?.username.hasPrefix("user_") == true {
                     UsernameSetupView()
                         .environmentObject(authManager)
                 } else {

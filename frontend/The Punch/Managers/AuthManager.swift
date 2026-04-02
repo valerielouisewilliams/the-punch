@@ -23,6 +23,7 @@ final class AuthManager: ObservableObject {
         authListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self else { return }
             self.isAuthenticated = (user != nil)
+            self.isEmailVerified = user?.isEmailVerified ?? false
 
             // If we just logged in and don't have an app user yet, load it
             if user != nil, self.currentUser == nil {
@@ -43,6 +44,13 @@ final class AuthManager: ObservableObject {
     }
 
     @Published var isAuthenticated: Bool = false
+    @Published var isEmailVerified: Bool = false
+
+    var requiresEmailVerification: Bool {
+        guard let user = Auth.auth().currentUser else { return false }
+        let providers = user.providerData.map { $0.providerID }
+        return providers.contains("password")
+    }
 
     @Published var currentUser: User? {
         didSet {
@@ -90,6 +98,29 @@ final class AuthManager: ObservableObject {
         } catch {
             print("Failed to load current user:", error)
         }
+    }
+
+    func sendEmailVerification() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw APIError.noToken
+        }
+        try await user.sendEmailVerification()
+    }
+
+    func refreshEmailVerificationStatus() async throws -> Bool {
+        guard let user = Auth.auth().currentUser else {
+            throw APIError.noToken
+        }
+
+        try await user.reload()
+        let verified = Auth.auth().currentUser?.isEmailVerified ?? false
+        self.isEmailVerified = verified
+
+        if verified, self.currentUser == nil {
+            try await syncSessionWithBackend()
+        }
+
+        return verified
     }
     // Full logout
     func logout() {
