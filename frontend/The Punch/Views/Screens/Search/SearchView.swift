@@ -246,8 +246,7 @@ struct SearchView: View {
         let store = CNContactStore()
         
         do {
-            let granted = try await withCheckedThrowingContinuation { continuation in
-                store.requestAccess(for: .contacts) { granted, error in
+            let granted: Bool = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in                store.requestAccess(for: .contacts) { granted, error in
                     if let error {
                         continuation.resume(throwing: error)
                     } else {

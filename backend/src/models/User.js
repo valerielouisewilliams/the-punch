@@ -457,11 +457,10 @@ static async updateAvatarUrl(id, avatar_url) {
   return this.findByIdWithStats(id);
 }
 
-  getPublicProfile() {
-  const discoverableByPhone =
-    (this.discoverable_by_phone === undefined || this.discoverable_by_phone === null)
-      ? null
-      : Boolean(this.discoverable_by_phone);
+getPublicProfile() {
+  const discoverableByPhone = (this.discoverable_by_phone === undefined || this.discoverable_by_phone === null)
+    ? null
+    : Boolean(this.discoverable_by_phone);
 
   return {
     id: this.id,
@@ -474,8 +473,10 @@ static async updateAvatarUrl(id, avatar_url) {
     follower_count: this.follower_count ?? 0,
     following_count: this.following_count ?? 0,
     avatar_url: this.avatar_url,
+    // include is_following (true/false) or null if not applicable
     is_following: (this.is_following === undefined) ? null : this.is_following,
   };
+}
 }
 
 module.exports = User;
