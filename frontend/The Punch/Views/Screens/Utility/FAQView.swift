@@ -29,7 +29,7 @@ struct FAQView: View {
             FAQItem(question: "How do I create an account?",
                     answer: "Tap 'Don't have an account? Sign Up' on the login screen. Then, fill in your username, display name, email, and password. Finally, accept the terms, and you're in."),
             FAQItem(question: "How do I reset my password?",
-                    answer: "Coming soon!"),
+                    answer: "On the login screen, enter your account email and tap 'Forgot password?'. We'll send you a reset link by email."),
         ]),
         FAQSection(title: "Posting", items: [
             FAQItem(question: "What is a Punch?",
