@@ -458,25 +458,24 @@ static async updateAvatarUrl(id, avatar_url) {
 }
 
   getPublicProfile() {
-    const discoverableByPhone = (this.discoverable_by_phone === undefined || this.discoverable_by_phone === null)
+  const discoverableByPhone =
+    (this.discoverable_by_phone === undefined || this.discoverable_by_phone === null)
       ? null
       : Boolean(this.discoverable_by_phone);
 
-    return {
-      id: this.id,
-      username: this.username,
-      display_name: this.display_name,
-      phone_number: this.phone_number,
-      discoverable_by_phone: this.discoverable_by_phone,
-      bio: this.bio,
-      created_at: this.created_at,
-      follower_count: this.follower_count ?? 0,
-      following_count: this.following_count ?? 0,
-      avatar_url: this.avatar_url,
-      // include is_following (true/false) or null if not applicable
-      is_following: (this.is_following === undefined) ? null : this.is_following,
-    };
-  }
+  return {
+    id: this.id,
+    username: this.username,
+    display_name: this.display_name,
+    phone_number: this.phone_number,
+    discoverable_by_phone: discoverableByPhone,
+    bio: this.bio,
+    created_at: this.created_at,
+    follower_count: this.follower_count ?? 0,
+    following_count: this.following_count ?? 0,
+    avatar_url: this.avatar_url,
+    is_following: (this.is_following === undefined) ? null : this.is_following,
+  };
 }
 
 module.exports = User;
