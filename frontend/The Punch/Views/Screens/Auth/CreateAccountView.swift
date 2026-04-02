@@ -275,9 +275,10 @@ struct CreateAccountView: View {
         defer { isLoading = false }
         
         do {
-            _ = try await Auth.auth().createUser(withEmail: email, password: password)
+            let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
+            let firebaseUser = authResult.user
 
-            if let firebaseUser = Auth.auth().currentUser, !firebaseUser.isEmailVerified {
+            if !firebaseUser.isEmailVerified {
                 try await firebaseUser.sendEmailVerification()
                 infoMessage = "We sent a verification email to \(email). Verify it, then tap I’ve Verified on the next screen."
                 showInfo = true
