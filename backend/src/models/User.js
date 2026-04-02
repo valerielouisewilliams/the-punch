@@ -44,45 +44,6 @@ class User {
     const password_hash = await bcrypt.hash(password, saltRounds);
 
     const normalizedPhoneNumber = normalizePhoneNumber(phone_number);
-    const phoneNumberHash = hashValue(normalizedPhoneNumber);
-
-    const query = `INSERT INTO users (username, email, password_hash, display_name, phone_number, phone_number_hash, discoverable_by_phone) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    
-    const [result] = await pool.execute(
-      query,
-      [
-        username,
-        email,
-        password_hash,
-        display_name || username,
-        normalizedPhoneNumber,
-        phoneNumberHash,
-        discoverable_by_phone
-      ]
-    );
-    
-    // Return the new user (without password)
-    return this.findById(result.insertId);
-  }
-
-    static async findByFirebaseUid(firebaseUid) {
-    const query = "SELECT * FROM users WHERE firebase_uid = ? AND is_active = true";
-    const [rows] = await pool.execute(query, [firebaseUid]);
-    return rows.length > 0 ? new User(rows[0]) : null;
-  }
-
-  static async createFromFirebase({ firebase_uid, email }) {
-    // Create a placeholder user row. We'll fill username/display_name in complete-profile.
-    const query = `
-      INSERT INTO users (firebase_uid, email, username, display_name)
-      VALUES (?, ?, CONCAT('user_', FLOOR(RAND()*1000000)), 'New User')
-    `;
-    const [result] = await pool.execute(query, [firebase_uid, email]);
-    return this.findById(result.insertId);
-  }
-
-  static async updateProfileByFirebaseUid(firebaseUid, { username, display_name, phone_number, discoverable_by_phone }) {
     const normalizedPhoneNumber = normalizePhoneNumber(phone_number);
     const phoneNumberHash = hashValue(normalizedPhoneNumber);
 
@@ -93,6 +54,10 @@ class User {
     `;
     await pool.execute(query, [username, display_name, normalizedPhoneNumber, phoneNumberHash, discoverable_by_phone, firebaseUid]);
     return this.findByFirebaseUid(firebaseUid)
+  }
+
+  static normalizePhoneNumber(phone) {
+    return normalizePhoneNumber(phone);
   }
 
   // find user by ID

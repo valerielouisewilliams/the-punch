@@ -1,6 +1,6 @@
 // handles user registration and login
 const User = require('../models/User');
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const admin = require("../config/firebaseAdmin");
 
 // POST /api/auth/session
@@ -69,7 +69,13 @@ const completeProfile = async (req, res) => {
     return res.status(200).json({ success: true, data: updated.getPublicProfile() });
   } catch (err) {
     console.error("Complete profile error:", err);
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    if (err?.message === 'Invalid phone number format') {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    if (typeof err?.code === 'string' && err.code.startsWith('auth/')) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+    return res.status(500).json({ success: false, message: "Could not complete profile" });
   }
 };
 
@@ -140,6 +146,12 @@ const register = async (req, res) => {
     console.error('Registration error:', error);
     console.error('Error details:', error.message);           // ADD THIS
     console.error('Error stack:', error.stack);               // ADD THIS
+    if (error?.message === 'Invalid phone number format') {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Something went wrong during registration'
