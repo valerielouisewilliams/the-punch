@@ -1,6 +1,7 @@
 const Punch = require('../models/Punch');
 const User = require('../models/User');
 const pushService = require('../services/pushService'); // adjust path if needed
+const Notification = require('../models/Notification');
 
 const punchController = {
     async sendPunch(req, res) {
@@ -36,6 +37,15 @@ const punchController = {
         const punch = await Punch.create({
         sender_id: senderIdNum,
         receiver_id: receiverId
+        });
+
+        await Notification.create({
+        recipient_user_id: receiverId,
+        actor_user_id: senderIdNum,
+        type: 'punch',
+        entity_type: null,
+        entity_id: null,
+        message: null
         });
 
         try {
