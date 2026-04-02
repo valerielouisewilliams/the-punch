@@ -1,6 +1,25 @@
 // defines how to work with users in the database
 const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+// Helper Functions
+const normalizePhoneNumber = (phone) => {
+  if (!phone) return null;
+
+  const digits = phone.replace(/\D/g, '');
+
+  // Simple US-only normalization for now
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+
+  return null;
+};
+
+const hashValue = (value) => {
+  if (!value) return null;
+  return crypto.createHash('sha256').update(value).digest('hex');
+};
 
 class User {
   constructor(userData) {
@@ -13,20 +32,34 @@ class User {
     this.bio = userData.bio;
     this.created_at = userData.created_at;
     this.avatar_url = userData.avatar_url;
+    this.phone_number = userData.phone_number;
+    this.phone_number_hash = userData.phone_number_hash;
+    this.discoverable_by_phone = userData.discoverable_by_phone;
   }
 
   // create a new user
-  static async create({ username, email, password, display_name }) {
+  static async create({ username, email, password, display_name, phone_number, discoverable_by_phone = true }) {
     // hash the password for security
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
 
-    const query = `INSERT INTO users (username, email, password_hash, display_name) 
-       VALUES (?, ?, ?, ?)`;
+    const normalizedPhoneNumber = normalizePhoneNumber(phone_number);
+    const phoneNumberHash = hashValue(normalizedPhoneNumber);
+
+    const query = `INSERT INTO users (username, email, password_hash, display_name, phone_number, phone_number_hash, discoverable_by_phone) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`;
     
     const [result] = await pool.execute(
       query,
-      [username, email, password_hash, display_name || username]
+      [
+        username,
+        email,
+        password_hash,
+        display_name || username,
+        normalizedPhoneNumber,
+        phoneNumberHash,
+        discoverable_by_phone
+      ]
     );
     
     // Return the new user (without password)
@@ -49,13 +82,16 @@ class User {
     return this.findById(result.insertId);
   }
 
-  static async updateProfileByFirebaseUid(firebaseUid, { username, display_name }) {
+  static async updateProfileByFirebaseUid(firebaseUid, { username, display_name, phone_number, discoverable_by_phone }) {
+    const normalizedPhoneNumber = normalizePhoneNumber(phone_number);
+    const phoneNumberHash = hashValue(normalizedPhoneNumber);
+
     const query = `
       UPDATE users
-      SET username = ?, display_name = ?
+      SET username = ?, display_name = ?, phone_number = ?, phone_number_hash = ?, discoverable_by_phone = COALESCE(?, discoverable_by_phone)
       WHERE firebase_uid = ? AND is_active = true
     `;
-    await pool.execute(query, [username, display_name, firebaseUid]);
+    await pool.execute(query, [username, display_name, normalizedPhoneNumber, phoneNumberHash, discoverable_by_phone, firebaseUid]);
     return this.findByFirebaseUid(firebaseUid)
   }
 
@@ -75,6 +111,42 @@ class User {
     const [rows] = await pool.execute(query, [email]);
     
     return rows.length > 0 ? new User(rows[0]) : null;
+  }
+
+  static async findByPhoneNumber(phoneNumber) {
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    if (!normalizedPhone) return null;
+
+    const query = 'SELECT * FROM users WHERE phone_number_hash = ? AND is_active = true';
+    const [rows] = await pool.execute(query, [hashValue(normalizedPhone)]);
+    return rows.length > 0 ? new User(rows[0]) : null;
+  }
+
+  static async findSuggestedByPhoneNumbers(currentUserId, phoneNumbers = []) {
+    const hashes = [...new Set(
+      phoneNumbers
+        .map(normalizePhoneNumber)
+        .filter(Boolean)
+        .map(hashValue)
+        .filter(Boolean)
+    )];
+
+    if (hashes.length === 0) return [];
+
+    const placeholders = hashes.map(() => '?').join(', ');
+    const query = `
+      SELECT id, username, display_name, bio, avatar_url
+      FROM users
+      WHERE is_active = true
+        AND discoverable_by_phone = true
+        AND phone_number_hash IN (${placeholders})
+        AND id != ?
+      ORDER BY created_at DESC
+      LIMIT 20
+    `;
+
+    const [rows] = await pool.execute(query, [...hashes, currentUserId]);
+    return rows;
   }
 
   // check if password is correct
@@ -245,6 +317,7 @@ async getFeed(limit = 20, offset = 0, daysBack = 2) {
   return User.getUserFeed(this.id, limit, offset, daysBack);
 }
 
+
 // BONUS: Get feed including user's own posts
 static async getUserFeedWithOwnPosts(userId, limit = 20, offset = 0, daysBack = 2) {
   try {
@@ -365,6 +438,8 @@ static async updateAvatarUrl(id, avatar_url) {
       id: this.id,
       username: this.username,
       display_name: this.display_name,
+      phone_number: this.phone_number,
+      discoverable_by_phone: this.discoverable_by_phone,
       bio: this.bio,
       created_at: this.created_at,
       follower_count: this.follower_count ?? 0,
