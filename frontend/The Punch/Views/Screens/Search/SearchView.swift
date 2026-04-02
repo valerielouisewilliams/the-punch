@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Contacts
 
 /// Search for users by username and tap through to their profile.
 struct SearchView: View {
@@ -18,30 +19,9 @@ struct SearchView: View {
 
     @StateObject private var auth = AuthManager.shared
 
-    // Mock suggestions for V1 UI
-    @State private var suggestedFriends: [UserProfile] = [
-        UserProfile(
-            id: 101,
-            username: "maya",
-            displayName: "Maya Chen",
-            bio: nil,
-            avatarUrl: nil
-        ),
-        UserProfile(
-            id: 102,
-            username: "jasmine",
-            displayName: "Jasmine Lee",
-            bio: nil,
-            avatarUrl: nil
-        ),
-        UserProfile(
-            id: 103,
-            username: "ava",
-            displayName: "Ava Thompson",
-            bio: nil,
-            avatarUrl: nil
-        )
-    ]
+    @State private var suggestedFriends: [UserProfile] = []
+    @State private var isLoadingSuggestions = false
+    @State private var contactsStatus = CNContactStore.authorizationStatus(for: .contacts)
 
     private var trimmedQuery: String {
         query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -81,6 +61,11 @@ struct SearchView: View {
             searchTask = Task {
                 try? await Task.sleep(nanoseconds: 300_000_000)
                 await performSearch()
+            }
+        }
+        .onAppear {
+            if contactsStatus == .authorized {
+                Task { await loadSuggestedFriendsFromContacts() }
             }
         }
     }
@@ -135,21 +120,55 @@ struct SearchView: View {
                     .foregroundColor(.white.opacity(0.65))
             }
             .padding(.horizontal)
+            
+            if contactsStatus != .authorized {
+                contactsPermissionPrompt
+            } else if isLoadingSuggestions {
+                loadingView
+            } else if suggestedFriends.isEmpty {
+                Text("No matches yet. Add your phone number in sign up and try again later.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.65))
+                    .padding(.horizontal)
+            }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(suggestedFriends) { user in
-                        NavigationLink {
-                            UserProfileView(userId: user.id)
-                        } label: {
-                            SuggestedFriendCard(user: user)
+            if !suggestedFriends.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(suggestedFriends) { user in
+                            NavigationLink {
+                                UserProfileView(userId: user.id)
+                            } label: {
+                                SuggestedFriendCard(user: user)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
             }
         }
+    }
+    
+    private var contactsPermissionPrompt: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Allow Contacts Access")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(.white)
+            Text("We use contact phone numbers to suggest friends who already use ThePunch.")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.75))
+            Button("Enable Contacts") {
+                Task { await requestContactsPermissionAndLoadSuggestions() }
+            }
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.black.opacity(0.8))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .padding(.horizontal)
     }
 
     private var loadingView: some View {
@@ -221,6 +240,63 @@ struct SearchView: View {
             }
             print("Search error:", error)
         }
+    }
+    
+    private func requestContactsPermissionAndLoadSuggestions() async {
+        let store = CNContactStore()
+        
+        do {
+            let granted = try await withCheckedThrowingContinuation { continuation in
+                store.requestAccess(for: .contacts) { granted, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: granted)
+                    }
+                }
+            }
+            await MainActor.run {
+                contactsStatus = CNContactStore.authorizationStatus(for: .contacts)
+            }
+            if granted {
+                await loadSuggestedFriendsFromContacts()
+            }
+        } catch {
+            print("Contacts permission error:", error)
+        }
+    }
+    
+    private func loadSuggestedFriendsFromContacts() async {
+        await MainActor.run { isLoadingSuggestions = true }
+        
+        do {
+            let phoneNumbers = try fetchDeviceContactPhoneNumbers()
+            let response = try await APIService.shared.suggestedUsersByContacts(phoneNumbers: phoneNumbers)
+            await MainActor.run {
+                suggestedFriends = response.data
+                isLoadingSuggestions = false
+            }
+        } catch {
+            await MainActor.run {
+                suggestedFriends = []
+                isLoadingSuggestions = false
+            }
+            print("Suggested friends error:", error)
+        }
+    }
+    
+    private func fetchDeviceContactPhoneNumbers() throws -> [String] {
+        let store = CNContactStore()
+        let keys = [CNContactPhoneNumbersKey as CNKeyDescriptor]
+        let request = CNContactFetchRequest(keysToFetch: keys)
+        
+        var numbers = Set<String>()
+        try store.enumerateContacts(with: request) { contact, _ in
+            for phone in contact.phoneNumbers {
+                numbers.insert(phone.value.stringValue)
+            }
+        }
+        return Array(numbers)
     }
 }
 

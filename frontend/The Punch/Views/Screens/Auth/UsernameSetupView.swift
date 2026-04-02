@@ -135,7 +135,9 @@ struct UsernameSetupView: View {
             try await APIService.shared.completeProfile(
                 firebaseToken: token,
                 username: username.trimmingCharacters(in: .whitespaces),
-                displayName: displayName.isEmpty ? username : displayName
+                displayName: displayName.isEmpty ? username : displayName,
+                phoneNumber: nil,
+                discoverableByPhone: true
             )
             try await AuthManager.shared.syncSessionWithBackend()
         } catch {
