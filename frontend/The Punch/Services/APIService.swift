@@ -809,6 +809,16 @@ enum PunchError: LocalizedError {
 }
 
 extension APIService {
+    func deleteMyAccount() async throws -> SimpleResponse {
+        let token = try await AuthManager.shared.firebaseIdToken(forceRefresh: false)
+        return try await makeRequest(
+            endpoint: "/users/me",
+            method: "DELETE",
+            token: token,
+            responseType: SimpleResponse.self
+        )
+    }
+
     func updateAccountInformation(phoneNumber: String?) async throws -> User {
         guard let url = URL(string: "\(baseURL)/auth/me/account-info") else {
             throw URLError(.badURL)

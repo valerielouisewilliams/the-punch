@@ -286,6 +286,39 @@ const updateMyAvatar = async (req, res) => {
   }
 };
 
+const deleteMyAccount = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const firebaseUid = req.user?.firebase_uid;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    await User.deleteAccount(userId);
+
+    if (firebaseUid) {
+      try {
+        const admin = require('../config/firebaseAdmin');
+        await admin.auth().deleteUser(firebaseUid);
+      } catch (firebaseError) {
+        console.warn(`Firebase deleteUser failed for uid=${firebaseUid}:`, firebaseError.message);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Could not delete account'
+    });
+  }
+};
+
 
 module.exports = {
   getUserByUsername,
@@ -295,5 +328,6 @@ module.exports = {
   updateUserProfile,
   searchUsers,
   updateMyAvatar,
-  getSuggestedUsersByContacts
+  getSuggestedUsersByContacts,
+  deleteMyAccount
 };

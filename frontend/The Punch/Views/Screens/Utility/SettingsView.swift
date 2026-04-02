@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -10,6 +11,9 @@ struct SettingsView: View {
 
     @State private var showLegalSheet = false
     @State private var legalPage: LegalSheetView.Page = .terms
+    @State private var showDeleteAccountAlert = false
+    @State private var isDeletingAccount = false
+    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -19,6 +23,22 @@ struct SettingsView: View {
                 List {
 
                     Section {
+                        if let user = auth.currentUser {
+                            NavigationLink {
+                                AccountInformationView(
+                                    user: user,
+                                    onUserUpdated: { updated in
+                                        onProfileUpdated?(updated)
+                                    }
+                                )
+                            } label: {
+                                HStack {
+                                    Image(systemName: "person.text.rectangle")
+                                    Text("Account Information")
+                                }
+                            }
+                        }
+
                         if let user = auth.currentUser {
                             NavigationLink {
                                 EditProfileView(user: user, onProfileUpdated: onProfileUpdated)
@@ -69,6 +89,19 @@ struct SettingsView: View {
 
                     Section {
                         Button(role: .destructive) {
+                            showDeleteAccountAlert = true
+                        } label: {
+                            HStack {
+                                if isDeletingAccount {
+                                    ProgressView()
+                                }
+                                Image(systemName: "trash")
+                                Text(isDeletingAccount ? "Deleting Account..." : "Delete Account")
+                            }
+                        }
+                        .disabled(isDeletingAccount)
+
+                        Button(role: .destructive) {
                             Task { await handleLogout() }
                         } label: {
                             HStack {
@@ -78,6 +111,14 @@ struct SettingsView: View {
                         }
                     } header: {
                         Text("Danger Zone")
+                    }
+
+                    if let errorMessage {
+                        Section {
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .font(.footnote)
+                        }
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -94,6 +135,14 @@ struct SettingsView: View {
             .sheet(isPresented: $showLegalSheet) {
                 LegalSheetView(initialPage: legalPage)
             }
+            .alert("Delete account permanently?", isPresented: $showDeleteAccountAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    Task { await handleDeleteAccount() }
+                }
+            } message: {
+                Text("This action permanently deactivates your account and removes your profile data. This cannot be undone.")
+            }
         }
     }
 
@@ -107,6 +156,40 @@ struct SettingsView: View {
             auth.logout()
             onLoggedOut?()
             dismiss()
+        }
+    }
+
+    private func handleDeleteAccount() async {
+        errorMessage = nil
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+
+        do {
+            _ = try await APIService.shared.deleteMyAccount()
+            if let currentFirebaseUser = Auth.auth().currentUser {
+                do {
+                    try await deleteFirebaseUser(currentFirebaseUser)
+                } catch {
+                    print("Firebase account deletion skipped:", error.localizedDescription)
+                }
+            }
+            auth.logout()
+            onLoggedOut?()
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func deleteFirebaseUser(_ user: FirebaseAuth.User) async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            user.delete { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
         }
     }
 }
