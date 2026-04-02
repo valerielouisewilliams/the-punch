@@ -229,34 +229,6 @@ struct PostCard: View {
             }
             .font(.footnote)
             
-            // MARK: - Comments Preview (for detail view)
-            if context == .detail, let comments = post.comments {
-                Divider()
-                    .background(Color.gray.opacity(0.3))
-                
-                if comments.isEmpty {
-                    Text("No comments yet")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .padding(.vertical, 8)
-                } else {
-                    ForEach(comments.prefix(3)) { comment in
-                        CommentView(
-                            comment: comment,
-                            onMentionTap: { username in
-                                openMentionProfile(username: username)
-                            }
-                        )
-                            .padding(.vertical, 4)
-                    }
-                    
-                    if comments.count > 3 {
-                        Text("View all \(comments.count) comments")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
         }
         .padding()
         .background(Color(red: 0.15, green: 0.13, blue: 0.13))
