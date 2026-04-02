@@ -9,22 +9,8 @@
 import SwiftUI
 
 struct AccountInformationView: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var auth: AuthManager
-
     let user: User
     var onUserUpdated: ((User) -> Void)? = nil
-
-    @State private var phoneNumber: String
-    @State private var isSaving = false
-    @State private var errorMessage: String?
-    @State private var showRemovePhoneAlert = false
-
-    init(user: User, onUserUpdated: ((User) -> Void)? = nil) {
-        self.user = user
-        self.onUserUpdated = onUserUpdated
-        _phoneNumber = State(initialValue: user.phoneNumber ?? "")
-    }
 
     var body: some View {
         ZStack {
@@ -48,44 +34,25 @@ struct AccountInformationView: View {
                         Image(systemName: "phone")
                             .foregroundColor(.secondary)
 
-                        TextField("Add phone number", text: $phoneNumber)
-                            .keyboardType(.phonePad)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
+                        Text(user.phoneNumber ?? "Unavailable")
                             .foregroundColor(.white)
                     }
-
-                    if !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Button(role: .destructive) {
-                            showRemovePhoneAlert = true
-                        } label: {
-                            Text("Remove Phone Number")
-                        }
-                    }
+                    Text("Phone number editing is temporarily unavailable.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                 }
 
-                if let errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.footnote)
-                    }
-                }
-
-                Section {
-                    Button {
-                        Task { await saveChanges() }
+                Section("Security") {
+                    NavigationLink {
+                        ChangePasswordView()
                     } label: {
                         HStack {
-                            if isSaving {
-                                ProgressView()
-                                    .tint(.white)
-                            }
-                            Text(isSaving ? "Saving..." : "Save Changes")
-                                .frame(maxWidth: .infinity)
+                            Image(systemName: "key")
+                                .foregroundColor(.secondary)
+                            Text("Change Password")
+                                .foregroundColor(.white)
                         }
                     }
-                    .disabled(isSaving)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -94,33 +61,5 @@ struct AccountInformationView: View {
         }
         .navigationTitle("Account Information")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Remove phone number?", isPresented: $showRemovePhoneAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Remove", role: .destructive) {
-                phoneNumber = ""
-            }
-        } message: {
-            Text("This will remove your phone number from your account.")
-        }
-    }
-
-    private func saveChanges() async {
-        let trimmedPhone = phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        errorMessage = nil
-        isSaving = true
-        defer { isSaving = false }
-
-        do {
-            let updatedUser = try await APIService.shared.updateAccountInformation(
-                phoneNumber: trimmedPhone.isEmpty ? nil : trimmedPhone
-            )
-
-            auth.currentUser = updatedUser
-            onUserUpdated?(updatedUser)
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
     }
 }

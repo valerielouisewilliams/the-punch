@@ -79,4 +79,8 @@ extension UserProfile: UserDisplayable {}
 
 struct UpdateAccountInformationRequest: Encodable {
     let phoneNumber: String?
+
+    enum CodingKeys: String, CodingKey {
+        case phoneNumber = "phone_number"
+    }
 }
