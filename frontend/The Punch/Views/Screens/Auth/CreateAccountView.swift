@@ -69,7 +69,7 @@ struct CreateAccountView: View {
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
                             RoundedSecureField(placeholder: "Password", text: $password)
-                            RoundedTextField(placeholder: "Phone Number (optional)", text: $phoneNumber)
+                            RoundedTextField(placeholder: "Phone Number", text: $phoneNumber)
                                 .keyboardType(.phonePad)
                             
                             Toggle("Allow friend suggestions by phone number", isOn: $discoverableByPhone)
@@ -122,6 +122,11 @@ struct CreateAccountView: View {
                                 if email.isEmpty { validationText("Email required") }
                                 if password.isEmpty { validationText("Password required") }
                                 else if password.count < 6 { validationText("Password must be at least 6 characters") }
+                                if phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    validationText("Phone number required")
+                                } else if !isValidPhoneNumber(phoneNumber) {
+                                    validationText("Enter a valid US phone number")
+                                }
                                 if !acceptedTerms { validationText("Must accept terms & conditions") }
                             }
                             .font(.caption)
@@ -216,6 +221,7 @@ struct CreateAccountView: View {
         !email.isEmpty &&
         isValidEmail(email) &&
         password.count >= 6 &&
+        isValidPhoneNumber(phoneNumber) &&
         acceptedTerms
     }
     
@@ -227,6 +233,17 @@ struct CreateAccountView: View {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+
+    /**
+     Validate US phone format used by backend normalization.
+     Accepts:
+     - 10 digits
+     - 11 digits starting with 1
+     */
+    func isValidPhoneNumber(_ phoneNumber: String) -> Bool {
+        let digits = phoneNumber.filter(\.isNumber)
+        return digits.count == 10 || (digits.count == 11 && digits.first == "1")
     }
     
     /**
