@@ -29,6 +29,13 @@ const session = async (req, res) => {
 
     const decoded = await admin.auth().verifyIdToken(token);
 
+    if (decoded.firebase?.sign_in_provider === 'password' && !decoded.email_verified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Email verification required'
+      });
+    }
+
     let user = await User.findByFirebaseUid(decoded.uid);
     if (!user) {
       user = await User.createFromFirebase({

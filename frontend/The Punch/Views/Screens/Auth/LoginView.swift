@@ -136,7 +136,7 @@ struct LoginView: View {
             .alert("Login Failed", isPresented: $showError) {
                 Button("OK") { }
             } message: { Text(errorMessage) }
-            .alert("Password Reset", isPresented: $showInfo) {
+            .alert("Info", isPresented: $showInfo) {
                 Button("OK") { }
             } message: { Text(infoMessage) }
         }
@@ -149,10 +149,16 @@ struct LoginView: View {
         
         do {
             _ = try await Auth.auth().signIn(withEmail: email, password: password)
-            
+
+            if let firebaseUser = Auth.auth().currentUser, !firebaseUser.isEmailVerified {
+                infoMessage = "Please verify your email before continuing. Use the verification screen to resend the email if needed."
+                showInfo = true
+                return
+            }
+
             // now tell backend “this Firebase user is signed in”
             try await AuthManager.shared.syncSessionWithBackend()
-            
+
         } catch {
             errorMessage = error.localizedDescription
             showError = true

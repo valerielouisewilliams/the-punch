@@ -30,6 +30,8 @@ struct CreateAccountView: View {
     @State private var isGoogleLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var infoMessage = ""
+    @State private var showInfo = false
     @State private var navigateToLogin = false
 
     @State private var showLegalSheet = false
@@ -199,6 +201,11 @@ struct CreateAccountView: View {
             } message: {
                 Text(errorMessage)
             }
+            .alert("Verify Email", isPresented: $showInfo) {
+                Button("OK") { }
+            } message: {
+                Text(infoMessage)
+            }
             .sheet(isPresented: $showLegalSheet) {
                 LegalSheetView(initialPage: legalPage)
             }
@@ -269,10 +276,16 @@ struct CreateAccountView: View {
         
         do {
             _ = try await Auth.auth().createUser(withEmail: email, password: password)
-            
+
+            if let firebaseUser = Auth.auth().currentUser, !firebaseUser.isEmailVerified {
+                try await firebaseUser.sendEmailVerification()
+                infoMessage = "We sent a verification email to \(email). Verify it, then tap I’ve Verified on the next screen."
+                showInfo = true
+            }
+
             // You still want username/displayName in *your* DB, so send it to backend
             let token = try await AuthManager.shared.firebaseIdToken()
-            
+
             try await APIService.shared.completeProfile(
                 firebaseToken: token,
                 username: username.trimmingCharacters(in: .whitespaces),
@@ -280,10 +293,12 @@ struct CreateAccountView: View {
                 phoneNumber: phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines),
                 discoverableByPhone: discoverableByPhone
             )
-            
-            // then pull /me (or have completeProfile return the user)
-            try await AuthManager.shared.syncSessionWithBackend()
-            
+
+            // only create backend session immediately if email is already verified
+            if Auth.auth().currentUser?.isEmailVerified == true {
+                try await AuthManager.shared.syncSessionWithBackend()
+            }
+
         } catch {
             errorMessage = error.localizedDescription
             showError = true
