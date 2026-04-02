@@ -362,11 +362,22 @@ class APIService {
     
     
     // User Endpoints
-    func completeProfile(firebaseToken: String, username: String, displayName: String) async throws -> UserResponse {
-        let body: [String: Any] = [
+    func completeProfile(
+        firebaseToken: String,
+        username: String,
+        displayName: String,
+        phoneNumber: String?,
+        discoverableByPhone: Bool
+    ) async throws -> UserResponse {
+        var body: [String: Any] = [
             "username": username,
-            "display_name": displayName
+            "display_name": displayName,
+            "discoverable_by_phone": discoverableByPhone
         ]
+        
+        if let phoneNumber = phoneNumber, !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["phone_number"] = phoneNumber
+        }
 
         return try await makeRequest(
             endpoint: "/auth/complete-profile",
@@ -430,6 +441,18 @@ class APIService {
         return try await makeRequest(
             endpoint: "/users/search?query=\(escaped)",
             method: "GET",
+            token: token,
+            responseType: UsersResponse.self
+        )
+    }
+    
+    func suggestedUsersByContacts(phoneNumbers: [String]) async throws -> UsersResponse {
+        let token = try await AuthManager.shared.firebaseIdToken()
+        let body: [String: Any] = ["phone_numbers": phoneNumbers]
+        return try await makeRequest(
+            endpoint: "/users/suggested-by-contacts",
+            method: "POST",
+            body: body,
             token: token,
             responseType: UsersResponse.self
         )

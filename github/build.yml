@@ -60,5 +60,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Syntax check backend JS
+        run: find src -name "*.js" -print0 | xargs -0 -n1 node --check
+
       - name: Run tests
         run: npm test || echo "no tests yet!"
