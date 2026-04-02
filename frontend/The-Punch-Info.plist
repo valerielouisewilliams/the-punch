@@ -41,6 +41,8 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSContactsUsageDescription</key>
+	<string>ThePunch uses your contacts to suggest friends by matching phone numbers.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

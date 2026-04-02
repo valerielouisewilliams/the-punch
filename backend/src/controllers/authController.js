@@ -1,6 +1,6 @@
 // handles user registration and login
 const User = require('../models/User');
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const admin = require("../config/firebaseAdmin");
 
 // POST /api/auth/session
@@ -39,9 +39,19 @@ const completeProfile = async (req, res) => {
 
     const decoded = await admin.auth().verifyIdToken(token);
 
-    const { username, display_name } = req.body;
+    const { username, display_name, phone_number, discoverable_by_phone } = req.body;
     if (!username) {
       return res.status(400).json({ success: false, message: "username is required" });
+    }
+
+    if (phone_number) {
+      const existingPhoneUser = await User.findByPhoneNumber(phone_number);
+      if (existingPhoneUser && existingPhoneUser.firebase_uid !== decoded.uid) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this phone number already exists'
+        });
+      }
     }
 
     // Ensure a user row exists
@@ -52,12 +62,20 @@ const completeProfile = async (req, res) => {
     const updated = await User.updateProfileByFirebaseUid(decoded.uid, {
       username,
       display_name: display_name || username,
+      phone_number,
+      discoverable_by_phone
     });
 
     return res.status(200).json({ success: true, data: updated.getPublicProfile() });
   } catch (err) {
     console.error("Complete profile error:", err);
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    if (err?.message === 'Invalid phone number format') {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    if (typeof err?.code === 'string' && err.code.startsWith('auth/')) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+    return res.status(500).json({ success: false, message: "Could not complete profile" });
   }
 };
 
@@ -73,7 +91,7 @@ const generateToken = (userId) => {
 // register new user
 const register = async (req, res) => {
   try {
-    const { username, email, password, display_name, phone_number } = req.body;    
+    const { username, email, password, display_name, phone_number, discoverable_by_phone } = req.body;
     // Basic validation
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -107,7 +125,8 @@ const register = async (req, res) => {
       email,
       password,
       display_name,
-      phone_number
+      phone_number,
+      discoverable_by_phone
     });
 
     // generate token
@@ -127,6 +146,12 @@ const register = async (req, res) => {
     console.error('Registration error:', error);
     console.error('Error details:', error.message);           // ADD THIS
     console.error('Error stack:', error.stack);               // ADD THIS
+    if (error?.message === 'Invalid phone number format') {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Something went wrong during registration'

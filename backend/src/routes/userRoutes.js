@@ -8,7 +8,8 @@ const {
   getUserById,
   getFollowers,
   getFollowing,
-  updateMyAvatar
+  updateMyAvatar,
+  getSuggestedUsersByContacts
 } = require('../controllers/userController');
 
 /**
@@ -17,6 +18,13 @@ const {
  * @access Public
  */
 router.get('/search', require('../controllers/userController').searchUsers);
+
+/**
+ * @route POST /api/users/suggested-by-contacts
+ * @desc Suggest users by matching uploaded contact phone numbers
+ * @access Private
+ */
+router.post('/suggested-by-contacts', authenticateToken, getSuggestedUsersByContacts);
 
 /**
  * @route   GET /api/users/username/:username

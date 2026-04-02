@@ -27,6 +27,8 @@ struct User: Codable, Identifiable {
     var followingCount: Int?
     var avatarUrl: String?
     var isFollowing: Bool?
+    var phoneNumber: String?
+    var discoverableByPhone: Bool?
 }
 
 struct UserProfile: Codable, Identifiable {
@@ -39,4 +41,3 @@ struct UserProfile: Codable, Identifiable {
 
 extension User: UserDisplayable {}
 extension UserProfile: UserDisplayable {}
-
