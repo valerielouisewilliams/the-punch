@@ -19,6 +19,8 @@ struct LoginView: View {
     @State private var isGoogleLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var infoMessage = ""
+    @State private var showInfo = false
     
     var body: some View {
         NavigationStack {
@@ -58,6 +60,13 @@ struct LoginView: View {
                             .foregroundColor(.white)
                     }
                     .padding(.horizontal, 50)
+                    
+                    Button("Forgot password?") {
+                        Task { await resetPassword() }
+                    }
+                    .foregroundColor(.white.opacity(0.85))
+                    .font(.footnote)
+                    .disabled(isLoading || isGoogleLoading)
 
                     // Log In button
                     if isLoading {
@@ -127,6 +136,9 @@ struct LoginView: View {
             .alert("Login Failed", isPresented: $showError) {
                 Button("OK") { }
             } message: { Text(errorMessage) }
+            .alert("Password Reset", isPresented: $showInfo) {
+                Button("OK") { }
+            } message: { Text(infoMessage) }
         }
     }
     
@@ -157,6 +169,26 @@ struct LoginView: View {
                     print("API Connection Failed:", error.localizedDescription)
                 }
             }
+        }
+    }
+    
+    // Password reset
+    func resetPassword() async {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Please enter your email first, then tap Forgot password."
+            showError = true
+            return
+        }
+        
+        do {
+            try await Auth.auth().sendPasswordReset(withEmail: trimmedEmail)
+            infoMessage = "We sent a password reset email to \(trimmedEmail). Check your inbox (and spam folder)."
+            showInfo = true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
     }
 }
