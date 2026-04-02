@@ -64,6 +64,21 @@ struct AccountInformationView: View {
                     }
                 }
 
+
+
+                Section("Security") {
+                    NavigationLink {
+                        ChangePasswordView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "key")
+                                .foregroundColor(.secondary)
+                            Text("Change Password")
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+
                 if let errorMessage {
                     Section {
                         Text(errorMessage)
