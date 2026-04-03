@@ -112,9 +112,12 @@ struct UserProfileView: View {
                         } else {
                             ForEach(posts.indices, id: \.self) { index in
                                 PostCard(post: posts[index], context: .profile)
-                                    .onTapGesture {
-                                        selectedPostIndex = index
-                                    }
+                                    .gesture(
+                                        TapGesture().onEnded {
+                                            selectedPostIndex = index
+                                        },
+                                        including: .gesture
+                                    )
                             }
                         }
                     }

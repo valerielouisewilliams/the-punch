@@ -55,9 +55,12 @@ struct FeedView: View {
                                         }
                                     )
                                     .padding(.horizontal, 12)
-                                    .onTapGesture {
-                                        selectedPostIndex = index
-                                    }
+                                    .gesture(
+                                        TapGesture().onEnded {
+                                            selectedPostIndex = index
+                                        },
+                                        including: .gesture
+                                    )
 
                                     // Infinite scroll trigger
                                     if index == posts.count - 1 && hasMore && !isLoading {
