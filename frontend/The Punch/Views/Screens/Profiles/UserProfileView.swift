@@ -110,8 +110,8 @@ struct UserProfileView: View {
                             .padding()
                             .frame(maxWidth: .infinity)
                         } else {
-                            ForEach(posts.indices, id: \.self) { index in
-                                PostCard(post: posts[index], context: .profile)
+                            ForEach(Array(posts.enumerated()), id: \.element.id) { index, post in
+                                PostCard(post: post, context: .profile)
                                     .gesture(
                                         TapGesture().onEnded {
                                             selectedPostIndex = index

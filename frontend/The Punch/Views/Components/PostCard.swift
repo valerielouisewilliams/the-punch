@@ -253,6 +253,16 @@ struct PostCard: View {
                 UserProfileView(userId: userId)
             }
         }
+        .onChange(of: post.id) { _ in
+            isLiked = post.stats.userHasLiked
+            likeCount = post.stats.likeCount
+        }
+        .onChange(of: post.stats.userHasLiked) { newValue in
+            isLiked = newValue
+        }
+        .onChange(of: post.stats.likeCount) { newValue in
+            likeCount = newValue
+        }
     }
         
     private var isOwnPost: Bool {
