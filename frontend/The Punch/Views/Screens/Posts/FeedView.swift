@@ -47,11 +47,11 @@ struct FeedView: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 16) {
-                                ForEach(posts.indices, id: \.self) { index in
+                                ForEach(Array(posts.enumerated()), id: \.element.id) { index, post in
                                     PostCard(
-                                        post: posts[index],
+                                        post: post,
                                         onAuthorTap: {
-                                            selectedAuthorId = posts[index].author.id
+                                            selectedAuthorId = post.author.id
                                         }
                                     )
                                     .padding(.horizontal, 12)
