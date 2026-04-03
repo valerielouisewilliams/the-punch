@@ -352,10 +352,21 @@ struct UserProfileView: View {
                 self.isLoadingUser = false
             }
         } catch {
+            if error is CancellationError {
+                await MainActor.run {
+                    self.isLoadingUser = false
+                }
+                return
+            }
+
             await MainActor.run {
                 self.isLoadingUser = false
-                self.errorMessage = "Failed to load user profile."
-                self.showError = true
+                // During pull-to-refresh, keep existing profile visible and avoid showing
+                // a false-negative alert if stale data is already on screen.
+                if self.user == nil {
+                    self.errorMessage = "Failed to load user profile."
+                    self.showError = true
+                }
             }
             print("loadUser error:", error)
         }
