@@ -289,9 +289,9 @@ struct PostCard: View {
                 let token = try await authManager.firebaseIdToken()
 
                 if prevLiked == false {
-                    _ = try await APIService.shared.likePost(postId: post.id, token: token)
+                    try await APIService.shared.likePost(postId: post.id, token: token)
                 } else {
-                    _ = try await APIService.shared.unlikePost(postId: post.id, token: token)
+                    try await APIService.shared.unlikePost(postId: post.id, token: token)
                 }
 
                 // success: nothing else needed

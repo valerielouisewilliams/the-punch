@@ -91,6 +91,39 @@ class APIService {
             throw APIError.decodingError
         }
     }
+
+    // Helper for endpoints where a 2xx status is enough and response shape may vary.
+    private func makeRequestWithoutDecoding(
+        endpoint: String,
+        method: String,
+        body: [String: Any]? = nil,
+        token: String? = nil
+    ) async throws {
+        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        if let body = body {
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        }
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+    }
     
 
     // Authentication Endpoints
@@ -244,24 +277,20 @@ class APIService {
     // Like Endpoints
     
     /// Like a post (requires authentication)
-    func likePost(postId: Int, token: String) async throws -> MessageResponse {
-        let token = try await AuthManager.shared.firebaseIdToken()
-        return try await makeRequest(
+    func likePost(postId: Int, token: String) async throws {
+        try await makeRequestWithoutDecoding(
             endpoint: "/likes/post/\(postId)",
             method: "POST",
-            token: token,
-            responseType: MessageResponse.self
+            token: token
         )
     }
     
     /// Unlike a post (requires authentication)
-    func unlikePost(postId: Int, token: String) async throws -> MessageResponse {
-        let token = try await AuthManager.shared.firebaseIdToken()
-        return try await makeRequest(
+    func unlikePost(postId: Int, token: String) async throws {
+        try await makeRequestWithoutDecoding(
             endpoint: "/likes/post/\(postId)",
             method: "DELETE",
-            token: token,
-            responseType: MessageResponse.self
+            token: token
         )
     }
     
