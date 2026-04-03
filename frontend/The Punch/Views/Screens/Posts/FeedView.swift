@@ -11,6 +11,7 @@ struct FeedView: View {
     @StateObject private var notifsVM = NotificationsViewModel()
     @State private var showNotifs = false
     @State private var selectedAuthorId: Int?
+    @State private var selectedPostIndex: Int?
 
     @StateObject private var authManager = AuthManager.shared
 
@@ -47,18 +48,19 @@ struct FeedView: View {
                         ScrollView {
                             LazyVStack(spacing: 16) {
                                 ForEach(posts.indices, id: \.self) { index in
-                                    NavigationLink {
-                                        PostDetailView(post: $posts[index])
-                                    } label: {
-                                        PostCard(
-                                            post: posts[index],
-                                            onAuthorTap: {
-                                                selectedAuthorId = posts[index].author.id
-                                            }
-                                        )
-                                        .padding(.horizontal, 12)
-                                    }
-                                    .buttonStyle(.plain)
+                                    PostCard(
+                                        post: posts[index],
+                                        onAuthorTap: {
+                                            selectedAuthorId = posts[index].author.id
+                                        }
+                                    )
+                                    .padding(.horizontal, 12)
+                                    .gesture(
+                                        TapGesture().onEnded {
+                                            selectedPostIndex = index
+                                        },
+                                        including: .gesture
+                                    )
 
                                     // Infinite scroll trigger
                                     if index == posts.count - 1 && hasMore && !isLoading {
@@ -120,6 +122,17 @@ struct FeedView: View {
             )) {
                 if let userId = selectedAuthorId {
                     UserProfileView(userId: userId)
+                }
+            }
+            .navigationDestination(isPresented: Binding(
+                get: {
+                    guard let index = selectedPostIndex else { return false }
+                    return posts.indices.contains(index)
+                },
+                set: { if !$0 { selectedPostIndex = nil } }
+            )) {
+                if let index = selectedPostIndex, posts.indices.contains(index) {
+                    PostDetailView(post: $posts[index])
                 }
             }
         }
@@ -254,4 +267,3 @@ struct FeedView: View {
         }
     }
 }
-

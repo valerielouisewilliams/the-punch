@@ -19,6 +19,7 @@ struct UserProfileView: View {
     
     // Prevent overlapping loads
     @State private var isFetching = false
+    @State private var selectedPostIndex: Int?
     
     var body: some View {
         ZStack {
@@ -110,12 +111,13 @@ struct UserProfileView: View {
                             .frame(maxWidth: .infinity)
                         } else {
                             ForEach(posts.indices, id: \.self) { index in
-                                NavigationLink {
-                                    PostDetailView(post: $posts[index])
-                                } label: {
-                                    PostCard(post: posts[index], context: .profile)
-                                }
-                                .buttonStyle(.plain)
+                                PostCard(post: posts[index], context: .profile)
+                                    .gesture(
+                                        TapGesture().onEnded {
+                                            selectedPostIndex = index
+                                        },
+                                        including: .gesture
+                                    )
                             }
                         }
                     }
@@ -124,6 +126,17 @@ struct UserProfileView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: Binding(
+            get: {
+                guard let index = selectedPostIndex else { return false }
+                return posts.indices.contains(index)
+            },
+            set: { if !$0 { selectedPostIndex = nil } }
+        )) {
+            if let index = selectedPostIndex, posts.indices.contains(index) {
+                PostDetailView(post: $posts[index])
+            }
+        }
         
         // SETTINGS SHEET
         .sheet(isPresented: $showSettings) {
@@ -376,4 +389,3 @@ struct UserProfileView: View {
         }
     }
 }
-
