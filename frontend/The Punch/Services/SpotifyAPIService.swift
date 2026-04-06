@@ -20,7 +20,7 @@ final class SpotifyAPIService {
 
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
         
-        guard let url = URL(string: "http://3.130.171.129:3000/api/spotify/search?q=\(encodedQuery)") else {
+        guard let url = URL(string: "https://api.thepunchapp.com/api/spotify/search?q=\(encodedQuery)") else {
             throw URLError(.badURL)
         }
 

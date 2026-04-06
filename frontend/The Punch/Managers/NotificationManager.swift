@@ -218,7 +218,7 @@ class NotificationManager: NSObject,
 
             guard let idToken = idToken else { return }
 
-            guard let url = URL(string: "http://3.130.171.129:3000/api/notifications/device-token") else { return }
+            guard let url = URL(string: "https://api.thepunchapp.com/api/notifications/device-token") else { return }
 
 
             var request = URLRequest(url: url)

@@ -11,11 +11,8 @@ import FirebaseAuth
 class APIService {
     static let shared = APIService()
     
-    // Backend URL for sim testing
-//    private let baseURL = "http://localhost:3000/api" // for simulator
-    
     // Backend URL for device testing
-    private let baseURL = URL(string: "http://3.130.171.129:3000/api")!
+    private let baseURL = URL(string: "https://api.thepunchapp.com/api")!
 
     private init() {}
     
@@ -886,7 +883,7 @@ final class PunchService {
     
     private init() {}
     
-    private let baseURL = "http://3.130.171.129:3000"
+    private let baseURL = "https://api.thepunchapp.com"
     
     func sendPunch(to userId: Int) async throws {
         guard let url = URL(string: "\(baseURL)/api/punches/user/\(userId)") else {

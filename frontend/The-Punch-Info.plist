@@ -15,34 +15,6 @@
 	</array>
 	<key>ENABLE_PUSH</key>
 	<string>$(ENABLE_PUSH)</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>3.130.171.129
-3.130.171.129
-3.130.171.129
-3.130.171.129
-3.130.171.129</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
-	<key>NSContactsUsageDescription</key>
-	<string>ThePunch uses your contacts to suggest friends by matching phone numbers.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

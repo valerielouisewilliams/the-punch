@@ -39,7 +39,7 @@ struct S3AvatarUploader {
     /// Returns the final public URL to store in avatarUrl / avatar_url.
     static func uploadAvatar(
         _ image: UIImage,
-        apiBaseURL: URL,          // e.g. http://3.130.171.129:3000/api
+        apiBaseURL: URL,        
         token: String
     ) async throws -> String {
         let token = try await AuthManager.shared.firebaseIdToken()

@@ -12,7 +12,7 @@ import PhotosUI
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var authManager = AuthManager.shared
-    private let baseURL = URL(string: "http://3.130.171.129:3000/api")!
+    private let baseURL = URL(string: "https://api.thepunchapp.com/api")!
 
     let user: User
     var onProfileUpdated: ((User) -> Void)? = nil
