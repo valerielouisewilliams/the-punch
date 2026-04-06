@@ -7,19 +7,6 @@
 
 import Foundation
 
-// Auth Responses
-
-struct AuthResponse: Codable {
-    let success: Bool
-    let message: String
-    let data: AuthData
-}
-
-struct AuthData: Codable {
-    let user: User
-    let token: String
-}
-
 // User Responses
 
 struct UserResponse: Codable {
@@ -159,4 +146,3 @@ struct SimpleResponse: Codable {
     let message: String?
     let error: String?
 }
-

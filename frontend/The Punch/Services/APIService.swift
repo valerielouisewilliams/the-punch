@@ -123,40 +123,6 @@ class APIService {
     }
     
 
-    // Authentication Endpoints
-    
-    /// Register a new user
-    func register(username: String, email: String, password: String, displayName: String) async throws -> AuthResponse {
-        let body: [String: Any] = [
-            "username": username,
-            "email": email,
-            "password": password,
-            "display_name": displayName
-        ]
-        
-        return try await makeRequest(
-            endpoint: "/auth/register",
-            method: "POST",
-            body: body,
-            responseType: AuthResponse.self,
-        )
-    }
-    
-    /// Login with email and password
-    func login(email: String, password: String) async throws -> AuthResponse {
-        let body: [String: Any] = [
-            "email": email,
-            "password": password
-        ]
-        
-        return try await makeRequest(
-            endpoint: "/auth/login",
-            method: "POST",
-            body: body,
-            responseType: AuthResponse.self
-        )
-    }
-    
     // Creates/refreshes a backend session based on Firebase token (returns your User)
     func createSession(firebaseToken: String) async throws -> UserResponse {
         return try await makeRequest(

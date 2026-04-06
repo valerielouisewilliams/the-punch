@@ -1,16 +1,6 @@
 // handles user registration and login
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const admin = require('../config/firebaseAdmin');
-
-// helper function to create JWT tokens
-const generateToken = (userId) => {
-  return jwt.sign(
-    { id: userId },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' }
-  );
-};
 
 // POST /api/auth/session
 // Verifies Firebase token and ensures there is a linked DB user.
@@ -140,119 +130,6 @@ const completeProfile = async (req, res) => {
   }
 };
 
-// register new user
-const register = async (req, res) => {
-  try {
-    const { username, email, password, display_name, phone_number, discoverable_by_phone } = req.body;
-
-    if (!username || !email || !password || !phone_number || !String(phone_number).trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide username, email, password, and phone number'
-      });
-    }
-
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists'
-      });
-    }
-
-    const existingPhoneUser = await User.findByPhoneNumber(phone_number);
-    if (existingPhoneUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this phone number already exists'
-      });
-    }
-
-    const user = await User.create({
-      username,
-      email,
-      password,
-      display_name,
-      phone_number,
-      discoverable_by_phone
-    });
-
-    const token = generateToken(user.id);
-
-    return res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        user: user.getPublicProfile(),
-        token
-      }
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
-
-    if (error?.message === 'Invalid phone number format') {
-      return res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: 'Something went wrong during registration'
-    });
-  }
-};
-
-// login user
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email and password'
-      });
-    }
-
-    const user = await User.findByEmail(email);
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    const isPasswordCorrect = await user.checkPassword(password);
-    if (!isPasswordCorrect) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    const token = generateToken(user.id);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        user: user.getPublicProfile(),
-        token
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Something went wrong during login'
-    });
-  }
-};
-
 // get current user (from token)
 const getCurrentUser = async (req, res) => {
   try {
@@ -319,8 +196,6 @@ const updateAccountInformation = async (req, res) => {
 };
 
 module.exports = {
-  register,
-  login,
   getCurrentUser,
   session,
   completeProfile,
