@@ -168,11 +168,11 @@ struct LoginView: View {
         func testAPIConnection() {
             Task {
                 do {
-                    print("Testing API connection…")
+                    appLog("Testing API connection…")
                     let response = try await APIService.shared.getPosts()
-                    print("API Connected! Found \(response.data.count) posts")
+                    appLog("API Connected! Found \(response.data.count) posts")
                 } catch {
-                    print("API Connection Failed:", error.localizedDescription)
+                    appLog("API Connection Failed:", error.localizedDescription)
                 }
             }
         }

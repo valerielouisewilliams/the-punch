@@ -31,7 +31,7 @@ final class SpotifySearchViewModel: ObservableObject {
         do {
             tracks = try await SpotifyAPIService.shared.searchTracks(query: trimmed)
         } catch {
-            print("Spotify search error: \(error)")
+            appLog("Spotify search error: \(error)")
             errorMessage = "Could not search songs right now."
             tracks = []
         }

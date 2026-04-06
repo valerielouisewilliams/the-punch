@@ -26,7 +26,7 @@ final class UserLookup: ObservableObject {
         } catch {
             // fallback label on failure
             names[userId] = "user\(userId)"
-            print("Username lookup failed: \(error)")
+            appLog("Username lookup failed: \(error)")
         }
     }
 
@@ -44,7 +44,7 @@ final class UserLookup: ObservableObject {
             names[resp.data.id] = resp.data.username
             return resp.data.id
         } catch {
-            print("User ID lookup failed for @\(username): \(error)")
+            appLog("User ID lookup failed for @\(username): \(error)")
             return nil
         }
     }
@@ -115,7 +115,7 @@ final class MentionAutocompleteViewModel: ObservableObject {
                     if merged.count >= 8 { break }
                 }
             } catch {
-                print("Mention search failed: \(error)")
+                appLog("Mention search failed: \(error)")
             }
         }
 
@@ -137,7 +137,7 @@ final class MentionAutocompleteViewModel: ObservableObject {
             followingCache = resp.following
             followingLoadedForUserId = userId
         } catch {
-            print("Failed loading following list for mention suggestions: \(error)")
+            appLog("Failed loading following list for mention suggestions: \(error)")
             followingCache = []
             followingLoadedForUserId = userId
         }

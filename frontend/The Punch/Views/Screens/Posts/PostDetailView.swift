@@ -229,7 +229,7 @@ struct PostDetailView: View {
                     errorMessage = "Failed to load comments"
                     isLoadingComments = false
                 }
-                print("Failed to load comments:", error)
+                appLog("Failed to load comments:", error)
             }
         }
     }
@@ -302,7 +302,7 @@ struct PostDetailView: View {
                     errorMessage = "Failed to post comment"
                     isPostingComment = false
                 }
-                print("Failed to post comment:", error)
+                appLog("Failed to post comment:", error)
             }
         }
     }

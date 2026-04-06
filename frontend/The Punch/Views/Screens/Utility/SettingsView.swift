@@ -170,7 +170,7 @@ struct SettingsView: View {
                 do {
                     try await deleteFirebaseUser(currentFirebaseUser)
                 } catch {
-                    print("Firebase account deletion skipped:", error.localizedDescription)
+                    appLog("Firebase account deletion skipped:", error.localizedDescription)
                 }
             }
             auth.logout()

@@ -2,13 +2,6 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config({ path: __dirname + '/.env' });
 
-console.log('Loaded .env values:', {
-  DB_HOST: process.env.DB_HOST,
-  DB_USER: process.env.DB_USER,
-  DB_PASSWORD: process.env.DB_PASSWORD ? '(hidden)' : 'undefined',
-  DB_NAME: process.env.DB_NAME
-});
-
 // create a connection pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST,

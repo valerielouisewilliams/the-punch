@@ -53,8 +53,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/test-db', async (req, res) => {
-  console.log('DB_USER:', process.env.DB_USER)
-
   try {
     const { pool } = require('../config/database');
     

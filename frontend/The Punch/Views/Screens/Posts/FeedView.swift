@@ -240,7 +240,7 @@ struct FeedView: View {
             token = try await authManager.firebaseIdToken()
         } catch {
             // soft-fail pagination
-            print("Not logged in; can't paginate.")
+            appLog("Not logged in; can't paginate.")
             return
         }
 
@@ -263,7 +263,7 @@ struct FeedView: View {
             }
         } catch {
             // soft-fail pagination
-            print("Load more error:", error)
+            appLog("Load more error:", error)
         }
     }
 }

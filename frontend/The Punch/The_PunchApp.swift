@@ -11,6 +11,15 @@ import UIKit
 import FirebaseMessaging
 import GoogleSignIn
 
+/// Debug-only logging helper.
+/// In release builds this is a no-op to avoid shipping verbose or sensitive logs.
+func appLog(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+    #if DEBUG
+    let output = items.map { String(describing: $0) }.joined(separator: separator)
+    Swift.print(output, terminator: terminator)
+    #endif
+}
+
 @main
 struct The_PunchApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -57,7 +66,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        print("Failed to register for remote notifications:", error.localizedDescription)
+        appLog("Failed to register for remote notifications:", error.localizedDescription)
     }
 
     // Required for Google Sign-In to handle the redirect URL
@@ -84,8 +93,8 @@ private func configureFirebase() {
         fatalError("Could not load Firebase plist: \(plistName)")
     }
 
-    print("Bundle ID:", bundleID)
-    print("Using plist:", plistName)
+    appLog("Bundle ID:", bundleID)
+    appLog("Using plist:", plistName)
 
     FirebaseApp.configure(options: options)
 }

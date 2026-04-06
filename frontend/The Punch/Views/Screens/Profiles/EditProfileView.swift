@@ -80,7 +80,7 @@ struct EditProfileView: View {
                             selectedImage = image
                         }
                     } catch {
-                        print("Image pick error:", error)
+                        appLog("Image pick error:", error)
                     }
                 }
             }
@@ -169,7 +169,7 @@ struct EditProfileView: View {
                     isSaving = false
                     errorMessage = "Failed to upload image."
                 }
-                print("S3 upload error:", error)
+                appLog("S3 upload error:", error)
                 return
             }
         }
@@ -211,7 +211,7 @@ struct EditProfileView: View {
                     errorMessage = "Failed to update profile."
                 }
             }
-            print("Update profile error:", error)
+            appLog("Update profile error:", error)
         }
     }
 }

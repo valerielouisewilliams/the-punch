@@ -59,9 +59,9 @@ final class AuthManager: ObservableObject {
                 Task {
                     do {
                         let token = try await firebaseIdToken()
-                        print("Firebase Token:", token)
+                        appLog("Firebase Token:", token)
                     } catch {
-                        print("Error getting Firebase token:", error)
+                        appLog("Error getting Firebase token:", error)
                     }
                 }
             } else {
@@ -96,7 +96,7 @@ final class AuthManager: ObservableObject {
             let response = try await APIService.shared.getCurrentUser(firebaseToken: token)
             self.currentUser = response.data
         } catch {
-            print("Failed to load current user:", error)
+            appLog("Failed to load current user:", error)
         }
     }
 
@@ -127,7 +127,7 @@ final class AuthManager: ObservableObject {
         do {
             try Auth.auth().signOut()
         } catch {
-            print("Firebase signOut failed:", error)
+            appLog("Firebase signOut failed:", error)
         }
         currentUser = nil
     }

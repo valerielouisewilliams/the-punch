@@ -120,7 +120,7 @@ struct CommentRow: View {
                     onDelete()
                 }
             } catch {
-                print("Failed to delete comment: \(error)")
+                appLog("Failed to delete comment: \(error)")
                 await MainActor.run {
                     isDeleting = false
                 }

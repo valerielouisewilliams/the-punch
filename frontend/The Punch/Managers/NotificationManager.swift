@@ -29,7 +29,7 @@ class NotificationManager: NSObject,
         super.init()
 
         guard pushEnabled else {
-            print("Push-related delegates not configured for this build")
+            appLog("Push-related delegates not configured for this build")
             return
         }
 
@@ -47,7 +47,7 @@ class NotificationManager: NSObject,
     // - MARK: Messaging and Token Upload
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let token = fcmToken else { return }
-        print("🔥 FCM TOKEN RECEIVED:\n\(token)")
+        appLog("🔥 FCM TOKEN RECEIVED:\n\(token)")
         pendingFCMToken = token
         tryUploadPendingToken()
     }
@@ -55,7 +55,7 @@ class NotificationManager: NSObject,
     func tryUploadPendingToken() {
         guard let token = pendingFCMToken else { return }
         guard Auth.auth().currentUser != nil else {
-            print("No Firebase user yet — will upload token after login")
+            appLog("No Firebase user yet — will upload token after login")
             return
         }
         sendTokenToBackend(token)
@@ -65,7 +65,7 @@ class NotificationManager: NSObject,
     // MARK: - Permission
     func requestPermission() {
         guard pushEnabled else {
-            print("Push disabled for this build")
+            appLog("Push disabled for this build")
             return
         }
 
@@ -73,11 +73,11 @@ class NotificationManager: NSObject,
             options: [.alert, .badge, .sound]
         ) { granted, error in
             if let error = error {
-                print("Permission error:", error.localizedDescription)
+                appLog("Permission error:", error.localizedDescription)
                 return
             }
 
-            print("Notifications permission granted:", granted)
+            appLog("Notifications permission granted:", granted)
 
             guard granted else { return }
             DispatchQueue.main.async {
@@ -117,7 +117,7 @@ class NotificationManager: NSObject,
         
         // If we already scheduled for today and not forcing a new one, skip
         if savedDay == today && !forceNew {
-            print("Already scheduled today's Punch notification")
+            appLog("Already scheduled today's Punch notification")
             return
         }
         
@@ -125,7 +125,7 @@ class NotificationManager: NSObject,
         let punchDate = generateRandomPunchTime()
         let id = UUID().uuidString
         
-        print("Scheduled Punch at:", punchDate)
+        appLog("Scheduled Punch at:", punchDate)
         
         // Store metadata
         UserDefaults.standard.set(punchDate, forKey: punchTimeKey)
@@ -161,9 +161,9 @@ class NotificationManager: NSObject,
         
         center.add(request) { err in
             if let err = err {
-                print("Failed to schedule punch:", err.localizedDescription)
+                appLog("Failed to schedule punch:", err.localizedDescription)
             } else {
-                print("Daily Punch notification scheduled!")
+                appLog("Daily Punch notification scheduled!")
             }
         }
     }
@@ -179,7 +179,7 @@ class NotificationManager: NSObject,
         let req = UNNotificationRequest(identifier: "testPunch", content: content, trigger: trigger)
         
         UNUserNotificationCenter.current().add(req)
-        print("Test notification scheduled for \(seconds)s")
+        appLog("Test notification scheduled for \(seconds)s")
     }
     
     // MARK: - Getters
@@ -206,13 +206,13 @@ class NotificationManager: NSObject,
     // MARK: - Sending Device Token to Backend
     private func sendTokenToBackend(_ fcmToken: String) {
         guard let user = Auth.auth().currentUser else {
-            print("No Firebase user yet — skipping device token upload")
+            appLog("No Firebase user yet — skipping device token upload")
             return
         }
 
         user.getIDToken { idToken, error in
             if let error = error {
-                print("Failed to get ID token:", error.localizedDescription)
+                appLog("Failed to get ID token:", error.localizedDescription)
                 return
             }
 
@@ -235,12 +235,12 @@ class NotificationManager: NSObject,
 
             URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
-                    print("Device token upload failed:", error.localizedDescription)
+                    appLog("Device token upload failed:", error.localizedDescription)
                     return
                 }
 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("Device token upload status:", httpResponse.statusCode)
+                    appLog("Device token upload status:", httpResponse.statusCode)
                 }
             }.resume()
         }
