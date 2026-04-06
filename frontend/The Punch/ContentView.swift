@@ -43,18 +43,18 @@ struct WelcomeView: View {
                 // Buttons
                 VStack(spacing: 18) {
                     OrangeButton(title: "Get Started") {
-                        print("Get Started tapped")
+                        appLog("Get Started tapped")
                     }
                     
                     OrangeButton(title: "Log In") {
-                        print("Log In tapped")
+                        appLog("Log In tapped")
                     }
                 }
                 .padding(.horizontal, 50)
                 .padding(.bottom, 80)
             }
             .onReceive(NotificationCenter.default.publisher(for: .punchTimeTriggered)) { _ in
-                print("🔥 Punch Time triggered!")
+                appLog("🔥 Punch Time triggered!")
                 
                 if let date = NotificationManager.shared.getTodayPunchTime(),
                    let id = NotificationManager.shared.getTodayPunchId() {

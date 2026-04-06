@@ -80,7 +80,6 @@ async function searchTracks(query) {
       }
     });
 
-    console.log(response.data);
 
     // Clean up the response that Spotify sends you
     return response.data.tracks.items.map((track) => ({

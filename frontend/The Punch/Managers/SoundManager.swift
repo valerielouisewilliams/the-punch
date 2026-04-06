@@ -19,7 +19,7 @@ class SoundManager {
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
-            print("Error playing sound: \(error.localizedDescription)")
+            appLog("Error playing sound: \(error.localizedDescription)")
         }
     }
 

@@ -24,7 +24,7 @@ final class NotificationsViewModel: ObservableObject {
             let resp = try await APIService.shared.getUnreadCount()
             unreadCount = resp.unread
         } catch {
-            print("Unread count failed:", error)
+            appLog("Unread count failed:", error)
         }
     }
 
@@ -37,7 +37,7 @@ final class NotificationsViewModel: ObservableObject {
             unreadCount = resp.data.filter { $0.isUnread }.count
         } catch {
             errorMessage = "Failed to load notifications"
-            print("Inbox load failed:", error)
+            appLog("Inbox load failed:", error)
         }
         isLoading = false
     }
@@ -52,7 +52,7 @@ final class NotificationsViewModel: ObservableObject {
         do {
             _ = try await APIService.shared.markNotificationRead(id: id)
         } catch {
-            print("Mark read failed:", error)
+            appLog("Mark read failed:", error)
             // rollback by refreshing
             await loadInbox(unreadOnly: false)
             await refreshUnreadCount()
@@ -68,7 +68,7 @@ final class NotificationsViewModel: ObservableObject {
         do {
             _ = try await APIService.shared.deleteNotification(id: id)
         } catch {
-            print("Delete failed:", error)
+            appLog("Delete failed:", error)
             await loadInbox(unreadOnly: false)
             await refreshUnreadCount()
         }
@@ -81,7 +81,7 @@ final class NotificationsViewModel: ObservableObject {
             await refreshUnreadCount()
         } catch {
             errorMessage = "Failed to mark all as read"
-            print("Mark all read failed:", error)
+            appLog("Mark all read failed:", error)
         }
     }
 

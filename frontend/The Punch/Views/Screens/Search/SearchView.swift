@@ -238,7 +238,7 @@ struct SearchView: View {
                 results = []
                 isLoading = false
             }
-            print("Search error:", error)
+            appLog("Search error:", error)
         }
     }
     
@@ -261,7 +261,7 @@ struct SearchView: View {
                 await loadSuggestedFriendsFromContacts()
             }
         } catch {
-            print("Contacts permission error:", error)
+            appLog("Contacts permission error:", error)
         }
     }
     
@@ -280,7 +280,7 @@ struct SearchView: View {
                 suggestedFriends = []
                 isLoadingSuggestions = false
             }
-            print("Suggested friends error:", error)
+            appLog("Suggested friends error:", error)
         }
     }
     

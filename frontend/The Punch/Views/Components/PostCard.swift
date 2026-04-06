@@ -34,7 +34,7 @@ struct PostCard: View {
         self.post = post
         self.context = context
         self.onAuthorTap = onAuthorTap
-        print("PostCard init - post \(post.id): userHasLiked = \(post.stats.userHasLiked), likeCount = \(post.stats.likeCount)")
+        appLog("PostCard init - post \(post.id): userHasLiked = \(post.stats.userHasLiked), likeCount = \(post.stats.likeCount)")
         self._isLiked = State(initialValue: post.stats.userHasLiked)
         self._likeCount = State(initialValue: post.stats.likeCount)
     }
@@ -270,7 +270,7 @@ struct PostCard: View {
     }
     
     private func submitReport(reason: String) {
-        print("Reported post \(post.id) for: \(reason)")
+        appLog("Reported post \(post.id) for: \(reason)")
         isHidden = true
             NotificationCenter.default.post(
                 name: .postDidDelete,
@@ -314,7 +314,7 @@ struct PostCard: View {
                     likeCount = prevCount
                     likeInFlight = false
                 }
-                print("Like toggle failed:", error)
+                appLog("Like toggle failed:", error)
             }
         }
     }
@@ -334,7 +334,7 @@ struct PostCard: View {
                     userInfo: ["id": post.id]
                 )
             } catch {
-                print("Delete failed:", error)
+                appLog("Delete failed:", error)
             }
         }
     }

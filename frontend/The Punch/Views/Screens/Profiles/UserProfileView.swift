@@ -368,7 +368,7 @@ struct UserProfileView: View {
                     self.showError = true
                 }
             }
-            print("loadUser error:", error)
+            appLog("loadUser error:", error)
         }
     }
     
@@ -393,7 +393,7 @@ struct UserProfileView: View {
                 self.isLoadingPosts = false
             }
         } catch {
-            print("Error loading posts:", error)
+            appLog("Error loading posts:", error)
             await MainActor.run {
                 self.isLoadingPosts = false
             }

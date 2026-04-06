@@ -95,7 +95,7 @@ struct FollowersListView: View {
                     self.errorMessage = "Failed to load followers."
                 }
             }
-            print("Followers load error:", error)
+            appLog("Followers load error:", error)
         }
     }
 }

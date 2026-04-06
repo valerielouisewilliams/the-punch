@@ -32,12 +32,12 @@ final class SpotifyAPIService {
 
         guard 200...299 ~= httpResponse.statusCode else {
             let body = String(data: data, encoding: .utf8) ?? "No response body"
-            print("Spotify search failed with status \(httpResponse.statusCode): \(body)")
+            appLog("Spotify search failed with status \(httpResponse.statusCode): \(body)")
             throw URLError(.badServerResponse)
         }
         
         let raw = String(data: data, encoding: .utf8) ?? "Could not decode raw response"
-        print("RAW SPOTIFY RESPONSE:", raw)
+        appLog("RAW SPOTIFY RESPONSE:", raw)
         
         let decoded = try JSONDecoder().decode(SpotifySearchResponse.self, from: data)
         return decoded.tracks

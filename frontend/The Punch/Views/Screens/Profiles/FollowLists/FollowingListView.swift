@@ -94,7 +94,7 @@ struct FollowingListView: View {
                 }
             }
 
-            print("Following load error:", error)
+            appLog("Following load error:", error)
         }
     }
 }

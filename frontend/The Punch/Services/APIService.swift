@@ -54,17 +54,17 @@ class APIService {
         
         // Debug stuff: Print response for troubleshooting
         #if DEBUG
-        print("[\(method)] \(endpoint) - Status: \(httpResponse.statusCode)")
+        appLog("[\(method)] \(endpoint) - Status: \(httpResponse.statusCode)")
         if let jsonString = String(data: data, encoding: .utf8) {
-            print("Response: \(jsonString)")
+            appLog("Response: \(jsonString)")
         }
         #endif
         
         #if DEBUG
-        print("REQUEST URL:", request.url?.absoluteString ?? "nil")
-        print("REQUEST HEADERS:", request.allHTTPHeaderFields ?? [:])
+        appLog("REQUEST URL:", request.url?.absoluteString ?? "nil")
+        appLog("REQUEST HEADERS:", request.allHTTPHeaderFields ?? [:])
         if let body = request.httpBody, let s = String(data: body, encoding: .utf8) {
-            print("REQUEST BODY:", s)
+            appLog("REQUEST BODY:", s)
         }
         #endif
 
@@ -81,9 +81,9 @@ class APIService {
             let decoded = try decoder.decode(T.self, from: data)
             return decoded
         } catch {
-            print("Decoding error: \(error)")
+            appLog("Decoding error: \(error)")
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("Raw JSON: \(jsonString)")
+                appLog("Raw JSON: \(jsonString)")
             }
             throw APIError.decodingError
         }
@@ -581,8 +581,8 @@ extension APIService {
         guard let http = resp as? HTTPURLResponse else { throw APIError.invalidResponse }
 
         // Loud logging helps a ton during setup
-        print("GET /feed status:", http.statusCode)
-        print("RAW /feed:", String(data: data, encoding: .utf8) ?? "<non-utf8>")
+        appLog("GET /feed status:", http.statusCode)
+        appLog("RAW /feed:", String(data: data, encoding: .utf8) ?? "<non-utf8>")
 
         // Handle non-2xx properly and surface server message if present
         guard (200...299).contains(http.statusCode) else {
@@ -613,9 +613,9 @@ extension APIService {
 
         //  Raw body before decoding
         if let http = resp as? HTTPURLResponse {
-            print("GET /posts status:", http.statusCode)
+            appLog("GET /posts status:", http.statusCode)
         }
-        print("RAW /posts JSON:\n", String(data: data, encoding: .utf8) ?? "<non-utf8>")
+        appLog("RAW /posts JSON:\n", String(data: data, encoding: .utf8) ?? "<non-utf8>")
 
         // Decode
         let decoder = JSONDecoder()

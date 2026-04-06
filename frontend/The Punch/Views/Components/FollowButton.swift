@@ -54,7 +54,7 @@ struct FollowButton: View {
                 self.isFollowing = status.following
             }
         } catch {
-            print("checkIfFollowing failed:", error)
+            appLog("checkIfFollowing failed:", error)
         }
     }
 
@@ -94,7 +94,7 @@ struct FollowButton: View {
                 ]
             )
         } catch {
-            print("toggleFollow failed:", error)
+            appLog("toggleFollow failed:", error)
         }
     }
 }
