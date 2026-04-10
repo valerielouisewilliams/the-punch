@@ -15,6 +15,8 @@ struct UsernameSetupView: View {
 
     @State private var username = ""
     @State private var displayName = ""
+    @State private var phoneNumber = ""
+    @State private var discoverableByPhone = true
     @State private var acceptedTerms = false
     @State private var isLoading = false
     @State private var errorMessage = ""
@@ -47,6 +49,13 @@ struct UsernameSetupView: View {
                         .autocapitalization(.none)
 
                     RoundedTextField(placeholder: "Display Name (optional)", text: $displayName)
+
+                    RoundedTextField(placeholder: "Phone Number", text: $phoneNumber)
+                        .keyboardType(.phonePad)
+
+                    Toggle("Allow friend suggestions by phone number", isOn: $discoverableByPhone)
+                        .toggleStyle(SwitchToggleStyle(tint: .orange))
+                        .foregroundColor(.white.opacity(0.9))
                 }
                 .padding(.horizontal, 40)
                 .padding(.top, 10)
@@ -77,6 +86,9 @@ struct UsernameSetupView: View {
                     VStack(spacing: 4) {
                         if username.count < 3 {
                             validationText("Username must be at least 3 characters")
+                        }
+                        if !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isValidPhoneNumber(phoneNumber) {
+                            validationText("Enter a valid US phone number")
                         }
                         if !acceptedTerms {
                             validationText("Must accept terms & conditions")
@@ -114,7 +126,17 @@ struct UsernameSetupView: View {
     }
 
     var isFormValid: Bool {
-        username.count >= 3 && acceptedTerms
+        username.count >= 3 && isPhoneNumberValidOrEmpty && acceptedTerms
+    }
+
+    var isPhoneNumberValidOrEmpty: Bool {
+        let trimmed = phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty || isValidPhoneNumber(trimmed)
+    }
+
+    func isValidPhoneNumber(_ phoneNumber: String) -> Bool {
+        let digits = phoneNumber.filter(\.isNumber)
+        return digits.count == 10 || (digits.count == 11 && digits.first == "1")
     }
 
     func validationText(_ text: String) -> some View {
@@ -136,8 +158,8 @@ struct UsernameSetupView: View {
                 firebaseToken: token,
                 username: username.trimmingCharacters(in: .whitespaces),
                 displayName: displayName.isEmpty ? username : displayName,
-                phoneNumber: nil,
-                discoverableByPhone: true
+                phoneNumber: phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines),
+                discoverableByPhone: discoverableByPhone
             )
             try await AuthManager.shared.syncSessionWithBackend()
         } catch {

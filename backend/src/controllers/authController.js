@@ -72,19 +72,14 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    if (!phone_number || !String(phone_number).trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'phone_number is required'
-      });
-    }
-
-    const existingPhoneUser = await User.findByPhoneNumber(phone_number);
-    if (existingPhoneUser && existingPhoneUser.firebase_uid !== decoded.uid) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this phone number already exists'
-      });
+    if (phone_number && String(phone_number).trim()) {
+      const existingPhoneUser = await User.findByPhoneNumber(phone_number);
+      if (existingPhoneUser && existingPhoneUser.firebase_uid !== decoded.uid) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this phone number already exists'
+        });
+      }
     }
 
     let user = await User.findByFirebaseUid(decoded.uid);
