@@ -839,7 +839,9 @@ extension APIService {
             ])
         }
 
-        let decoded = try JSONDecoder().decode(UserResponse.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let decoded = try decoder.decode(UserResponse.self, from: data)
         return decoded.data
     }
 }

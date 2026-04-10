@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import AuthenticationServices
 
 /**
 The view that allows users to create accounts.
@@ -17,6 +18,7 @@ struct CreateAccountView: View {
     // Connect to AuthManager to handle authentication
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var googleSignIn = GoogleSignInHandler()
+    @StateObject private var appleSignIn = AppleSignInHandler()
 
     @State private var username = ""
     @State private var email = ""
@@ -28,6 +30,7 @@ struct CreateAccountView: View {
 
     @State private var isLoading = false
     @State private var isGoogleLoading = false
+    @State private var isAppleLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var infoMessage = ""
@@ -71,7 +74,7 @@ struct CreateAccountView: View {
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
                             RoundedSecureField(placeholder: "Password", text: $password)
-                            RoundedTextField(placeholder: "Phone Number", text: $phoneNumber)
+                            RoundedTextField(placeholder: "Phone Number (optional)", text: $phoneNumber)
                                 .keyboardType(.phonePad)
                             
                             Toggle("Allow friend suggestions by phone number", isOn: $discoverableByPhone)
@@ -124,9 +127,7 @@ struct CreateAccountView: View {
                                 if email.isEmpty { validationText("Email required") }
                                 if password.isEmpty { validationText("Password required") }
                                 else if password.count < 6 { validationText("Password must be at least 6 characters") }
-                                if phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    validationText("Phone number required")
-                                } else if !isValidPhoneNumber(phoneNumber) {
+                                if !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isValidPhoneNumber(phoneNumber) {
                                     validationText("Enter a valid US phone number")
                                 }
                                 if !acceptedTerms { validationText("Must accept terms & conditions") }
@@ -143,7 +144,7 @@ struct CreateAccountView: View {
                         .padding(.horizontal, 50)
 
                         // Sign up with Google
-                        if isGoogleLoading {
+                        if isGoogleLoading || isAppleLoading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 .scaleEffect(1.5)
@@ -173,6 +174,25 @@ struct CreateAccountView: View {
                                 .background(Color.white)
                                 .cornerRadius(25)
                             }
+                            .padding(.horizontal, 50)
+
+                            SignInWithAppleButton(.signUp) { request in
+                                appleSignIn.prepare(request: request)
+                            } onCompletion: { result in
+                                Task {
+                                    isAppleLoading = true
+                                    defer { isAppleLoading = false }
+                                    do {
+                                        try await appleSignIn.handle(result: result)
+                                    } catch {
+                                        errorMessage = error.localizedDescription
+                                        showError = true
+                                    }
+                                }
+                            }
+                            .signInWithAppleButtonStyle(.white)
+                            .frame(height: 50)
+                            .cornerRadius(25)
                             .padding(.horizontal, 50)
                         }
 
@@ -228,10 +248,15 @@ struct CreateAccountView: View {
         !email.isEmpty &&
         isValidEmail(email) &&
         password.count >= 6 &&
-        isValidPhoneNumber(phoneNumber) &&
+        isPhoneNumberValidOrEmpty &&
         acceptedTerms
     }
     
+    var isPhoneNumberValidOrEmpty: Bool {
+        let trimmed = phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty || isValidPhoneNumber(trimmed)
+    }
+
     /**
      Validate email format.
      Uses regex to check if email looks valid.
