@@ -86,7 +86,7 @@ final class AppleSignInHandler: ObservableObject {
             }
 
             let credential = OAuthProvider.credential(
-                providerID: "apple.com",
+                providerID: .apple,
                 idToken: idTokenString,
                 rawNonce: nonce
             )
