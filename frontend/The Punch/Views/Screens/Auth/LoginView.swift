@@ -7,16 +7,19 @@
 
 import SwiftUI
 import FirebaseAuth
+import AuthenticationServices
 
 struct LoginView: View {
     // Single source of truth for auth state
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var googleSignIn = GoogleSignInHandler()
+    @StateObject private var appleSignIn = AppleSignInHandler()
 
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
     @State private var isGoogleLoading = false
+    @State private var isAppleLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var infoMessage = ""
@@ -66,7 +69,7 @@ struct LoginView: View {
                     }
                     .foregroundColor(.white.opacity(0.85))
                     .font(.footnote)
-                    .disabled(isLoading || isGoogleLoading)
+                    .disabled(isLoading || isGoogleLoading || isAppleLoading)
 
                     // Log In button
                     if isLoading {
@@ -91,7 +94,7 @@ struct LoginView: View {
                     .padding(.horizontal, 50)
 
                     // Sign in with Google
-                    if isGoogleLoading {
+                    if isGoogleLoading || isAppleLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             .scaleEffect(1.5)
@@ -121,6 +124,25 @@ struct LoginView: View {
                             .background(Color.white)
                             .cornerRadius(25)
                         }
+                        .padding(.horizontal, 50)
+
+                        SignInWithAppleButton(.signIn) { request in
+                            appleSignIn.prepare(request: request)
+                        } onCompletion: { result in
+                            Task {
+                                isAppleLoading = true
+                                defer { isAppleLoading = false }
+                                do {
+                                    try await appleSignIn.handle(result: result)
+                                } catch {
+                                    errorMessage = error.localizedDescription
+                                    showError = true
+                                }
+                            }
+                        }
+                        .signInWithAppleButtonStyle(.white)
+                        .frame(height: 50)
+                        .cornerRadius(25)
                         .padding(.horizontal, 50)
                     }
 
