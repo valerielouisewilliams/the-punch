@@ -74,7 +74,7 @@ struct CreateAccountView: View {
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
                             RoundedSecureField(placeholder: "Password", text: $password)
-                            RoundedTextField(placeholder: "Phone Number", text: $phoneNumber)
+                            RoundedTextField(placeholder: "Phone Number (optional)", text: $phoneNumber)
                                 .keyboardType(.phonePad)
                             
                             Toggle("Allow friend suggestions by phone number", isOn: $discoverableByPhone)
@@ -127,9 +127,7 @@ struct CreateAccountView: View {
                                 if email.isEmpty { validationText("Email required") }
                                 if password.isEmpty { validationText("Password required") }
                                 else if password.count < 6 { validationText("Password must be at least 6 characters") }
-                                if phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    validationText("Phone number required")
-                                } else if !isValidPhoneNumber(phoneNumber) {
+                                if !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isValidPhoneNumber(phoneNumber) {
                                     validationText("Enter a valid US phone number")
                                 }
                                 if !acceptedTerms { validationText("Must accept terms & conditions") }
@@ -250,10 +248,15 @@ struct CreateAccountView: View {
         !email.isEmpty &&
         isValidEmail(email) &&
         password.count >= 6 &&
-        isValidPhoneNumber(phoneNumber) &&
+        isPhoneNumberValidOrEmpty &&
         acceptedTerms
     }
     
+    var isPhoneNumberValidOrEmpty: Bool {
+        let trimmed = phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty || isValidPhoneNumber(trimmed)
+    }
+
     /**
      Validate email format.
      Uses regex to check if email looks valid.
